@@ -9,7 +9,7 @@ rcui.Namespace({
                 }
             }
         }
-
+        
         return RLabel();
     })()
 });
