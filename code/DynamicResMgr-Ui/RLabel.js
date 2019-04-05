@@ -6,7 +6,7 @@ rcui.Namespace({
             return {
                 setFont(font) {
                     if (!font) {
-                        rcui.Error(101);
+                        rcui.ErrorID(101);
                         return;
                     }
                     if (font instanceof cc.BitmapFont) {

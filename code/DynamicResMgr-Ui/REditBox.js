@@ -6,7 +6,7 @@ rcui.Namespace({
             return {
                 setBackgroundImage(backgroundImage) {
                     if (!backgroundImage) {
-                        rcui.Error(101);
+                        rcui.ErrorID(101);
                         return;
                     }
                     this.release();

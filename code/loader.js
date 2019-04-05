@@ -1,5 +1,5 @@
 const rcui = require('rcui');
-// rcui.getClass('Error');
+// rcui.getClass('ErrorID');
 rcui.Namespace({
     loader: (function() {
         let _progressCallback = null;
@@ -63,7 +63,7 @@ rcui.Namespace({
                  */
                 instanitate: function (prefab, target, callback) {
                     if (!prefab) {
-                        rcui.Error(102, prefab);
+                        rcui.ErrorID(102, prefab);
                     }
                     let pre_node = cc.instantiate(prefab);
                     target && target.addChild(pre_node);
@@ -106,7 +106,7 @@ rcui.Namespace({
                 load: function (url, callback, oppor) {
                     cc.loader.load(url, (err, asset) => {
                         if (err) {
-                            rcui.Error(100, err);
+                            rcui.ErrorID(100, err);
                             return;
                         }
                         _initRefCount(asset.url);
@@ -117,7 +117,7 @@ rcui.Namespace({
                 loadRes: function (url, callback, oppor) {
                     cc.loader.loadRes(url, (err, asset) => {
                         if (err) {
-                            rcui.Error(100, err);
+                            rcui.ErrorID(100, err);
                             return;
                         }
                         _initRefCount(asset.url);
@@ -128,11 +128,11 @@ rcui.Namespace({
                 loadResDir: function (url, callback, oppor) {
                     cc.loader.loadResDir(url, (err, assets) => {
                         if (err) {
-                            rcui.Error(100, err);
+                            rcui.ErrorID(100, err);
                             return;
                         }
                         for (let i = 0; i < assets.length; ++i) {
-                            if (typeof assets == 'string') {
+                            if (typeof assets === 'string' || assets instanceof String) {
                                 _initRefCount(assets[i]);
                                 cc.loader['_cache'][assets[i]]._sceneRefCount = oppor;
                             }
@@ -289,7 +289,7 @@ rcui.Namespace({
             _addMethod(loader, 'loadRes', function(url, type, callback, oppor) {
                 cc.loader.loadRes(url, type, (err, asset) => {
                     if (err) {
-                        rcui.Error(100, err);
+                        rcui.ErrorID(100, err);
                         return;
                     }
                     _initRefCount(asset.url);
@@ -300,11 +300,11 @@ rcui.Namespace({
             _addMethod(loader, 'loadResDir', function(url, type, callback, oppor) {
                 cc.loader.loadRes(url, type, (err, assets) => {
                     if (err) {
-                        rcui.Error(100, err);
+                        rcui.ErrorID(100, err);
                         return;
                     }
                     for (let i = 0; i < assets.length; ++i) {
-                        if (typeof assets[i] == 'string') {
+                        if (typeof assets[i] === 'string' || assets instanceof String) {
                             _initRefCount(assets[i]);
                             cc.loader['_cache'][assets[i]]._sceneRefCount = oppor;
                         }
@@ -325,7 +325,7 @@ rcui.Namespace({
         }
 
         function _proCallback(completedCount, totalCount, item) {
-            if (typeof item == 'string') {
+            if (typeof item === 'string' || item instanceof String) {
                 _initRefCount(item);
                 cc.loader['_cache'][item]._sceneRefCount = _sceneRefCount;
             }
@@ -338,7 +338,7 @@ rcui.Namespace({
         
         function _comCallback(err, assets) {
             if (err) {
-                rcui.Error(100, err);
+                rcui.ErrorID(100, err);
                 return;
             }
             _completeCallback && _completeCallback(assets);

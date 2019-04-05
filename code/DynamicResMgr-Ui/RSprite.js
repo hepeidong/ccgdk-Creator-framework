@@ -6,7 +6,7 @@ rcui.Namespace({
             return {
                 setSprite(spriteFrame) {
                     if (!spriteFrame) {
-                        rcui.Error(101);
+                        rcui.ErrorID(101);
                         return;
                     }
                     this.release();

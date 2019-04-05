@@ -20,7 +20,7 @@ cc.Class({
         rcui.loader.loadResDir('Res', function(){}, rcui.loader.Tag.SINGLE_USE);
         // console.log(cc.loader._cache);
         // console.log(rcui);
-        // console.log(rcui.Error);
+        // console.log(rcui.ErrorID);
         var button = this.node.getChildByName('button');
         rcui.loader.addNode(button);
     },

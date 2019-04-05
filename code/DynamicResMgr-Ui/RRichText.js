@@ -6,7 +6,7 @@ rcui.Namespace({
             return {
                 setImageAtlas(imageAtlas) {
                     if (!imageAtlas) {
-                        rcui.Error(101);
+                        rcui.ErrorID(101);
                         return;
                     }
                     this.release();

@@ -1,5 +1,5 @@
 const rcui = require('rcui');
-// rcui.getClass('Error');
+// rcui.getClass('ErrorID');
 rcui.Namespace({
     RButton: (function() {
         function RButton() {
@@ -11,28 +11,28 @@ rcui.Namespace({
                 },
                 setNormalSprite(spriteFrame) {
                     if (!spriteFrame) {
-                        rcui.Error(101);
+                        rcui.ErrorID(101);
                         return;
                     }
                     this.setSprite(this.normalSprite, spriteFrame);
                 },
                 setPressedSprite(spriteFrame) {
                     if (!spriteFrame) {
-                        rcui.Error(101);
+                        rcui.ErrorID(101);
                         return;
                     }
                     this.setSprite(this.pressedSprite, spriteFrame);
                 },
                 setHoverSprite(spriteFrame) {
                     if (!spriteFrame) {
-                        rcui.Error(101);
+                        rcui.ErrorID(101);
                         return;
                     }
                     this.setSprite(this.hoverSprite, spriteFrame);
                 },
                 setDisabledSprite(spriteFrame) {
                     if (!spriteFrame) {
-                        rcui.Error(101);
+                        rcui.ErrorID(101);
                         return;
                     }
                     this.setSprite(this.disabledSprite, spriteFrame);
