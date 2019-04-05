@@ -6,7 +6,7 @@ rcui.Namespace({
             return {
                 setSprite(spriteFrame) {
                     if (!spriteFrame) {
-                        throw '参数错误！参数不能为null！';
+                        rcui.Error(101);
                         return;
                     }
                     this.release();

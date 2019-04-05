@@ -1,5 +1,5 @@
 const rcui = require('rcui');
-
+// rcui.getClass('Error');
 rcui.Namespace({
     loader: (function() {
         let _progressCallback = null;
@@ -10,7 +10,7 @@ rcui.Namespace({
         function loader() {
             const components = {
                 //资源引用的时机
-                Opportunity: {
+                Tag: {
                     SINGLE_USE: 0,//一次性使用
                     CURR_SCENE: 1,//当前场景
                     NEXT_SCENE: 2,//下一个场景
@@ -24,7 +24,7 @@ rcui.Namespace({
                 retain: function (url) {
                     if (cc.loader['_cache'][url]._refCount == null) {
                         _initRefCount(url);
-                        cc.loader['_cache'][url]._sceneRefCount = this.Opportunity.SINGLE_USE;
+                        cc.loader['_cache'][url]._sceneRefCount = this.Tag.SINGLE_USE;
                     }
                     cc.loader['_cache'][url]._refCount++;
                 },
@@ -36,7 +36,7 @@ rcui.Namespace({
                 release: function (url) {
                     if (cc.loader['_cache'][url]._refCount == null) {
                         _initRefCount(url);
-                        cc.loader['_cache'][asset.url]._sceneRefCount = this.Opportunity.SINGLE_USE;
+                        cc.loader['_cache'][asset.url]._sceneRefCount = this.Tag.SINGLE_USE;
                     }
                     else {
                         cc.loader['_cache'][url]._refCount--;
@@ -52,7 +52,7 @@ rcui.Namespace({
                             _autoReleasePool[asset]._sceneRefCount = 0;
                         }
                     }
-                    _releaseResAll();
+                    // _releaseResAll();
                 },
 
                 /**
@@ -63,7 +63,7 @@ rcui.Namespace({
                  */
                 instanitate: function (prefab, target, callback) {
                     if (!prefab) {
-                        throw `[参数] 错误 ${prefab}`;
+                        rcui.Error(102, prefab);
                     }
                     let pre_node = cc.instantiate(prefab);
                     target && target.addChild(pre_node);
@@ -85,16 +85,19 @@ rcui.Namespace({
                     let button = node.getComponent(cc.Button);
                     _addUiFunction(button, rcui.RButton);
 
-                    // let label = node.getComponent(cc.Label);
-                    // _addUiFunction(label, rcui.RLabel);
+                    let label = node.getComponent(cc.Label);
+                    _addUiFunction(label, rcui.RLabel);
 
-                    // let sprite = node.getComponent(cc.Sprite);
-                    // _addUiFunction(sprite, rcui.RSprite);
+                    let richText = node.getComponent(cc.RichText);
+                    _addUiFunction(richText, rcui.RRichText);
+
+                    let particleSystem = node.getComponent(cc.ParticleSystem);
+                    _addUiFunction(particleSystem, rcui.RParticleSystem);
                 },
                 load: function (url, callback, oppor) {
                     cc.loader.load(url, (err, asset) => {
                         if (err) {
-                            throw `[加载资源] ${err}`;
+                            rcui.Error(100, err);
                             return;
                         }
                         _initRefCount(asset.url);
@@ -105,7 +108,7 @@ rcui.Namespace({
                 loadRes: function (url, callback, oppor) {
                     cc.loader.loadRes(url, (err, asset) => {
                         if (err) {
-                            throw `[加载资源] ${err}`;
+                            rcui.Error(100, err);
                             return;
                         }
                         _initRefCount(asset.url);
@@ -116,7 +119,7 @@ rcui.Namespace({
                 loadResDir: function (url, callback, oppor) {
                     cc.loader.loadResDir(url, (err, assets) => {
                         if (err) {
-                            throw `[加载资源] ${err}`;
+                            rcui.Error(100, err);
                             return;
                         }
                         for (let i = 0; i < assets.length; ++i) {
@@ -138,10 +141,10 @@ rcui.Namespace({
         }
         function _init() {
             _overloadFunc();
-            // cc.director.on(cc.Director.EVENT_AFTER_UPDATE, _afterUpdate);//update后
+            cc.director.on(cc.Director.EVENT_AFTER_UPDATE, _afterUpdate);//update后
             cc.director.on(cc.Director.EVENT_BEFORE_SCENE_LOADING, _beforeSceneLoading);//场景加载前
-            cc.director.on(cc.Director.EVENT_BEFORE_SCENE_LAUNCH, _beforeSceneLaunch);//场景运行前
-            cc.director.on(cc.Director.EVENT_AFTER_SCENE_LAUNCH, _afterSceneLaunch);//场景运行后
+            // cc.director.on(cc.Director.EVENT_BEFORE_SCENE_LAUNCH, _beforeSceneLaunch);//场景运行前
+            // cc.director.on(cc.Director.EVENT_AFTER_SCENE_LAUNCH, _afterSceneLaunch);//场景运行后
             return true;
         }
 
@@ -157,6 +160,7 @@ rcui.Namespace({
 
         function _afterUpdate() {
             // console.log('update 后');
+            _releaseResAll();
         }
 
         function _beforeSceneLoading() {
@@ -164,7 +168,7 @@ rcui.Namespace({
             for (let asset in _autoReleasePool) {
                 _autoReleasePool[asset]._sceneRefCount--;
             }
-            _releaseResAll();
+            // _releaseResAll();
         }
 
         function _beforeSceneLaunch(event, detail) {
@@ -244,6 +248,9 @@ rcui.Namespace({
         }
 
         function _addUiFunction(component, ui) {
+            if (!component) {
+                return;
+            }
             for (let k in ui) {
                 component[k] = ui[k];
             }
@@ -273,7 +280,7 @@ rcui.Namespace({
             _addMethod(loader, 'loadRes', function(url, type, callback, oppor) {
                 cc.loader.loadRes(url, type, (err, asset) => {
                     if (err) {
-                        throw `[加在资源] ${err}`;
+                        rcui.Error(100, err);
                         return;
                     }
                     _initRefCount(asset.url);
@@ -284,7 +291,7 @@ rcui.Namespace({
             _addMethod(loader, 'loadResDir', function(url, type, callback, oppor) {
                 cc.loader.loadRes(url, type, (err, assets) => {
                     if (err) {
-                        throw `[加在资源] ${err}`;
+                        rcui.Error(100, err);
                         return;
                     }
                     for (let i = 0; i < assets.length; ++i) {
@@ -322,7 +329,7 @@ rcui.Namespace({
         
         function _comCallback(err, assets) {
             if (err) {
-                throw `[加在资源] ${err}`;
+                rcui.Error(100, err);
                 return;
             }
             _completeCallback && _completeCallback(assets);
