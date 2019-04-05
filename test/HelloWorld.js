@@ -15,10 +15,12 @@ cc.Class({
     // use this for initialization
     onLoad: function () {
         this.label.string = this.text;
-        rcui.getClass('loader');
+        // rcui.getClass('loader');
         // console.log(rcui.loader.addNode);
-        rcui.loader.loadResDir('Res', function(){}, rcui.loader.Opportunity.CURR_SCENE);
+        rcui.loader.loadResDir('Res', function(){}, rcui.loader.Tag.SINGLE_USE);
         // console.log(cc.loader._cache);
+        // console.log(rcui);
+        // console.log(rcui.Error);
         var button = this.node.getChildByName('button');
         rcui.loader.addNode(button);
     },
