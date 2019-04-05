@@ -93,6 +93,15 @@ rcui.Namespace({
 
                     let particleSystem = node.getComponent(cc.ParticleSystem);
                     _addUiFunction(particleSystem, rcui.RParticleSystem);
+
+                    let pageViewIndicator = node.getComponent(cc.PageViewIndicator);
+                    _addUiFunction(pageViewIndicator, rcui.RPageViewIndicator);
+
+                    let editBox = node.getComponent(cc.EditBox);
+                    _addUiFunction(editBox, rcui.REditBox);
+
+                    let mask = node.getComponent(cc.Mask);
+                    _addUiFunction(mask, rcui.RMask);
                 },
                 load: function (url, callback, oppor) {
                     cc.loader.load(url, (err, asset) => {
