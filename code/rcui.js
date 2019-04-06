@@ -1,13 +1,6 @@
 /**
- * 声明命名空间
+ * 声明命名空间和类
  */
-
-var getClass = function(name) {
-    if (!this[name]) {
-        require(name);
-    }
-    return this[name];
-}
 
 var components;
 const Rcui = (function(components) {
@@ -22,15 +15,40 @@ const Rcui = (function(components) {
                 if (ob[k] != ob.name)
                     this[ob.name][k] = ob[k];
             }
-            this[ob.name].getClass = getClass;
             if (window) window[ob.name] = this[ob.name];
         }
         else {
             for (let k in ob) {
                 this[k] = ob[k];
             }
-            this.getClass = getClass;
         }
+    }
+    components.Class = function(obj) {
+        const fuc = (function(){
+            var cls;
+            if (typeof obj.ctor !== 'function') {
+                cls = ctor;
+            }
+            else {
+                cls = function(){};
+            }
+            if (obj.extends) {
+                cls = rcui.extend(cls, obj.extends);
+            }
+            let keys = Object.keys(obj);
+            for (let i = 0; i < keys.length; ++i) {
+                if (keys[i] !== obj.extends && keys[i] !== obj.singleton) {
+                    cls.prototype[keys[i]] = obj[keys[i]];
+                }
+            }
+    
+            if (obj.singleton == true) {
+                return new cls();
+            }
+            return cls;
+        })();
+        
+        return fuc;
     }
     return components;
 })(components || (components = {}));
