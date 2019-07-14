@@ -1,12 +1,12 @@
-const rcui = require('rcui');
+const R = require('R');
 
-rcui.Namespace({
+R.Namespace({
     RRichText: (function() {
         function RRichText() {
             return {
                 setImageAtlas(imageAtlas) {
                     if (!imageAtlas) {
-                        rcui.ErrorID(101);
+                        R.ErrorID(101);
                         return;
                     }
                     this.release();
@@ -17,7 +17,7 @@ rcui.Namespace({
                     if (this.imageAtlas) {
                         let keys = Object.keys(this.imageAtlas._spriteFrames);
                         if (keys.length > 0) {
-                            rcui.loader.retain(this.imageAtlas._spriteFrames[keys[0]]._textureFilename);
+                            R.loader.retain(this.imageAtlas._spriteFrames[keys[0]]._textureFilename);
                         }
                     }
                 },
@@ -25,7 +25,7 @@ rcui.Namespace({
                     if (this.imageAtlas) {
                         let keys = Object.keys(this.imageAtlas._spriteFrames);
                         if (keys.length > 0) {
-                            rcui.loader.release(this.imageAtlas._spriteFrames[keys[0]]._textureFilename);
+                            R.loader.release(this.imageAtlas._spriteFrames[keys[0]]._textureFilename);
                         }
                     }
                 },

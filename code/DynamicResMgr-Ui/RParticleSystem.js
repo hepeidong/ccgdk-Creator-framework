@@ -1,6 +1,6 @@
-const rcui = require('rcui');
+const R = require('R');
 
-rcui.Namespace({
+R.Namespace({
     RPartcleSystem: (function() {
         function RPartcleSystem() {
             return {
@@ -8,13 +8,13 @@ rcui.Namespace({
                     if (!this._texture) {
                         return;
                     }
-                    rcui.loader.retain(this._texture);
+                    R.loader.retain(this._texture);
                 },
                 release() {
                     if (!this._texture) {
                         return;
                     }
-                    rcui.loader.release(this._texture);
+                    R.loader.release(this._texture);
                 },
                 onDestroy() {
                     this.release();

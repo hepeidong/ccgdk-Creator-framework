@@ -1,6 +1,6 @@
-const rcui = require('rcui');
-// rcui.getClass('ErrorID');
-rcui.Namespace({
+const R = require('R');
+// R.getClass('ErrorID');
+R.Namespace({
     loader: (function() {
         let _progressCallback = null;
         let _completeCallback = null;
@@ -63,7 +63,7 @@ rcui.Namespace({
                  */
                 instanitate: function (prefab, target, callback) {
                     if (!prefab) {
-                        rcui.ErrorID(102, prefab);
+                        R.ErrorID(102, prefab);
                     }
                     let pre_node = cc.instantiate(prefab);
                     target && target.addChild(pre_node);
@@ -80,33 +80,33 @@ rcui.Namespace({
                 },
                 parserNode: function (node) {
                     let sprite = node.getComponent(cc.Sprite);
-                    _addUiFunction(sprite, rcui.RSprite);
+                    _addUiFunction(sprite, R.RSprite);
 
                     let button = node.getComponent(cc.Button);
-                    _addUiFunction(button, rcui.RButton);
+                    _addUiFunction(button, R.RButton);
 
                     let label = node.getComponent(cc.Label);
-                    _addUiFunction(label, rcui.RLabel);
+                    _addUiFunction(label, R.RLabel);
 
                     let richText = node.getComponent(cc.RichText);
-                    _addUiFunction(richText, rcui.RRichText);
+                    _addUiFunction(richText, R.RRichText);
 
                     let particleSystem = node.getComponent(cc.ParticleSystem);
-                    _addUiFunction(particleSystem, rcui.RParticleSystem);
+                    _addUiFunction(particleSystem, R.RParticleSystem);
 
                     let pageViewIndicator = node.getComponent(cc.PageViewIndicator);
-                    _addUiFunction(pageViewIndicator, rcui.RPageViewIndicator);
+                    _addUiFunction(pageViewIndicator, R.RPageViewIndicator);
 
                     let editBox = node.getComponent(cc.EditBox);
-                    _addUiFunction(editBox, rcui.REditBox);
+                    _addUiFunction(editBox, R.REditBox);
 
                     let mask = node.getComponent(cc.Mask);
-                    _addUiFunction(mask, rcui.RMask);
+                    _addUiFunction(mask, R.RMask);
                 },
                 load: function (url, callback, oppor) {
                     cc.loader.load(url, (err, asset) => {
                         if (err) {
-                            rcui.ErrorID(100, err);
+                            R.ErrorID(100, err);
                             return;
                         }
                         _initRefCount(asset.url);
@@ -117,7 +117,7 @@ rcui.Namespace({
                 loadRes: function (url, callback, oppor) {
                     cc.loader.loadRes(url, (err, asset) => {
                         if (err) {
-                            rcui.ErrorID(100, err);
+                            R.ErrorID(100, err);
                             return;
                         }
                         _initRefCount(asset.url);
@@ -128,7 +128,7 @@ rcui.Namespace({
                 loadResDir: function (url, callback, oppor) {
                     cc.loader.loadResDir(url, (err, assets) => {
                         if (err) {
-                            rcui.ErrorID(100, err);
+                            R.ErrorID(100, err);
                             return;
                         }
                         for (let i = 0; i < assets.length; ++i) {
@@ -289,7 +289,7 @@ rcui.Namespace({
             _addMethod(loader, 'loadRes', function(url, type, callback, oppor) {
                 cc.loader.loadRes(url, type, (err, asset) => {
                     if (err) {
-                        rcui.ErrorID(100, err);
+                        R.ErrorID(100, err);
                         return;
                     }
                     _initRefCount(asset.url);
@@ -300,7 +300,7 @@ rcui.Namespace({
             _addMethod(loader, 'loadResDir', function(url, type, callback, oppor) {
                 cc.loader.loadRes(url, type, (err, assets) => {
                     if (err) {
-                        rcui.ErrorID(100, err);
+                        R.ErrorID(100, err);
                         return;
                     }
                     for (let i = 0; i < assets.length; ++i) {
@@ -338,7 +338,7 @@ rcui.Namespace({
         
         function _comCallback(err, assets) {
             if (err) {
-                rcui.ErrorID(100, err);
+                R.ErrorID(100, err);
                 return;
             }
             _completeCallback && _completeCallback(assets);

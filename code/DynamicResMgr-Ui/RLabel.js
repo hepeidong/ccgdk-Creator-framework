@@ -1,12 +1,12 @@
-const rcui = require('rcui');
+const R = require('R');
 
-rcui.Namespace({
+R.Namespace({
     RLabel: (function() {
         function RLabel() {
             return {
                 setFont(font) {
                     if (!font) {
-                        rcui.ErrorID(101);
+                        R.ErrorID(101);
                         return;
                     }
                     if (font instanceof cc.BitmapFont) {
@@ -19,13 +19,13 @@ rcui.Namespace({
                     if (!this.font instanceof cc.BitmapFont) {
                         return;
                     }
-                    rcui.loader.retain(this.font.spriteFrame._textureFilename);
+                    R.loader.retain(this.font.spriteFrame._textureFilename);
                 },
                 release() {
                     if (!this.font instanceof cc.BitmapFont) {
                         return;
                     }
-                    rcui.loader.release(this.font.spriteFrame._textureFilename);
+                    R.loader.release(this.font.spriteFrame._textureFilename);
                 },
                 onDestroy() {
                     this.release();

@@ -1,12 +1,12 @@
-const rcui = require('rcui');
+const R = require('R');
 
-rcui.Namespace({
+R.Namespace({
     REditBox: (function() {
         function REditBox() {
             return {
                 setBackgroundImage(backgroundImage) {
                     if (!backgroundImage) {
-                        rcui.ErrorID(101);
+                        R.ErrorID(101);
                         return;
                     }
                     this.release();
@@ -17,13 +17,13 @@ rcui.Namespace({
                     if (!this.backgroundImage) {
                         return;
                     }
-                    rcui.loader.retain(this.backgroundImage._textureFilename);
+                    R.loader.retain(this.backgroundImage._textureFilename);
                 },
                 release() {
                     if (!this.backgroundImage) {
                         return;
                     }
-                    rcui.loader.release(this.backgroundImage._textureFilename);
+                    R.loader.release(this.backgroundImage._textureFilename);
                 },
                 onDestroy() {
                     this.release();

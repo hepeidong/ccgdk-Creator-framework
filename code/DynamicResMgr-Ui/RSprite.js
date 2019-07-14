@@ -1,12 +1,12 @@
-const rcui = require('rcui');
+const R = require('R');
 
-rcui.Namespace({
+R.Namespace({
     RSprite: (function() {
         function RSprite() {
             return {
                 setSprite(spriteFrame) {
                     if (!spriteFrame) {
-                        rcui.ErrorID(101);
+                        R.ErrorID(101);
                         return;
                     }
                     this.release();
@@ -17,13 +17,13 @@ rcui.Namespace({
                     if (!this.spriteFrame) {
                         return;
                     }
-                    rcui.loader.retain(this.spriteFrame._textureFilename);
+                    R.loader.retain(this.spriteFrame._textureFilename);
                 },
                 release() {
                     if (!this.spriteFrame) {
                         return;
                     }
-                    rcui.loader.release(this.spriteFrame._textureFilename);
+                    R.loader.release(this.spriteFrame._textureFilename);
                 },
                 onDestroy() {
                     this.release();

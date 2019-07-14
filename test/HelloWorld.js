@@ -1,4 +1,4 @@
-const rcui = require('rcui');
+const R = require('R');
 
 cc.Class({
     extends: cc.Component,
@@ -15,14 +15,14 @@ cc.Class({
     // use this for initialization
     onLoad: function () {
         this.label.string = this.text;
-        // rcui.getClass('loader');
-        // console.log(rcui.loader.addNode);
-        rcui.loader.loadResDir('Res', function(){}, rcui.loader.Tag.SINGLE_USE);
+        // R.getClass('loader');
+        // console.log(R.loader.addNode);
+        R.loader.loadResDir('Res', function(){}, R.loader.Tag.SINGLE_USE);
         // console.log(cc.loader._cache);
-        // console.log(rcui);
-        // console.log(rcui.ErrorID);
+        // console.log(R);
+        // console.log(R.ErrorID);
         var button = this.node.getChildByName('button');
-        rcui.loader.addNode(button);
+        R.loader.addNode(button);
     },
 
     onClick: function () {

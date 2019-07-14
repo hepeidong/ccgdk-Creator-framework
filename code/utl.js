@@ -1,6 +1,6 @@
-const rcui = require('rcui');
+const R = require('R');
 
-rcui.Namespace({
+R.Namespace({
     utl: {
         /**
          * 判断obj是否为Number类型
@@ -28,15 +28,15 @@ rcui.Namespace({
          */
         extend(child, base) {
             if (!base) {
-                rcui.ErrorID(200);
+                R.ErrorID(200);
                 return;
             }
             if (!child) {
-                rcui.ErrorID(201);
+                R.ErrorID(201);
                 return;
             }
             if (Object.keys(child.prototype).length > 0) {
-                rcui.ErrorID(202);
+                R.ErrorID(202);
             }
             for (let k in base) {
                 if (base.hasOwnProperty(k))
