@@ -23,9 +23,10 @@ export class Resource extends Reference {
 
     OnDestroy(): void {
         if (!this._isLock) {
+            let key: string = this._key;
             super.OnDestroy();
             this.ReleaseRes();
-            this.Emit(G.EventName.DESTROYED_AFTER);
+            this.Emit(G.EventName.DESTROYED_AFTER, [key]);
         }
     }
 
