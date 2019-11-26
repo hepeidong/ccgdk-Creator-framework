@@ -4,7 +4,7 @@ import { initDebugInfos } from "./DebugInfos";
 
 
 /**
- * @property {boolean} _ACTIVE 框架启动
+ * @property {boolean} _ENABLE 框架启动
  */
 /**
  * @property {boolean} _DEBUG 调试模式
