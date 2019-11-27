@@ -27,8 +27,8 @@ declare function SAFE_RELEASE(_Obj: Reference): void;
 declare function SAFE_RELEASE_NULL(_Obj: Reference): void;
 /**安全增加引用计数 */
 declare function SAFE_RETAIN(_Obj: Reference): void;
-/**安全增加自动释放池 */
-declare function SAFE_ADDAUTORELEASE(): void;
+/**安全加入自动释放池 */
+declare function SAFE_AUTORELEASE(_Obj: Reference): void;
 
 /**
  * cf是creator framework的缩写，游戏框架的主要命名空间，游戏框架的所有类和函数都会在这里定义。
