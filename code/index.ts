@@ -1,6 +1,14 @@
 import { initFrame } from "./Boot";
 import { initDebugSetting } from "./Debugger";
 import { initDebugInfos } from "./DebugInfos";
+import { ENABLE,
+         DEBUG,
+         IN_WEB_DEBUG,
+         ASSERT,
+         SAFE_RELEASE,
+         SAFE_RELEASE_NULL,
+         SAFE_AUTORELEASE,
+         SAFE_RETAIN } from "./CFDefine";
 
 
 /**
@@ -26,52 +34,21 @@ function ifDefined(name): boolean {
     return typeof _global[name] === 'undefined';
 }
 
-function define(name: string, defaultValue: any): void {
-    defineMacro(name, defaultValue);
-}
-
-function assert(_Expression1: boolean, _Expression2: string = ''): void {
-    if (_DEBUG) {
-        if(_Expression1) {
-            if (_Expression2) throw new Error(_Expression2);
-            debugger;
-        }
-    }
-}
-
-function safe_release(_Obj: cf.Reference): void {
-    do {
-        if (_Obj && _Obj.GetReferenceCount() == 1) { SAFE_RELEASE_NULL(_Obj); }
-        else if (_Obj && _Obj.GetReferenceCount() > 1) { _Obj.Release(); }
-    } while (0);
-}
-
-function safe_release_null(_Obj: cf.Reference): void {
-    do { if (_Obj) { _Obj.Release(); _Obj = null; } } while (0);
-}
-
-function safe_retain(_Obj: cf.Reference): void {
-    do { if (_Obj) { _Obj.Retain(); } } while (0);
-}
-
-function safe_addAutoRelease(): void {
-    do { if ( cf.PoolManager.Instance) cf.PoolManager.Instance.AddAutoRelease(); } while (0);
-}
 
 
 /**
  * 定义一些宏
  */
-defineMacro('define', define);
+defineMacro('define', defineMacro);
 defineMacro('ifDefined', ifDefined);
-defineMacro('_ENABLE', true);
-defineMacro('_DEBUG', true);
-defineMacro('_IN_WEB_DEBUG', cc.sys.platform !== cc.sys.ANDROID || cc.sys.platform !== cc.sys.MACOS);
-defineMacro('ASSERT', assert);
-defineMacro('SAFE_RELEASE', safe_release);
-defineMacro('SAFE_RELEASE_NULL', safe_release_null);
-defineMacro('SAFE_RETAIN', safe_retain);
-defineMacro('SAFE_ADDAUTORELEASE', safe_addAutoRelease);
+defineMacro('_ENABLE', ENABLE);
+defineMacro('_DEBUG', DEBUG);
+defineMacro('_IN_WEB_DEBUG', IN_WEB_DEBUG);
+defineMacro('ASSERT', ASSERT);
+defineMacro('SAFE_RELEASE', SAFE_RELEASE);
+defineMacro('SAFE_RELEASE_NULL', SAFE_RELEASE_NULL);
+defineMacro('SAFE_RETAIN', SAFE_RETAIN);
+defineMacro('SAFE_AUTORELEASE', SAFE_AUTORELEASE);
 
 
 if (_ENABLE) {
