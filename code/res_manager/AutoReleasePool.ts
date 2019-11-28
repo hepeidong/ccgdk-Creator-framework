@@ -74,8 +74,8 @@ export class PoolManager extends EventListeners {
         this.On(cf.EventName.DESTROYED_AFTER, this, this.OnDestroyedAfter);
         _DEBUG && ASSERT(!this._releasePoolStack, 'The "_releasePoolStack" is null!');
         this._releasePoolStack.Reserve(10, true);
-        //初始化内存上限为50M
-        this._memoryCapSize = 1024 * 1024 * 20;
+        //初始化内存上限
+        this._memoryCapSize = 1024 * 1024 * MEMORY_CAP_SIZE;
         this._memorySize = 0;
     }
 
@@ -90,7 +90,6 @@ export class PoolManager extends EventListeners {
 
     public set memorySize(value: number) { this._memorySize = value; }
     public get memorySize(): number { return this._memorySize; }
-    public set memoryCapSize(value: number) { this._memoryCapSize = 1024*1024*value; }
     public get memoryCapSize(): number { return this._memoryCapSize; }
 
     public static PurgePoolManager(): void {

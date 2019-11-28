@@ -4,6 +4,9 @@ import { initDebugInfos } from "./DebugInfos";
 import { ENABLE,
          DEBUG,
          IN_WEB_DEBUG,
+         MEMORY_CAP_SIZE,
+         EXPLOIT_PIXELS_W,
+         EXPLOIT_PIXELS_H,
          ASSERT,
          SAFE_RELEASE,
          SAFE_RELEASE_NULL,
@@ -44,6 +47,9 @@ defineMacro('ifDefined', ifDefined);
 defineMacro('_ENABLE', ENABLE);
 defineMacro('_DEBUG', DEBUG);
 defineMacro('_IN_WEB_DEBUG', IN_WEB_DEBUG);
+defineMacro('MEMORY_CAP_SIZE', MEMORY_CAP_SIZE);
+defineMacro('EXPLOIT_PIXELS_W', EXPLOIT_PIXELS_W);
+defineMacro('EXPLOIT_PIXELS_H', EXPLOIT_PIXELS_H);
 defineMacro('ASSERT', ASSERT);
 defineMacro('SAFE_RELEASE', SAFE_RELEASE);
 defineMacro('SAFE_RELEASE_NULL', SAFE_RELEASE_NULL);

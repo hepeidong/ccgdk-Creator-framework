@@ -19,6 +19,12 @@ declare var _ENABLE: boolean;
 declare var _DEBUG: boolean;
 /**在web端调试游戏 */
 declare const _IN_WEB_DEBUG: boolean;
+/**内存上限 */
+declare const MEMORY_CAP_SIZE: number;
+/**设计分辨率宽 */
+declare const EXPLOIT_PIXELS_W: number;
+/**设计分辨率高 */
+declare const EXPLOIT_PIXELS_H: number;
 /**断言调试方法 */
 declare function ASSERT(_Expression1: boolean, _Expression2: string = ''): void;
 /**安全减少资源引用计数 */
@@ -47,6 +53,7 @@ declare namespace cf {
     export function Warn(msg: any, ...subst: any[]): void;
     export function Error(msg: any, ...subst: any[]): void;
     export function Info(msg: any, ...subst: any[]): void;
+    export function Debug(msg: any, ...subst: any[]): void;
 
     export var LogID: Function;
     export var WarnID: Function;
@@ -59,7 +66,7 @@ declare namespace cf {
         memorySize: number;
 
          /**@private 资源内存上限 */
-        memoryCapSize: number;
+        readonly memoryCapSize: number;
 
         static PurgePoolManager(): void;
         static DestroyPoolManager(): void;
@@ -84,9 +91,7 @@ declare namespace cf {
     export class Reference extends EventListeners {
         set GroupID(id: number);
         /** @public 设置资源内存大小*/
-        set memorySize(value: number);
-        /** @public 返回资源内存大小*/
-        get memorySize(): number;
+        memorySize: number;
         Retain(): void;
         Release(): void;
         /**把资源增加到自动释放池里 */

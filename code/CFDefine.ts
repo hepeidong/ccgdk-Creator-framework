@@ -4,6 +4,12 @@ export const ENABLE: boolean = true;
 export const DEBUG: boolean = true;
 /**在网页上运行调试 */
 export const IN_WEB_DEBUG: boolean = cc.sys.platform !== cc.sys.ANDROID || cc.sys.platform !== cc.sys.MACOS;
+/**内存上限(20M) */
+export const MEMORY_CAP_SIZE: number = 20;
+/**设计分辨率宽 */
+export const EXPLOIT_PIXELS_W: number = 1280;
+/**设计分辨率高 */
+export const EXPLOIT_PIXELS_H: number = 720;
 
 export function ASSERT(_Expression1: boolean, _Expression2: string = ''): void {
     if (_DEBUG) {

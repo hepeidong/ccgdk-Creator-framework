@@ -43,7 +43,7 @@ interface LoadArgs {
  * author: HePeiDong
  * date: 2019/9/11
  * name: 加载资源类
- * 未完待续，还差资源内存大小，解析预制体函数完善，各加载函数的其他重载
+ * 加载资源，对加载的资源进行引用技术管理，包括解析预制体
  */
 export class UILoader extends EventListeners {
     constructor() {
@@ -334,7 +334,7 @@ export class UILoader extends EventListeners {
             if (asset instanceof cc.Texture2D) {
                 res.memorySize = asset.width * asset.height * this.getPixeFormat(asset);
             }
-            res.AutoRelease();
+            SAFE_AUTORELEASE(res);
         }else  {
             res = PoolManager.Instance.GetCurrentPool().GetObject(res_key) as Resource;
         }

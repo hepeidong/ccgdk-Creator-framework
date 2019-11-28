@@ -1,4 +1,4 @@
-import {Reference} from "./res_manager/Reference";
+import { Reference} from "./res_manager/Reference";
 import { PoolManager } from "./res_manager/AutoReleasePool";
 import { EventListeners,Handler } from "./event_manager/EventListeners";
 import { MainViewController } from "./ui_manager/MainViewController";
@@ -22,6 +22,7 @@ export function initFrame(): void {
         Warn: function(){},
         Error: function(){},
         Info: function(){},
+        Debug: function(){},
         LogID: function(){},
         WarnID: function(){},
         ErrorID: function(){},
