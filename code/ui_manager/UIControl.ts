@@ -16,6 +16,7 @@ export abstract class UIControl implements IControl {
     protected _isRootView: boolean;       //是否是根视图
     private _priority: number;            //优先级
     private _assetArray: cc.SpriteAtlas[];//资源图集
+    private _node: cc.Node;
     constructor() {
         this._loadedRes = false;
         this._loadedView = false;
@@ -23,6 +24,7 @@ export abstract class UIControl implements IControl {
         this._priority = 0;
     }
 
+    public get node(): cc.Node { return this._node; }
     public get isRootView(): boolean { return this._isRootView; }
     public set priority(val: number) { this._priority = val; }
     public get priority(): number { return this._priority; }
@@ -70,6 +72,7 @@ export abstract class UIControl implements IControl {
                 }
                 this._loadedView = true;
                 let newNode: cc.Node = cf.UILoader.Instanitate(asset);
+                this._node = newNode;
                 this.OnLoad(newNode);
                 if (!this._loadedRes) {
                     cf.UILoader.LoadResArray(this._resUrls, cc.SpriteAtlas, (err: Error, asset: Array<any>) => {

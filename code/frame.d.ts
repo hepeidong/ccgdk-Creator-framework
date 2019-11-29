@@ -60,7 +60,7 @@ declare namespace cf {
     export var ErrorID: Function;
 
     export class PoolManager extends EventListeners {
-        static Instance: PoolManager;
+        readonly static Instance: PoolManager;
 
         /**@private 资源内存大小总量 */
         memorySize: number;
@@ -266,25 +266,11 @@ declare namespace cf {
 
     }
 
-    export class MainViewController {
-        static Instance: MainViewController;
-        set rootViewController(controller: RootViewController);
-    
-        AddTopWindow(controller: UIViewController): void;
-
-        AddDownWindow(controller: UIViewController): void;
-
-        AddLeftWindow(controller: UIViewController): void;
-
-        AddRightWindow(controller: UIViewController): void;
-
-        AddCentreWindow(controller: UIViewController): void;
-
-        HideView(): void;
-
-        Destroy(): void;
-    }
-
+    /**
+     * author: HePeiDong
+     * date: 2019/9/11
+     * name: 根视图控制器
+     */
     export abstract class RootViewController extends UIControl implements IViewController {
         /***************控制器生命周期函数***************/
         /**试图加载完调用 */
@@ -309,6 +295,8 @@ declare namespace cf {
 
     export abstract class UIControl implements IControl {
         protected _isRootView: boolean;
+        /**视图节点 */
+        readonly node: cc.Node;
         /**是否是根视图 */
         isRootView: boolean;
         /**优先级 */
@@ -335,20 +323,6 @@ declare namespace cf {
     }
 
     export abstract class UIViewController extends UIControl implements IViewController {
-        /**不增加到窗口视图中 */
-        static NONE: number = 0;
-        /**增加到上窗口视图中 */
-        static ON_THE_TOP: number = 1;
-        /**增加到下窗口视图中 */
-        static ON_THE_DOWN: number = 2;
-        /**增加到左窗口视图中 */
-        static ON_THE_LEFT: number = 3;
-        /**增加到右窗口视图中 */
-        static ON_THE_RIGHT: number = 4;
-        /**增加到中间窗口视图中 */
-        static ON_THE_CENTRE: number = 5;
-        /**视图结点 */
-        view: cc.Node;
         /**功能id */
         protected accessId: number;
         /** */
@@ -357,12 +331,11 @@ declare namespace cf {
          * 打开试图
          * @param accessId 访问id，一般用于判断该id对应下的功能是否开启
          * @param closeOther 是否关闭别的页面
-         * @param winPos 窗口视图的位置，默认为NONE,当传入的值不为NONE时，不需要传入父节点参数，反之则必须传入
          * @param parent 父节
          * @param fn 加载成功显示后的回调，默认是不传入回调，为null
          * @param waitView 资源加载的面板
          */
-        OpenView(accessId: number = 0, closeOther: boolean = false, winPos: number = UIViewController.NONE, parent: cc.Node = null, fn: () => void = null, waitView: UIViewController = null): void;
+        OpenView(accessId: number = 0, closeOther: boolean = false, parent: cc.Node = null, fn: () => void = null, waitView: UIViewController = null): void;
         /**隐藏试图 */
         HideView(): void;
         /**
@@ -381,24 +354,133 @@ declare namespace cf {
         abstract OnViewDidDisappear(): void;
     }
 
-    export class UIWindow extends cf.EventListeners {
-        set rootViewController(root: RootViewController);
-        get rootViewController(): RootViewController;
-        Init(): boolean;
-        AddTopWindow(controller: UIViewController): void;
-        AddDownWindow(controller: UIViewController): void;
-        AddLeftWindow(controller: UIViewController): void;
-        AddRightWindow(controller: UIViewController): void;
-        AddCentreWindow(controller: UIViewController): void;
+    /**
+     * author: HePeiDong
+     * date: 2019/9/13
+     * name: 层级管理器
+     */
+    export class LayerManager extends cf.EventListeners {
+        readonly static Instance: LayerManager;
+        /**根视图控制器 */
+        rootViewController: RootViewController;
+        /**
+         * 增加到上方窗口
+         * @param controller 视图控制器
+         * @param nextTo 是否贴紧边缘
+         */
+        AddToUpWindow(controller: UIViewController, nexTo: boolean = false): void;
+
+        /**
+         * 增加到下方窗口
+         * @param controller 视图控制器
+         * @param nextTo 是否贴紧边缘
+         */
+        AddToDownWindow(controller: UIViewController, nexTo: boolean = false): void;
+
+        /**
+         * 增加到左边窗口
+         * @param controller 视图控制器
+         * @param nextTo 是否贴紧边缘
+         */
+        AddToLeftWindow(controller: UIViewController, nexTo: boolean = false): void;
+
+        /**
+         * 增加到右边窗口
+         * @param controller 视图控制器
+         * @param nextTo 是否贴紧边缘
+         */
+        AddToRightWindow(controller: UIViewController, nexTo: boolean = false): void;
+
+        /**
+         * 增加到中间窗口
+         * @param controller 视图控制器
+         */
+        AddToCenterWindow(controller: UIViewController): void;
+
+        /**
+         * 增加到左上窗口
+         * @param controller 视图控制器
+         * @param nextTo 是否贴紧边缘
+         */
+        AddToUpperLWindow(controller: UIViewController, nexTo: boolean = false): void;
+
+        /**
+         * 增加到右上窗口
+         * @param controller 视图控制器
+         * @param nextTo 是否贴紧边缘
+         */
+        AddToUpperRWindow(controller: UIViewController, nexTo: boolean = false): void;
+
+        /**
+         * 增加到左下窗口
+         * @param controller 视图控制器
+         * @param nextTo 是否贴紧边缘
+         */
+        AddToLowerLWindow(controller: UIViewController, nexTo: boolean = false): void;
+
+        /**
+         * 增加到右下窗口
+         * @param controller 视图控制器
+         * @param nextTo 是否贴紧边缘
+         */
+        AddToLowerRWindow(controller: UIViewController, nexTo: boolean = false): void;
+
     }
 
     export class WindowView {
-        Init(): boolean;
-        set topViewController(controller: UIViewController);
-        set downViewController(controller: UIViewController);
-        set leftViewController(controller: UIViewController);
-        set rightViewController(controller: UIViewController);
-        set centreViewController(controller: UIViewController);
+        /**
+         * 增加上方窗口
+         * @param controller 视图控制器
+         * @param nextTo 是否贴紧边缘
+         */
+        AddUpWindow(controller: UIViewController, nextTo: boolean): void;
+        /**
+         * 增加下方窗口
+         * @param controller 视图控制器
+         * @param nextTo 是否贴紧边缘
+         */
+        AddDownWindow(controller: UIViewController, nextTo: boolean): void;
+        /**
+         * 增加左边窗口
+         * @param controller 视图控制器
+         * @param nextTo 是否贴紧边缘
+         */
+        AddLeftWindow(controller: UIViewController, nextTo: boolean): void;
+        /**
+         * 增加右边窗口
+         * @param controller 视图控制器
+         * @param nextTo 是否贴紧边缘
+         */
+        AddRightWindow(controller: UIViewController, nextTo: boolean): void;
+        /**
+         * 增加中间窗口
+         * @param controller 视图控制器
+         */
+        AddCenterWindow(controller: UIViewController): void;
+        /**
+         * 增加左上窗口
+         * @param controller 视图控制器
+         * @param nextTo 是否贴紧边缘
+         */
+        AddUpperLWindow(controller: UIViewController, nextTo: boolean): void;
+        /**
+         * 增加右上窗口
+         * @param controller 视图控制器
+         * @param nextTo 是否贴紧边缘
+         */
+        AddUpperRWindow(controller: UIViewController, nextTo: boolean): void;
+        /**
+     * 增加左下窗口
+        * @param controller 视图控制器
+        * @param nextTo 是否贴紧边缘
+        */
+        AddLowerLWindow(controller: UIViewController, nextTo: boolean): void;
+        /**
+         * 增加右下窗口
+         * @param controller 视图控制器
+         * @param nextTo 是否贴紧边缘
+         */
+        AddLowerRWindow(controller: UIViewController, nextTo: boolean): void;
     }
 
     /**
@@ -464,7 +546,7 @@ declare namespace cf {
      * 数据存储，把数据存储到缓存里，区分数据类型
      */
     export class UserDefault {
-        get Instance(): UserDefault;
+        readonly static Instance: UserDefault;
         /**
          * 存储number类型数据
          * @param key 键

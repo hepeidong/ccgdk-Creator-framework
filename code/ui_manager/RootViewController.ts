@@ -6,7 +6,6 @@ import { IViewController } from "./IViewController";
  * name: 根视图控制器
  */
 export abstract class RootViewController extends UIControl implements IViewController{
-    private _rootView: cc.Node;
     private _canvas: cc.Node;
     private _waitView: RootViewController;
     constructor() {
@@ -27,7 +26,6 @@ export abstract class RootViewController extends UIControl implements IViewContr
     
     OnLoad(view: cc.Node): void {
         this._waitView.HideView();
-        this._rootView = view;
         this._canvas.addChild(view);
         this.OnViewLoaded(view);
     }
@@ -52,7 +50,7 @@ export abstract class RootViewController extends UIControl implements IViewContr
     }
 
     public HideView(): void {
-        this._rootView.stopAllActions();
+        this.node.stopAllActions();
         this.OnViewDidHide();
     }
 
@@ -63,10 +61,9 @@ export abstract class RootViewController extends UIControl implements IViewContr
     public Destroy(cleanup: boolean = true): void {
         super.Destroy();
         this._waitView = null;
-        this._rootView.removeFromParent(cleanup);
-        this._rootView.active = false;
-        this._rootView.destroy();
-        this._rootView = null;
+        this.node.removeFromParent(cleanup);
+        this.node.active = false;
+        this.node.destroy();
         this.OnViewDidDisappear();
     } 
     
