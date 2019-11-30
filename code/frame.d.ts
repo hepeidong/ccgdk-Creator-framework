@@ -274,7 +274,7 @@ declare namespace cf {
     export abstract class RootViewController extends UIControl implements IViewController {
         /***************控制器生命周期函数***************/
         /**试图加载完调用 */
-        abstract OnViewLoaded(view: cc.Node): void;
+        abstract OnViewLoaded(): void;
         /**试图显示后调用 */
         abstract OnViewDidAppear(): void;
         /**试图隐藏后调用 */
@@ -289,8 +289,11 @@ declare namespace cf {
         ViewLoad(fn: () => void = null, waitView: RootViewController = null): void;
         /**隐藏视图 */
         HideView(): void;
-        /**销毁视图 */
-        Destroy(): void;
+        /**
+         * 销毁试图
+         * @param cleanup 是否删除试图上面绑定的事件，action等，默认值是true
+         */
+        Destroy(cleanup: boolean = true): void;
     }
 
     export abstract class UIControl implements IControl {
@@ -327,15 +330,19 @@ declare namespace cf {
         protected accessId: number;
         /** */
         protected closeOther: boolean;
+        /**弹窗风格 */
+        readonly Style: number;
+        /**弹窗类型 */
+        readonly static StyleType: StyleType;
+        /**窗口位置类型 */
+        readonly static PositionType: PositionType;
         /**
          * 打开试图
-         * @param accessId 访问id，一般用于判断该id对应下的功能是否开启
+         * @param style 弹窗风格
          * @param closeOther 是否关闭别的页面
-         * @param parent 父节
          * @param fn 加载成功显示后的回调，默认是不传入回调，为null
-         * @param waitView 资源加载的面板
          */
-        OpenView(accessId: number = 0, closeOther: boolean = false, parent: cc.Node = null, fn: () => void = null, waitView: UIViewController = null): void;
+        OpenView(style: number, fn: () => void|null, closeOther: boolean = false): void;
         /**隐藏试图 */
         HideView(): void;
         /**
@@ -345,13 +352,63 @@ declare namespace cf {
         Destroy(cleanup: boolean = true): void;
         /***************控制器生命周期函数***************/
         /**试图加载完调用 */
-        abstract OnViewLoaded(view: cc.Node): void;
+        abstract OnViewLoaded(): void;
         /**试图显示后调用 */
         abstract OnViewDidAppear(): void;
         /**试图隐藏后调用 */
         abstract OnViewDidHide(): void;
         /**试图销毁后调用 */
         abstract OnViewDidDisappear(): void;
+
+        /**
+         * 弹出窗口
+         * @param winPos 窗口位置
+         * @param nextTo 是否紧挨着屏幕边缘
+         * @param isShow 是否显示
+         */
+        PopupWindow(winPos: number, nextTo: boolean, isShow: boolean): void;
+    }
+
+    export module UIViewController {
+        /**
+         * 窗口弹出风格
+         */
+        export enum StyleType {
+            /**没有特效的弹出风格 */
+            NORMEL = 0,
+            /**淡入淡出的弹入弹出特效 */
+            FADE_OVER = 1,
+            /**滑入滑出的弹入弹出特效，只在上，下，左，右四个方位适用 */
+            ROLL_IN_ROLL_OUT = 2,
+            /**快速缩放的弹入弹出特效，在紧挨着窗口边缘时无效 */
+            POP_UP = 3,
+        }
+    }
+
+    export module UIViewController {
+        /**
+         * 窗口方位类型
+         */
+        export enum PositionType {
+            /**上方 */
+            UP,
+            /**下方 */
+            DOWN,
+            /**中间 */
+            CENTER,
+            /**左边 */
+            LEFT,
+            /**右边 */
+            RIGHT,
+            /**左上方 */
+            UPPER_LEFT,
+            /**右上方 */
+            UPPER_RIGHT,
+            /**左下方 */
+            LOWER_LEFT,
+            /**右下方 */
+            LOWER_RIGHT
+        }
     }
 
     /**
@@ -366,28 +423,28 @@ declare namespace cf {
         /**
          * 增加到上方窗口
          * @param controller 视图控制器
-         * @param nextTo 是否贴紧边缘
+         * @param nextTo 是否紧挨着屏幕边缘
          */
         AddToUpWindow(controller: UIViewController, nexTo: boolean = false): void;
 
         /**
          * 增加到下方窗口
          * @param controller 视图控制器
-         * @param nextTo 是否贴紧边缘
+         * @param nextTo 是否紧挨着屏幕边缘
          */
         AddToDownWindow(controller: UIViewController, nexTo: boolean = false): void;
 
         /**
          * 增加到左边窗口
          * @param controller 视图控制器
-         * @param nextTo 是否贴紧边缘
+         * @param nextTo 是否紧挨着屏幕边缘
          */
         AddToLeftWindow(controller: UIViewController, nexTo: boolean = false): void;
 
         /**
          * 增加到右边窗口
          * @param controller 视图控制器
-         * @param nextTo 是否贴紧边缘
+         * @param nextTo 是否紧挨着屏幕边缘
          */
         AddToRightWindow(controller: UIViewController, nexTo: boolean = false): void;
 
@@ -400,28 +457,28 @@ declare namespace cf {
         /**
          * 增加到左上窗口
          * @param controller 视图控制器
-         * @param nextTo 是否贴紧边缘
+         * @param nextTo 是否紧挨着屏幕边缘
          */
         AddToUpperLWindow(controller: UIViewController, nexTo: boolean = false): void;
 
         /**
          * 增加到右上窗口
          * @param controller 视图控制器
-         * @param nextTo 是否贴紧边缘
+         * @param nextTo 是否紧挨着屏幕边缘
          */
         AddToUpperRWindow(controller: UIViewController, nexTo: boolean = false): void;
 
         /**
          * 增加到左下窗口
          * @param controller 视图控制器
-         * @param nextTo 是否贴紧边缘
+         * @param nextTo 是否紧挨着屏幕边缘
          */
         AddToLowerLWindow(controller: UIViewController, nexTo: boolean = false): void;
 
         /**
          * 增加到右下窗口
          * @param controller 视图控制器
-         * @param nextTo 是否贴紧边缘
+         * @param nextTo 是否紧挨着屏幕边缘
          */
         AddToLowerRWindow(controller: UIViewController, nexTo: boolean = false): void;
 
@@ -431,25 +488,25 @@ declare namespace cf {
         /**
          * 增加上方窗口
          * @param controller 视图控制器
-         * @param nextTo 是否贴紧边缘
+         * @param nextTo 是否紧挨着屏幕边缘
          */
         AddUpWindow(controller: UIViewController, nextTo: boolean): void;
         /**
          * 增加下方窗口
          * @param controller 视图控制器
-         * @param nextTo 是否贴紧边缘
+         * @param nextTo 是否紧挨着屏幕边缘
          */
         AddDownWindow(controller: UIViewController, nextTo: boolean): void;
         /**
          * 增加左边窗口
          * @param controller 视图控制器
-         * @param nextTo 是否贴紧边缘
+         * @param nextTo 是否紧挨着屏幕边缘
          */
         AddLeftWindow(controller: UIViewController, nextTo: boolean): void;
         /**
          * 增加右边窗口
          * @param controller 视图控制器
-         * @param nextTo 是否贴紧边缘
+         * @param nextTo 是否紧挨着屏幕边缘
          */
         AddRightWindow(controller: UIViewController, nextTo: boolean): void;
         /**
@@ -460,25 +517,25 @@ declare namespace cf {
         /**
          * 增加左上窗口
          * @param controller 视图控制器
-         * @param nextTo 是否贴紧边缘
+         * @param nextTo 是否紧挨着屏幕边缘
          */
         AddUpperLWindow(controller: UIViewController, nextTo: boolean): void;
         /**
          * 增加右上窗口
          * @param controller 视图控制器
-         * @param nextTo 是否贴紧边缘
+         * @param nextTo 是否紧挨着屏幕边缘
          */
         AddUpperRWindow(controller: UIViewController, nextTo: boolean): void;
         /**
      * 增加左下窗口
         * @param controller 视图控制器
-        * @param nextTo 是否贴紧边缘
+        * @param nextTo 是否紧挨着屏幕边缘
         */
         AddLowerLWindow(controller: UIViewController, nextTo: boolean): void;
         /**
          * 增加右下窗口
          * @param controller 视图控制器
-         * @param nextTo 是否贴紧边缘
+         * @param nextTo 是否紧挨着屏幕边缘
          */
         AddLowerRWindow(controller: UIViewController, nextTo: boolean): void;
     }

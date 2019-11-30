@@ -16,7 +16,7 @@ export abstract class RootViewController extends UIControl implements IViewContr
 
     /***************控制器生命周期函数***************/
     /**试图加载完调用 */
-    abstract OnViewLoaded(view: cc.Node): void;
+    abstract OnViewLoaded(): void;
     /**试图显示后调用 */
     abstract OnViewDidAppear(): void;
     /**试图隐藏后调用 */
@@ -24,15 +24,12 @@ export abstract class RootViewController extends UIControl implements IViewContr
     /**试图销毁后调用 */
     abstract OnViewDidDisappear(): void;
     
-    OnLoad(view: cc.Node): void {
+    Loaded(): void {
         this._waitView.HideView();
-        this._canvas.addChild(view);
-        this.OnViewLoaded(view);
+        this._canvas.addChild(this.node);
+        this.OnViewLoaded();
+        this.ShowView();
     }
-    OnShow(): void {
-        this.OnViewDidAppear();
-    }
-
     /**
      * 视图加载显示 
      * @param waitView 资源加载的面板
@@ -49,9 +46,16 @@ export abstract class RootViewController extends UIControl implements IViewContr
         }
     }
 
+    /**隐藏试图 */
     public HideView(): void {
-        this.node.stopAllActions();
+        super.HideView();
         this.OnViewDidHide();
+    }
+
+    /**显示视图 */
+    public ShowView(): void {
+        super.ShowView();
+        this.OnViewDidAppear();
     }
 
      /**

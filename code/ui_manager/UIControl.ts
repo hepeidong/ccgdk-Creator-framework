@@ -1,14 +1,10 @@
-interface IControl {
-    OnLoad(view: cc.Node): void;
-    OnShow(): void;
-}
 
 /**
  * author: HePeiDong
  * date: 2019/9/13
  * name: ui控制基类
  */
-export abstract class UIControl implements IControl {
+export abstract class UIControl {
     private _uiUrl: string;               //预制体资源相对路径
     private _resUrls: string[];           //图集资源相对路劲
     private _loadedRes: boolean;          //资源是否加载了
@@ -52,44 +48,54 @@ export abstract class UIControl implements IControl {
         }
     }
 
-    abstract OnLoad(view: cc.Node): void;
-    abstract OnShow(): void;
+    protected HideView(): void {
+        let action = cc.hide();
+        this.node.runAction(action);
+    }
+
+    protected ShowView(): void {
+        let action = cc.show();
+        this.node.runAction(action);
+    }
+
+    protected Loaded(): void {
+        this._loadedView = true;
+    }
 
     protected Destroy(): void {
         this._loadedRes = false;
         this._loadedView = false;
         this._assetArray = null;
+        this.node.stopAllActions();
         for (let i: number = 0; i < this._resUrls.length; ++i) {
             cf.UILoader.Release(this._resUrls[i]);
         }
     }
 
     protected LoadView(fn: () => void): void {
+        if (!this._loadedRes) {
+            cf.UILoader.LoadResArray(this._resUrls, cc.SpriteAtlas, (err: Error, asset: Array<any>) => {
+                if (err) {
+                    throw err;
+                }
+                this._assetArray = asset;
+                this._loadedRes = true;
+            });
+        }
         if (!this._loadedView) {
             cf.UILoader.LoadRes(this._uiUrl, cc.Prefab, (err: Error, asset: any) => {
                 if (err) {
                     throw err;
                 }
-                this._loadedView = true;
                 let newNode: cc.Node = cf.UILoader.Instanitate(asset);
                 this._node = newNode;
-                this.OnLoad(newNode);
-                if (!this._loadedRes) {
-                    cf.UILoader.LoadResArray(this._resUrls, cc.SpriteAtlas, (err: Error, asset: Array<any>) => {
-                        if (err) {
-                            throw err;
-                        }
-                        this._assetArray = asset;
-                        this._loadedRes = true;
-                        fn && fn();
-                        this.OnShow();
-                    });
-                }
+                fn && fn();
+                this.Loaded();
             });
         }
         else {
             fn && fn();
-            this.OnShow();
+            this.Loaded();
         }
     }
 

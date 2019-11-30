@@ -1,16 +1,5 @@
 import { UIViewController } from "./UIViewController";
 
-/**窗口弹出风格 */
-export enum Popup_Style {
-    /**没有特效的弹出风格 */
-    NORMEL,
-    /**淡入淡出的弹入弹出特效 */
-    FADE_OVER,
-    /**滑入滑出的弹入弹出特效 */
-    ROLL_IN_ROLL_OUT,
-    /**快速缩放的弹入弹出特效 */
-    POP_UP
-}
 
 /**
  * author: HePeiDong
@@ -31,7 +20,6 @@ export class WindowView {
     private _lowerLWindow: cc.Node;      //左下窗口
     private _lowerRWindow: cc.Node;      //右下窗口
 
-
     private _priority: number;
 
     constructor() {
@@ -42,6 +30,7 @@ export class WindowView {
     private Init(): boolean {
         this._priority = 0;
         let canvasSize = this._canvas.getContentSize();
+        //确定窗口结构，各窗口的大小
         this._upWindow.setContentSize(canvasSize.width, canvasSize.height / 2);
         this._downWindow.setContentSize(canvasSize.width, canvasSize.height / 2);
         this._centerWindow.setContentSize(canvasSize);
@@ -52,6 +41,7 @@ export class WindowView {
         this._lowerLWindow.setContentSize(canvasSize.width / 2, canvasSize.height / 2);
         this._lowerRWindow.setContentSize(canvasSize.width / 2, canvasSize.height / 2);
 
+        //把窗口加入到canvas
         this._canvas.addChild(this._upWindow);
         this._canvas.addChild(this._leftWindow);
         this._canvas.addChild(this._downWindow);
@@ -70,18 +60,8 @@ export class WindowView {
      * @param nextTo 是否贴紧边缘
      */
     public AddUpWindow(controller: UIViewController, nextTo: boolean): void {
-        if (nextTo) {
-            controller.priority = ++this._priority;
-            this._upWindow.addChild(controller.node);
-            let y: number = this._upWindow.y + this._upWindow.getContentSize().height/2 - controller.node.getContentSize().height/2;
-            controller.node.y = y;
-            controller.node.x = 0;
-        }
-        else {
-            this._upWindow.addChild(controller.node);
-            controller.node.x = 0;
-            controller.node.y = 0;
-        }
+        controller.priority = ++this._priority;
+        this.addToWindow(this._upWindow, controller, UIViewController.PositionType.UP, nextTo);
     }
 
     /**
@@ -91,17 +71,7 @@ export class WindowView {
      */
     public AddDownWindow(controller: UIViewController, nextTo: boolean): void {
         controller.priority = ++this._priority;
-        if (nextTo) {
-            this._downWindow.addChild(controller.node);
-            let y: number = this._downWindow.y - this._downWindow.getContentSize().height/2 + controller.node.getContentSize().height/2;
-            controller.node.y = y;
-            controller.node.x = 0;
-        }
-        else {
-            this._downWindow.addChild(controller.node);
-            controller.node.x = 0;
-            controller.node.y = 0;
-        }
+        this.addToWindow(this._downWindow, controller, UIViewController.PositionType.DOWN, nextTo);
     }
 
     /**
@@ -111,17 +81,7 @@ export class WindowView {
      */
     public AddLeftWindow(controller: UIViewController, nextTo: boolean): void {
         controller.priority = ++this._priority;
-        if (nextTo) {
-            this._leftWindow.addChild(controller.node);
-            let x: number = this._leftWindow.x - this._leftWindow.getContentSize().width/2 + controller.node.getContentSize().width/2;
-            controller.node.x = x;
-            controller.node.y = 0;
-        }
-        else {
-            this._leftWindow.addChild(controller.node);
-            controller.node.x = 0;
-            controller.node.y = 0;
-        }
+        this.addToWindow(this._leftWindow, controller, UIViewController.PositionType.LEFT, nextTo);
     }
 
     /**
@@ -131,18 +91,7 @@ export class WindowView {
      */
     public AddRightWindow(controller: UIViewController, nextTo: boolean): void {
         controller.priority = ++this._priority;
-        if (nextTo) {
-            this._rightWindow.addChild(controller.node);
-            let x: number = this._rightWindow.x + this._rightWindow.getContentSize().width/2 - controller.node.getContentSize().width/2;
-            controller.node.x = x;
-            controller.node.y = 0;
-        }
-        else {
-            this._rightWindow.addChild(controller.node);
-            controller.node.x = 0;
-            controller.node.y = 0;
-        }
-        
+        this.addToWindow(this._rightWindow, controller, UIViewController.PositionType.RIGHT, nextTo);
     }
 
     /**
@@ -151,9 +100,7 @@ export class WindowView {
      */
     public AddCenterWindow(controller: UIViewController): void {
         controller.priority = ++this._priority;
-        this._centerWindow.addChild(controller.node);
-        controller.node.x = 0;
-        controller.node.y = 0;
+        this.addToWindow(this._centerWindow, controller, UIViewController.PositionType.CENTER, false);
     }
 
     /**
@@ -163,20 +110,7 @@ export class WindowView {
      */
     public AddUpperLWindow(controller: UIViewController, nextTo: boolean): void {
         controller.priority = ++this._priority;
-        if (nextTo) {
-            this._upperLWindow.addChild(controller.node);
-            let contenSize: cc.Size = this._upperLWindow.getContentSize();
-            let controllerSize: cc.Size = controller.node.getContentSize();
-            let x: number = this._upperLWindow.x - contenSize.width / 2 - controllerSize.width / 2;
-            let y: number = this._upperLWindow.y + contenSize.height / 2 - controllerSize.height / 2;
-            controller.node.x = x;
-            controller.node.y = y;
-        }
-        else {
-            this._upperLWindow.addChild(controller.node);
-            controller.node.x = 0;
-            controller.node.y = 0;
-        }
+        this.addToWindow(this._upperLWindow, controller, UIViewController.PositionType.UPPER_LEFT, nextTo);
     }
 
     /**
@@ -186,20 +120,7 @@ export class WindowView {
      */
     public AddUpperRWindow(controller: UIViewController, nextTo: boolean): void {
         controller.priority = ++this._priority;
-        if (nextTo) {
-            this._upperRWindow.addChild(controller.node);
-            let contenSize: cc.Size = this._upperRWindow.getContentSize();
-            let controllerSize: cc.Size = controller.node.getContentSize();
-            let x: number = this._upperRWindow.x + contenSize.width / 2 - controllerSize.width / 2;
-            let y: number = this._upperRWindow.y + contenSize.height / 2 - controllerSize.height / 2;
-            controller.node.x = x;
-            controller.node.y = y;
-        }
-        else {
-            this._upperRWindow.addChild(controller.node);
-            controller.node.x = 0;
-            controller.node.y = 0;
-        }
+        this.addToWindow(this._upperRWindow, controller, UIViewController.PositionType.UPPER_RIGHT, nextTo);
     }
 
     /**
@@ -209,20 +130,7 @@ export class WindowView {
      */
     public AddLowerLWindow(controller: UIViewController, nextTo: boolean): void {
         controller.priority = ++this._priority;
-        if (nextTo) {
-            this._lowerLWindow.addChild(controller.node);
-            let contenSize: cc.Size = this._lowerLWindow.getContentSize();
-            let controllerSize: cc.Size = controller.node.getContentSize();
-            let x: number = this._lowerLWindow.x - contenSize.width / 2 - controllerSize.width / 2;
-            let y: number = this._lowerLWindow.y - contenSize.height / 2 - controllerSize.height / 2;
-            controller.node.x = x;
-            controller.node.y = y;
-        }
-        else {
-            this._lowerLWindow.addChild(controller.node);
-            controller.node.x = 0;
-            controller.node.y = 0;
-        }
+        this.addToWindow(this._lowerLWindow, controller, UIViewController.PositionType.LOWER_LEFT, nextTo);
     }
 
     /**
@@ -232,35 +140,64 @@ export class WindowView {
      */
     public AddLowerRWindow(controller: UIViewController, nextTo: boolean): void {
         controller.priority = ++this._priority;
+        this.addToWindow(this._lowerRWindow, controller, UIViewController.PositionType.LOWER_RIGHT, nextTo);
+    }
+
+    /**
+     * 计算窗口的坐标
+     * @param parentSize 
+     * @param winSize 
+     * @param anchorX 
+     * @param anchorY 
+     * @param winPos 
+     */
+    private getWinPos(parentSize: cc.Size, winSize: cc.Size, anchorX: number, anchorY: number, winPos: number): cc.Vec2 {
+        let coefficientWidth: number;
+        let coefficientHeight: number;
+        let x: number = 0;
+        let y: number = 0;
+        //计算coefficientWidth和x坐标
+        if (winPos === UIViewController.PositionType.LEFT || winPos === UIViewController.PositionType.LOWER_LEFT || winPos === UIViewController.PositionType.UPPER_LEFT) {
+            coefficientWidth = anchorX;
+            x = winSize.width * coefficientWidth - parentSize.width / 2;
+        }
+        else if (winPos === UIViewController.PositionType.RIGHT || winPos === UIViewController.PositionType.LOWER_RIGHT || winPos === UIViewController.PositionType.UPPER_RIGHT) {
+            coefficientWidth = -anchorX;
+            x = parentSize.width / 2 - winSize.width * coefficientWidth;
+        }
+        //计算coefficientHeight
+        if (winPos === UIViewController.PositionType.UP || winPos === UIViewController.PositionType.UPPER_LEFT || winPos === UIViewController.PositionType.UPPER_RIGHT) {
+            //视图高度的截取系数，y锚点为0时，是在节点的底部，故要锚点值减1
+            coefficientHeight = anchorY -1;
+            y = parentSize.height / 2 + winSize.height * coefficientHeight;
+        }
+        else if (winPos === UIViewController.PositionType.DOWN || winPos === UIViewController.PositionType.LOWER_LEFT || winPos === UIViewController.PositionType.LOWER_RIGHT) {
+            coefficientHeight = anchorY;
+            y = winSize.height * coefficientHeight - parentSize.height / 2;
+        }
+        return new cc.Vec2(x, y);
+    }
+    
+    /**
+     * 把视图增加到窗口
+     * @param parent 窗口节点
+     * @param controller 视图
+     * @param winPos 方位
+     * @param nextTo 是否紧挨着屏幕边缘
+     */
+    private addToWindow(parent: cc.Node, controller: UIViewController, winPos: number, nextTo: boolean): void {
         if (nextTo) {
-            this._lowerRWindow.addChild(controller.node);
+            parent.addChild(controller.node);
             let contenSize: cc.Size = this._lowerRWindow.getContentSize();
             let controllerSize: cc.Size = controller.node.getContentSize();
-            let x: number = this._lowerRWindow.x + contenSize.width / 2 - controllerSize.width / 2;
-            let y: number = this._lowerRWindow.y - contenSize.height / 2 - controllerSize.height / 2;
-            controller.node.x = x;
-            controller.node.y = y;
+            //紧贴着右下方边缘
+            controller.node.position = this.getWinPos(contenSize, controllerSize, controller.node.anchorX, controller.node.anchorY, winPos);
         }
         else {
-            this._lowerRWindow.addChild(controller.node);
+            parent.addChild(controller.node);
             controller.node.x = 0;
             controller.node.y = 0;
         }
-    }
-
-    private Normal(): void {
-
-    }
-
-    private Fade_over(): void {
-
-    }
-
-    private Roll_in_roll_out(): void {
-
-    }
-
-    private Pop_up(): void {
-
+        controller.PopupWindow(winPos, nextTo, true);
     }
 }
