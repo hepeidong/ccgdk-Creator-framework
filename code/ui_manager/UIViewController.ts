@@ -64,6 +64,7 @@ export abstract class UIViewController extends Controller implements IViewContro
     public static get StyleType(): StyleType { return this._styletype; }   
     public static get PositionType(): PositionType { return this._postionType; }
     public set WaitView(view: UIViewController) { this._waitView = view; } 
+    public get WaitView(): UIViewController { return this._waitView; } 
 
     /**
      * 打开试图

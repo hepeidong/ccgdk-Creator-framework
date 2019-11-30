@@ -272,6 +272,8 @@ declare namespace cf {
      * name: 根视图控制器
      */
     export abstract class RootViewController extends UIControl implements IViewController {
+        /**加载等待视图 */
+        WaitView: UIViewController;
         /***************控制器生命周期函数***************/
         /**试图加载完调用 */
         abstract OnViewLoaded(): void;
@@ -330,6 +332,8 @@ declare namespace cf {
         protected accessId: number;
         /** */
         protected closeOther: boolean;
+        /**加载等待视图 */
+        WaitView: UIViewController;
         /**弹窗风格 */
         readonly Style: number;
         /**弹窗类型 */

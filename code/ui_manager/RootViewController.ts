@@ -14,6 +14,9 @@ export abstract class RootViewController extends Controller implements IViewCont
         this._isRootView = true;
     }
 
+    public set WaitView(view: RootViewController) { this._waitView = view; } 
+    public get WaitView(): RootViewController { return this._waitView; }
+
     /***************控制器生命周期函数***************/
     /**试图加载完调用 */
     abstract OnViewLoaded(): void;
@@ -32,13 +35,11 @@ export abstract class RootViewController extends Controller implements IViewCont
     }
     /**
      * 视图加载显示 
-     * @param waitView 资源加载的面板
      * @param fn 加载成功显示后的回调，默认是不传入回调，为null
      */
-    public ViewLoad(waitView: RootViewController = null, fn: ()=>void = null): void {
-        this._waitView = waitView;
+    public ViewLoad(fn: ()=>void = null): void {
         if (this._waitView) {
-            this._waitView.ViewLoad(null, () => {
+            this._waitView.ViewLoad(() => {
                 this.LoadView(fn);
             });
         }else {
