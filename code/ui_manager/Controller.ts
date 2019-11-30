@@ -1,10 +1,11 @@
+import { EventListeners } from "../event_manager/EventListeners";
 
 /**
  * author: HePeiDong
  * date: 2019/9/13
  * name: ui控制基类
  */
-export abstract class UIControl {
+export abstract class Controller extends EventListeners {
     private _uiUrl: string;               //预制体资源相对路径
     private _resUrls: string[];           //图集资源相对路劲
     private _loadedRes: boolean;          //资源是否加载了
@@ -14,6 +15,7 @@ export abstract class UIControl {
     private _assetArray: cc.SpriteAtlas[];//资源图集
     private _node: cc.Node;
     constructor() {
+        super();
         this._loadedRes = false;
         this._loadedView = false;
         this._isRootView = false;

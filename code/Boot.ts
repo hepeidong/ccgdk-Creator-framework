@@ -2,7 +2,7 @@ import { Reference} from "./res_manager/Reference";
 import { PoolManager } from "./res_manager/AutoReleasePool";
 import { EventListeners,Handler } from "./event_manager/EventListeners";
 import { RootViewController } from "./ui_manager/RootViewController";
-import { UIControl } from "./ui_manager/UIControl";
+import { Controller } from "./ui_manager/Controller";
 import { UIViewController } from "./ui_manager/UIViewController";
 import { LayerManager } from "./ui_manager/LayerManager";
 import { WindowView } from "./ui_manager/WindowView";
@@ -35,7 +35,7 @@ export function initFrame(): void {
         UILoader: UILoader,
         PoolManager: PoolManager,
         RootViewController: RootViewController,
-        UIControl: UIControl,
+        UIControl: Controller,
         UIViewController: UIViewController,
         LayerManager: LayerManager,
         WindowView: WindowView,

@@ -1,4 +1,4 @@
-import { UIControl } from "./UIControl"
+import { Controller } from "./Controller"
 import { IViewController } from "./IViewController";
 
 /**窗口弹出风格 */
@@ -31,7 +31,7 @@ type PositionType = {
  * date: 2019/9/11
  * name: 视图控制器基类
  */
-export abstract class UIViewController extends UIControl implements IViewController {
+export abstract class UIViewController extends Controller implements IViewController {
     private _closeOther: boolean;
     private _waitView: UIViewController;
     private static _styletype: StyleType = {

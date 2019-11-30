@@ -1,11 +1,11 @@
-import { UIControl } from "./UIControl";
+import { Controller } from "./Controller";
 import { IViewController } from "./IViewController";
 /**
  * author: HePeiDong
  * date: 2019/9/11
  * name: 根视图控制器
  */
-export abstract class RootViewController extends UIControl implements IViewController{
+export abstract class RootViewController extends Controller implements IViewController{
     private _canvas: cc.Node;
     private _waitView: RootViewController;
     constructor() {

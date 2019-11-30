@@ -296,7 +296,7 @@ declare namespace cf {
         Destroy(cleanup: boolean = true): void;
     }
 
-    export abstract class UIControl implements IControl {
+    export abstract class Controller extends EventListeners {
         protected _isRootView: boolean;
         /**视图节点 */
         readonly node: cc.Node;
