@@ -1,15 +1,19 @@
 import { UIViewController } from "./UIViewController";
+import { RootViewController } from "./RootViewController";
 
 
 /**
  * author: HePeiDong
  * date: 2019/9/11
  * name: 窗口类
+ * description: 构建窗口层级结构，总共分为十层，分别是根节点层，中间层，顶部层，底部层，左边层，右边层，
+ *              左上层，右上层，左下层，右下层，适配尚未完成。
  */
 export class WindowView {
-    private _canvas: cc.Node;
-
-    /***************游戏层级结构中的窗口结构*****************/
+    private _rootViewController: RootViewController;//根视图控制器
+    /***************游戏层级结构*****************/
+    private _canvas: cc.Node;            //游戏画布，游戏层级的第一层
+    private _rootView: cc.Node;          //根视图
     private _upWindow: cc.Node;          //上方窗口
     private _downWindow: cc.Node;        //下方窗口
     private _centerWindow: cc.Node;      //中心窗口
@@ -29,6 +33,28 @@ export class WindowView {
 
     private Init(): boolean {
         this._priority = 0;
+        this. _rootView = new cc.Node();          //根视图
+        this. _upWindow = new cc.Node();          //上方窗口
+        this. _downWindow = new cc.Node();        //下方窗口
+        this. _centerWindow = new cc.Node();      //中心窗口
+        this. _leftWindow = new cc.Node();        //左窗口
+        this. _rightWindow = new cc.Node();       //右窗口
+        this. _upperLWindow = new cc.Node();      //左下窗口
+        this. _upperRWindow = new cc.Node();      //右上窗口
+        this. _lowerLWindow = new cc.Node();      //左下窗口
+        this. _lowerRWindow = new cc.Node();      //右下窗口
+        //把窗口加入到canvas
+        this._canvas.addChild(this._rootView);
+        this._canvas.addChild(this._centerWindow);
+        this._canvas.addChild(this._upWindow);
+        this._canvas.addChild(this._downWindow);
+        this._canvas.addChild(this._leftWindow);
+        this._canvas.addChild(this._rightWindow);
+        this._canvas.addChild(this._upperLWindow);
+        this._canvas.addChild(this._upperRWindow);
+        this._canvas.addChild(this._lowerLWindow);
+        this._canvas.addChild(this._lowerRWindow);
+
         let canvasSize = this._canvas.getContentSize();
         //确定窗口结构，各窗口的大小
         this._upWindow.setContentSize(canvasSize.width, canvasSize.height / 2);
@@ -40,18 +66,19 @@ export class WindowView {
         this._upperRWindow.setContentSize(canvasSize.width / 2, canvasSize.height / 2);
         this._lowerLWindow.setContentSize(canvasSize.width / 2, canvasSize.height / 2);
         this._lowerRWindow.setContentSize(canvasSize.width / 2, canvasSize.height / 2);
-
-        //把窗口加入到canvas
-        this._canvas.addChild(this._upWindow);
-        this._canvas.addChild(this._leftWindow);
-        this._canvas.addChild(this._downWindow);
-        this._canvas.addChild(this._centerWindow);
-        this._canvas.addChild(this._rightWindow);
-        this._canvas.addChild(this._upperLWindow);
-        this._canvas.addChild(this._upperRWindow);
-        this._canvas.addChild(this._lowerLWindow);
-        this._canvas.addChild(this._lowerRWindow);
         return true;
+    }
+
+    /**
+     * 设置根视图控制器
+     * @param rootController 根视图控制器
+     */
+    public SetRootViewController(rootController: RootViewController): void {
+        if (this._rootViewController) {
+            this._rootViewController.Destroy();
+        }
+        this._rootViewController = rootController;
+        this._rootViewController.ViewLoad();
     }
 
     /**

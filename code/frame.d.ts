@@ -423,7 +423,7 @@ declare namespace cf {
     export class LayerManager extends cf.EventListeners {
         readonly static Instance: LayerManager;
         /**根视图控制器 */
-        rootViewController: RootViewController;
+        set rootViewController(root: RootViewController): RootViewController;
         /**
          * 增加到上方窗口
          * @param controller 视图控制器
@@ -489,6 +489,11 @@ declare namespace cf {
     }
 
     export class WindowView {
+        /**
+         * 设置根视图控制器
+         * @param rootController 根视图控制器
+         */
+        SetRootViewController(rootController: RootViewController): void;
         /**
          * 增加上方窗口
          * @param controller 视图控制器

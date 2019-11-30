@@ -3,7 +3,8 @@ import { EventListeners } from "../event_manager/EventListeners";
 /**
  * author: HePeiDong
  * date: 2019/9/13
- * name: ui控制基类
+ * name: 控制器基类
+ * description: 控制器基类主要完成控制器里公共的底层功能，例如加载，显示，销毁，释放资源 
  */
 export abstract class Controller extends EventListeners {
     private _uiUrl: string;               //预制体资源相对路径

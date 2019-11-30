@@ -4,6 +4,8 @@ import { IViewController } from "./IViewController";
  * author: HePeiDong
  * date: 2019/9/11
  * name: 根视图控制器
+ * description: 游戏中同一时刻，只允许有一个根视图运行，根视图控制的ui节点，直接附加在canvas下，根视图类似于电脑
+ *              或者手机的桌面，普通的ui视图则类似于桌面上运行的应用，大概思想就是这样。
  */
 export abstract class RootViewController extends Controller implements IViewController{
     private _canvas: cc.Node;
@@ -67,7 +69,7 @@ export abstract class RootViewController extends Controller implements IViewCont
         super.Destroy();
         this._waitView = null;
         this.node.removeFromParent(cleanup);
-        this.node.active = false;
+        this.HideView();
         this.node.destroy();
         this.OnViewDidDisappear();
     } 

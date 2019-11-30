@@ -15,14 +15,23 @@ type StyleType = {
 
 /**窗口位置类型 */
 type PositionType = {
+    /**上方 */
     UP:number,
+    /**下方 */
     DOWN:number,
+    /**中间 */
     CENTER:number,
+    /**右边 */
     LEFT:number,
+    /**右边 */
     RIGHT:number,
+    /**左上方 */
     UPPER_LEFT:number,
+    /**右上方 */
     UPPER_RIGHT:number,
+    /**左下方 */
     LOWER_LEFT:number,
+    /**右下方 */
     LOWER_RIGHT:number
 }
 
@@ -30,6 +39,9 @@ type PositionType = {
  * author: HePeiDong
  * date: 2019/9/11
  * name: 视图控制器基类
+ * description: 游戏中除了根视图外，其余的窗口，或者ui的管理器都继承这个类，管理器不是cocos组件，它是独立的一个管理器，
+ *              一个窗口或者预制体，可能存在多个脚本组件，所以不应以脚本组件作为管理器，凡是以脚本组件作为管理器的思想，
+ *              都是很垃圾的思想。
  */
 export abstract class UIViewController extends Controller implements IViewController {
     private _closeOther: boolean;
@@ -106,7 +118,7 @@ export abstract class UIViewController extends Controller implements IViewContro
         this._closeOther = false;
         this._waitView = null;
         this.node.removeFromParent(cleanup);
-        this.node.active = false;
+        this.HideView();
         this.node.destroy();
         this.OnViewDidDisappear();
     }

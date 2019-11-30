@@ -7,11 +7,11 @@ import { WindowView } from "./WindowView";
  * author: HePeiDong
  * date: 2019/9/13
  * name: 层级管理器
- * 还有窗口队列需要去设计实现完善
+ * description: 还有窗口队列需要去设计实现完善，对游戏层进行管理，例如把窗口增加到游戏层里面，
+ *              还有对窗口队列进行管理，以及根据内存进行窗口的调度和显示，功能尚未完善。
  */
 export class LayerManager extends EventListeners {
     private static _ins: LayerManager;
-    private _rootViewController: RootViewController;
     private _windowView: WindowView;
     private _winQueue: cf.PriorityQueue<UIViewController | RootViewController>;
     constructor() {
@@ -25,16 +25,8 @@ export class LayerManager extends EventListeners {
     }
 
     public set rootViewController(root: RootViewController) {
-        if (this._rootViewController) {
-            this._rootViewController.Destroy();
-        }
         this._winQueue.Push(root);
-        this._rootViewController = root;
-        this._rootViewController.ViewLoad();
-    }
-
-    public get rootViewController(): RootViewController {
-        return this._rootViewController;
+        this._windowView.SetRootViewController(root);
     }
 
     private Init(): boolean {
@@ -42,7 +34,6 @@ export class LayerManager extends EventListeners {
             //根视图放在最后面
             return a.priority < b.priority;
         });
-        this._rootViewController = null;
         this._windowView = new WindowView();
         return true;
     }
