@@ -6,9 +6,9 @@ type StyleType = {
     /**没有特效的弹出风格 */
     NORMEL:number,
     /**淡入淡出的弹入弹出特效 */
-    FADE_OVER:number,
+    FADE_IN_AND_OUT:number,
     /**滑入滑出的弹入弹出特效，只在上，下，左，右四个方位适用 */
-    ROLL_IN_ROLL_OUT:number,
+    ROLL_IN_AND_OUT:number,
     /**快速缩放的弹入弹出特效，在紧挨着窗口边缘时无效 */
     POP_UP:number
 };
@@ -36,8 +36,8 @@ export abstract class UIViewController extends Controller implements IViewContro
     private _waitView: UIViewController;
     private static _styletype: StyleType = {
         NORMEL: 0,
-        FADE_OVER: 1,
-        ROLL_IN_ROLL_OUT: 2,
+        FADE_IN_AND_OUT: 1,
+        ROLL_IN_AND_OUT: 2,
         POP_UP: 3
     };
     private static _postionType: PositionType = {
@@ -136,10 +136,10 @@ export abstract class UIViewController extends Controller implements IViewContro
     public PopupWindow(winPos: number, nextTo: boolean, isShow: boolean): void {
         this._winPos = winPos;
         this._nextTo = nextTo;
-        if (this.Style == UIViewController.StyleType.FADE_OVER) {
+        if (this.Style == UIViewController.StyleType.FADE_IN_AND_OUT) {
             this.fadeInAndOut(isShow);
         }
-        else if (this.Style == UIViewController.StyleType.ROLL_IN_ROLL_OUT) {
+        else if (this.Style == UIViewController.StyleType.ROLL_IN_AND_OUT) {
             this.rollInAndOut(isShow, nextTo, winPos);
         }
         else if (this.Style == UIViewController.StyleType.POP_UP) {

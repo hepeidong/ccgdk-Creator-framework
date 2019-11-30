@@ -375,13 +375,13 @@ declare namespace cf {
          */
         export enum StyleType {
             /**没有特效的弹出风格 */
-            NORMEL = 0,
+            NORMEL,
             /**淡入淡出的弹入弹出特效 */
-            FADE_OVER = 1,
+            FADE_IN_AND_OUT,
             /**滑入滑出的弹入弹出特效，只在上，下，左，右四个方位适用 */
-            ROLL_IN_ROLL_OUT = 2,
+            ROLL_IN_AND_OUT,
             /**快速缩放的弹入弹出特效，在紧挨着窗口边缘时无效 */
-            POP_UP = 3,
+            POP_UP
         }
     }
 
