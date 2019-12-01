@@ -70,6 +70,7 @@ export abstract class Controller extends EventListeners {
         this._loadedView = false;
         this._assetArray = null;
         this.node.stopAllActions();
+        cf.PoolManager.Instance.GetCurrentPool().Remove(this);
         for (let i: number = 0; i < this._resUrls.length; ++i) {
             cf.UILoader.Release(this._resUrls[i]);
         }
@@ -84,17 +85,21 @@ export abstract class Controller extends EventListeners {
                 this._assetArray = asset;
                 this._loadedRes = true;
             });
-        }
-        if (!this._loadedView) {
-            cf.UILoader.LoadRes(this._uiUrl, cc.Prefab, (err: Error, asset: any) => {
-                if (err) {
-                    throw err;
-                }
-                let newNode: cc.Node = cf.UILoader.Instanitate(asset);
-                this._node = newNode;
-                fn && fn();
-                this.Loaded();
-            });
+            if (!this._loadedView) {
+                cf.UILoader.LoadRes(this._uiUrl, cc.Prefab, (err: Error, asset: any) => {
+                    if (err) {
+                        throw err;
+                    }
+                    let newNode: cc.Node = cf.UILoader.Instanitate(asset);
+                    this._node = newNode;
+                    fn && fn();
+                    cf.PoolManager.Instance.GetCurrentPool().CheckMemory((outOfMemory) => {
+                        if (!outOfMemory) {
+                            this.Loaded();
+                        }
+                    });
+                });
+            }
         }
         else {
             fn && fn();

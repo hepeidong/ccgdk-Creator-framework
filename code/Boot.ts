@@ -1,5 +1,5 @@
 import { Reference} from "./res_manager/Reference";
-import { PoolManager } from "./res_manager/AutoReleasePool";
+import { PoolManager,AutoReleasePool } from "./res_manager/AutoReleasePool";
 import { EventListeners,Handler } from "./event_manager/EventListeners";
 import { RootViewController } from "./ui_manager/RootViewController";
 import { Controller } from "./ui_manager/Controller";
@@ -34,6 +34,7 @@ export function initFrame(): void {
         Vector: Vector,
         UILoader: UILoader,
         PoolManager: PoolManager,
+        AutoReleasePool: AutoReleasePool,
         RootViewController: RootViewController,
         UIControl: Controller,
         UIViewController: UIViewController,

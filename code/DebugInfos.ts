@@ -16,6 +16,7 @@ export function initDebugInfos(): void {
             '201': 'Call Release of Reference...',
             '202': 'do release ',
             '203': 'Call Retain of Reference...',
+            '204': '内存不足，导致无法显示页面，建议扩大项目设计内存，或优化资源。'
         }
         cf._LogInfos = logs;
     }

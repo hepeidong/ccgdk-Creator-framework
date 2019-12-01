@@ -16,7 +16,6 @@ export class LayerManager extends EventListeners {
     private _winQueue: cf.PriorityQueue<UIViewController | RootViewController>;
     constructor() {
         super();
-        this.On(cf.EventName.DESIGN_OUT_OF_MEMORY, this, this.OnDeleteView);
         this.Init();
     }
 
@@ -125,18 +124,5 @@ export class LayerManager extends EventListeners {
     public AddToLowerRWindow(controller: UIViewController, nexTo: boolean = false): void {
         this._winQueue.Push(controller);
         this._windowView.AddLowerRWindow(controller, nexTo);
-    }
-
-    private OnDeleteView(): void {
-        let view: UIViewController | RootViewController = this._winQueue.Pop();
-        if (this._winQueue.Length > 1) {
-            if (!view.isRootView) {
-                view.Destroy();
-            }
-        }
-        else {
-            view.Destroy();
-            throw new Error('设计内存不足，无法显示页面');
-        }
     }
 }

@@ -59,6 +59,35 @@ declare namespace cf {
     export var WarnID: Function;
     export var ErrorID: Function;
 
+    export class AutoReleasePool extends EventListeners {
+        constructor(name: string = null);
+        /**
+         * 增加资源对象
+         * @param object 资源对象
+         */
+        AddObject(object: Reference): void;
+        /**
+         * 增加窗口控制器
+         * @param controller 控制器
+         */
+        AddController(controller: winType): void;
+        /**
+         * 移除指定窗口
+         * @param controller 
+         */
+        Remove(controller: winType): void;
+        /**
+         * 检测内存
+         * @param fn 回调返回内存不足判断
+         */
+        CheckMemory(fn: (outOfMemory: boolean) => void): void;
+        GetObject(key: string): Reference;
+        Contains(key: string): boolean;
+        ClearOf(key: string): void;
+        /**释放所有锁定的资源 */
+        Clear(): void;
+    }
+
     export class PoolManager extends EventListeners {
         readonly static Instance: PoolManager;
 
@@ -70,7 +99,6 @@ declare namespace cf {
 
         static PurgePoolManager(): void;
         static DestroyPoolManager(): void;
-        AddAutoRelease(): boolean;
         GetCurrentPool(): AutoReleasePool;
         Push(pool: AutoReleasePool): void;
         Pop(): AutoReleasePool;
@@ -606,6 +634,13 @@ declare namespace cf {
          * 出队列，把队列的根节点删除，并返回删除的元素，删除的过程是把根节点不断的下沉到最后的位置，然后删除最后一个元素
          */
         Pop(): T;
+
+        /**
+         * 移除指定元素，并返回
+         * @param e 要移除的元素
+         * @param fn 判断标准
+         */
+        Remove(e: T, fn: (a: T) => number|string): T;
     }
 
     /**

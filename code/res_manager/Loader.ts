@@ -71,8 +71,8 @@ export class UILoader extends EventListeners {
         cf.PoolManager.Instance.GetCurrentPool().Clear();
     }
 
-    public static GetRes(url: string): Resource {
-        return cf.PoolManager.Instance.GetCurrentPool().GetObject(this.makeKey(url)) as Resource;
+    public static GetRes(url: string): cf.Resource {
+        return cf.PoolManager.Instance.GetCurrentPool().GetObject(this.makeKey(url)) as cf.Resource;
     }
 
     public static Retain(url: string): void {
