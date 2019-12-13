@@ -3,13 +3,17 @@ import { UILoader } from "./UILoader";
 const {ccclass, property} = cc._decorator;
 
 type ButtonResT = {normal: string, pressed: string, hover: string, disabled: string};
-type ComponentT = cc.Sprite|cc.Button|cc.Mask|cc.PageViewIndicator|cc.EditBox|cc.Label|cc.RichText|cc.ParticleSystem;
+type ComponentT = cc.Sprite|cc.Button|cc.Mask|cc.PageViewIndicator|cc.EditBox|cc.Label|cc.RichText|cc.ParticleSystem|sp.Skeleton;
+type AnimateCompleteT = (asset: any) => void;
+type AnimateT = sp.SkeletonData;
 
 @ccclass
 export class AutoRelease extends cc.Component {
 
     /** 结点引用的资源*/
     private _currRes: string[] = [];
+    /** */
+    private _animateMap: Map<string, AnimateT> = new Map();
     /**是否锁定资源 */
     private _isLock: boolean;
 
@@ -26,6 +30,12 @@ export class AutoRelease extends cc.Component {
         
         let comp: ComponentT = this.node.getComponent(compType);
         this.ParseSource(comp, compType, url);
+    }
+
+    public Animation(url: string, compType: any, complete: AnimateCompleteT, isLock: boolean = false) {
+        this._isLock = isLock;
+        let comp: ComponentT = this.node.getComponent(compType);
+        this.ParseAnimate(comp, url, complete);
     }
 
     public SetCurrRes(url:string|ButtonResT) {
@@ -52,6 +62,27 @@ export class AutoRelease extends cc.Component {
             if (url === this._currRes[i]) return true;
         }
         return false;
+    }
+
+    private ParseAnimate(comp: ComponentT, url: string, complete: AnimateCompleteT) {
+        if (comp instanceof sp.Skeleton) {
+            this.LoadAnimate(url, sp.SkeletonData, complete);
+        }
+    }
+
+    private LoadAnimate(url: string, type: any, complete: AnimateCompleteT) {
+        let animate: AnimateT = this._animateMap.get(UILoader.makeKey(UILoader.getResUrl(url)));
+        if (animate) {
+            complete && complete(animate);
+        }
+        else {
+            UILoader.loadRes(url, type, (err: Error, asset: any) => {
+                this.SetCurrRes(url);
+                let key: string = UILoader.makeKey(UILoader.getResUrl(url));
+                this._animateMap.set(key, asset);
+                complete && complete(asset);
+            }, this._isLock);
+        }
     }
 
     private ParseSource(comp: ComponentT, compType: any, url: string|ButtonResT): void {
@@ -88,7 +119,7 @@ export class AutoRelease extends cc.Component {
         }
         let res: cc.Texture2D = cc.loader.getRes(url);
         if (res) {
-            this.SetCurrRes(url);
+            // this.SetCurrRes(url);
             comp[sfName] = new cc.SpriteFrame(res);
         }else {
             //不存在，则进行加载操作
@@ -106,7 +137,7 @@ export class AutoRelease extends cc.Component {
         }
         let res: cc.BitmapFont = cc.loader.getRes(url);
         if (res) {
-            this.SetCurrRes(url);
+            // this.SetCurrRes(url);
             label.font = res;
         }else {
             UILoader.loadRes(url, cc.BitmapFont, (err: Error, asset: any) => {
@@ -135,7 +166,7 @@ export class AutoRelease extends cc.Component {
         }
         let res: cc.Texture2D = cc.loader.getRes(url);
         if (res) {
-            this.SetCurrRes(url);
+            // this.SetCurrRes(url);
             partSys.file = res.url;
         }
         else {
@@ -144,6 +175,10 @@ export class AutoRelease extends cc.Component {
                 this.node.getComponent(cc.ParticleSystem).texture = asset;
             }, this._isLock);
         }
+    }
+
+    private SetSkeletonData() {
+
     }
 
     start () {

@@ -1,6 +1,7 @@
 type ButtonResType = {normal: string, pressed: string, hover: string, disabled: string};
 type completeFnType = (err: Error, asset: any) => void;
 type progressFnType = (completedCount: number, totalCount: number, item: any) => void;
+type AnimateCompleteT = (asset: any) => void;
 
 /**加载函数参数结构体 */
 interface LoadArgs {
@@ -18,7 +19,7 @@ class Loader {
         this._resMap = new Map();
     }
 
-    public loadRes(url: string, type: typeof cc.Asset, progressCallback: progressFnType, completeCallback: ((error: Error, resource: any) => void)|null, isLock?: boolean): void;
+    public loadRes(url: string, type: typeof cc.Asset, progressCallback: progressFnType, completeCallback: completeFnType|null, isLock?: boolean): void;
     public loadRes(url: string, type: typeof cc.Asset, completeCallback: completeFnType, isLock?: boolean): void;
     public loadRes(url: string, type: typeof cc.Asset, isLock?: boolean): void;
     public loadRes(url: string, progressCallback: progressFnType, completeCallback: completeFnType|null, isLock?: boolean): void;
@@ -72,6 +73,13 @@ class Loader {
         target.getComponent('AutoRelease').Source(url, compType, isLock);
     }
 
+    public setAnimation(target: cc.Node, url: string, compType: cc.Component, complete: AnimateCompleteT, isLock?: boolean) {
+        if (!target.getComponent('AutoRelease')) {
+            this._addNode(target, isLock);
+        }
+        target.getComponent('AutoRelease').Animation(url, compType, complete, isLock);
+    }
+
     public removeChild(target: cc.Node, cleanup?: boolean) {
         if (!cc.isValid(target)) return;
         target.removeFromParent(cleanup);
@@ -94,7 +102,7 @@ class Loader {
         if (this._resMap.has(key)) {
             let tempRes: any = this._resMap.get(key);
             tempRes._releaseCount++;
-            console.log('retain releaseCount ', tempRes._releaseCount);
+            console.log(`retain ${key} `, tempRes._releaseCount);
             this._resMap.set(key, tempRes);
         }
     }
@@ -104,7 +112,7 @@ class Loader {
         if (this._resMap.has(key)) {
             let tempRes: any = this._resMap.get(key);
             tempRes._releaseCount--;
-            console.log('releasse releaseCount ', tempRes._releaseCount);
+            console.log(`release ${key} `, tempRes._releaseCount);
             if (tempRes._releaseCount === 0) {
                 if (tempRes.isLock) return;
                 this._releaseRes(tempRes.url);
@@ -181,7 +189,6 @@ class Loader {
     }
 
     private _releaseRes(url: string) {
-        console.log('do release ', url);
         let cacheRes: any[] = cc.loader['_cache'];
         let dependKeysMap: Map<string, any> = new Map();
         let releaseAsset: string[] = [];
@@ -191,6 +198,7 @@ class Loader {
             }
         }
 
+        console.log('do release ', url);
         cc.loader.release(url);
         releaseAsset.push(url);
         this._releaseDependKeys(releaseAsset, dependKeysMap);
@@ -203,6 +211,7 @@ class Loader {
             for (let i: number = 0; i < value.length; ++i) {
                 if (releaseAsset.indexOf(value[i]) !== -1) {
                     res_json.push(cacheRes[key].url);
+                    console.log('do release ', cacheRes[key].url);
                     cc.loader.release(cacheRes[key].url);
                 }
             }
@@ -248,7 +257,7 @@ class Loader {
         }
 
         let button: cc.Button = target.getComponent(cc.Button);
-        if (button) {
+        if (button && button.transition === cc.Button.Transition.SPRITE) {
             if (button.normalSprite) {
                 this._initReleaseCount(cacheRes[button.normalSprite.getTexture().url], isLock);
             }
