@@ -10,15 +10,17 @@ type AnimateT = sp.SkeletonData;
 @ccclass
 export class AutoRelease extends cc.Component {
 
+    @property
     /** 结点引用的资源*/
-    private _currRes: string[] = [];
-    /** */
-    private _animateMap: Map<string, AnimateT> = new Map();
+    _currRes: string[] = [];
+
+    @property
     /**是否锁定资源 */
-    private _isLock: boolean;
+    _isLock: boolean = false;
 
     onLoad() {
-
+        this._currRes = [];
+        this._isLock = true;
     }
 
     public Source(url: string|ButtonResT, compType: any, isLock: boolean = false) {
@@ -39,39 +41,62 @@ export class AutoRelease extends cc.Component {
     }
 
     public SetCurrRes(url:string|ButtonResT) {
+        if (url == null) {
+            cck.log('AutoRelease >> SetCurrRes 资源 URL 为空');
+            return;
+        }
         if (typeof url === 'string') {
+            if (url.length === 0) {
+                cck.log('AutoRelease >> SetCurrRes 资源 URL 为空');
+                return;
+            }
             let url_: string = UILoader.getResUrl(url);
-            if (!this.Contain(url_)) {
+            if (this.Contain(url_) === null) {
                 this._currRes.push(url_);
                 UILoader.retain(url_);
+            }
+            else {
+                cck.warn('AutoRelease >> SetCurrRes 资源已经存在');
             }
         }
         else {
             for (let key in url) {
+                if (key.length === 0) {
+                    cck.log('AutoRelease >> SetCurrRes 资源 URL 为空');
+                    return;
+                }
                 let url_: string = UILoader.getResUrl(url[key]);
-                if (!this.Contain(url_)) {
+                if (this.Contain(url_) === null) {
                     this._currRes.push(url_);
                     UILoader.retain(url_);
+                }
+                else {
+                    cck.warn('AutoRelease >> SetCurrRes 资源已经存在');
                 }
             }
         }
     }
 
-    private Contain(url: string|ButtonResT): boolean {
+    private Contain(url: string|ButtonResT): number {
         for (let i: number = 0; i < this._currRes.length; ++i) {
-            if (url === this._currRes[i]) return true;
+            if (url === this._currRes[i]) return i;
         }
-        return false;
+        return null;
     }
 
     private ParseAnimate(comp: ComponentT, url: string, complete: AnimateCompleteT) {
         if (comp instanceof sp.Skeleton) {
+            if (comp.skeletonData) {
+                for (let i: number = 0; i < comp.skeletonData.textures.length; ++i) {
+                    this.release(comp.skeletonData.textures[i].url);
+                }
+            }
             this.LoadAnimate(url, sp.SkeletonData, complete);
         }
     }
 
     private LoadAnimate(url: string, type: any, complete: AnimateCompleteT) {
-        let animate: AnimateT = this._animateMap.get(UILoader.makeKey(UILoader.getResUrl(url)));
+        let animate: AnimateT = UILoader.getAnimation(UILoader.makeKey(UILoader.getResUrl(url)));
         if (animate) {
             complete && complete(animate);
         }
@@ -79,7 +104,7 @@ export class AutoRelease extends cc.Component {
             UILoader.loadRes(url, type, (err: Error, asset: any) => {
                 this.SetCurrRes(url);
                 let key: string = UILoader.makeKey(UILoader.getResUrl(url));
-                this._animateMap.set(key, asset);
+                UILoader.addAnimation(key, asset);
                 complete && complete(asset);
             }, this._isLock);
         }
@@ -117,9 +142,12 @@ export class AutoRelease extends cc.Component {
         if (!comp) {
             throw console.error('节点没有这个组件');
         }
+        if (comp[sfName]) {
+            this.release(comp[sfName].getTexture().url);
+        }
         let res: cc.Texture2D = cc.loader.getRes(url);
         if (res) {
-            // this.SetCurrRes(url);
+            this.SetCurrRes(url);
             comp[sfName] = new cc.SpriteFrame(res);
         }else {
             //不存在，则进行加载操作
@@ -135,9 +163,12 @@ export class AutoRelease extends cc.Component {
         if (!label) {
             throw console.error('节点没有这个组件');
         }
+        if (label.font && label.font instanceof cc.BitmapFont) {
+            this.release(label.font['spriteFrame'].getTexture().url);
+        }
         let res: cc.BitmapFont = cc.loader.getRes(url);
         if (res) {
-            // this.SetCurrRes(url);
+            this.SetCurrRes(url);
             label.font = res;
         }else {
             UILoader.loadRes(url, cc.BitmapFont, (err: Error, asset: any) => {
@@ -148,11 +179,13 @@ export class AutoRelease extends cc.Component {
     }
 
     private SetImageAtlas(url: string):void {
-        if (!this.node.getComponent(cc.RichText)) {
+        let richText: cc.RichText = this.node.getComponent(cc.RichText);
+        if (!richText) {
             throw console.error('节点没有这个组件');
         }
-        //cc.loader.getRes(url)取得的资源的类型是cc.Texture2D 不是cc.SpriteAtlas
-        //所以不在这里进行是否加载了此资源判断
+        if (richText.imageAtlas) {
+            this.release(richText.imageAtlas.getTexture().url);
+        }
         UILoader.loadRes(url, cc.SpriteAtlas, (err: Error, asset: any) => {
             this.SetCurrRes(url);
             this.node.getComponent(cc.RichText).imageAtlas = asset;
@@ -164,9 +197,14 @@ export class AutoRelease extends cc.Component {
         if (!partSys) {
             throw console.error('节点没有这个组件');
         }
+        if (partSys.texture) {
+            this.release(partSys.texture);
+            this.release(partSys.file);
+        }
         let res: cc.Texture2D = cc.loader.getRes(url);
         if (res) {
-            // this.SetCurrRes(url);
+            this.SetCurrRes(url);
+            partSys.texture = res.url;
             partSys.file = res.url;
         }
         else {
@@ -185,14 +223,24 @@ export class AutoRelease extends cc.Component {
         // init logic
     }
 
-    private release() {
+    private release(url: string) {
+        let index: number = this.Contain(url);
+        if (index !== null) {
+            UILoader.release(url);
+        }
+        this._currRes.splice(index, 1);
+    }
+
+    private releaseAll() {
         for (let i: number = 0; i < this._currRes.length; ++i) {
             UILoader.release(this._currRes[i]);
         }
+        this._currRes.splice(0, this._currRes.length);
+
     }
 
     onDestroy() {
-        this.release();
+        this.releaseAll();
     }
 
     update () {

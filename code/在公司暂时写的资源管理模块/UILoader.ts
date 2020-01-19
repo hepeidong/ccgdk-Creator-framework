@@ -1,7 +1,3 @@
-type ButtonResType = {normal: string, pressed: string, hover: string, disabled: string};
-type completeFnType = (err: Error, asset: any) => void;
-type progressFnType = (completedCount: number, totalCount: number, item: any) => void;
-type AnimateCompleteT = (asset: any) => void;
 
 /**加载函数参数结构体 */
 interface LoadArgs {
@@ -12,11 +8,22 @@ interface LoadArgs {
     isLock: boolean
 }
 
+type ResConfig = {
+    key: string,
+    url: string,
+    refCount: number,
+    isLock: boolean
+}
+
 class Loader {
-    private _resMap: Map<string, any>;
+    private static _staticResReleaseMap: Map<string, ResConfig>;   //存放要释放的静态资源
+    private static _resMap: Map<string, ResConfig>;                //存放所有加载的资源
+    private _animatePool: Map<string, AnimateType>;                //动画池
 
     constructor() {
-        this._resMap = new Map();
+        Loader._staticResReleaseMap = new Map();
+        Loader._resMap = new Map();
+        this._animatePool = new Map();
     }
 
     public loadRes(url: string, type: typeof cc.Asset, progressCallback: progressFnType, completeCallback: completeFnType|null, isLock?: boolean): void;
@@ -37,8 +44,8 @@ class Loader {
                 console.error(`资源加载错误 ${err}`);
                 return;
             }
-            let res: any = cc.loader['_cache'][this.getResUrl(args.url)];
-            this._initReleaseCount(res, args.isLock);
+            let url: string = this.getResUrl(args.url);
+            this.addResConfig(url, args.isLock, asset instanceof cc.Prefab);
             args.completeFn && args.completeFn(err, asset);
         }
         //有些资源比较特殊，暂时注释掉
@@ -57,6 +64,14 @@ class Loader {
             cc.loader.loadRes(args.url, completedFn);
         }
     }
+
+    public addAnimation(key: string, obj: AnimateType) {
+        this._animatePool.set(key, obj);
+    }
+
+    public getAnimation(key: string): AnimateType {
+        return this._animatePool.get(key);
+    }
     
     public instanitate(original: any, isLock?: boolean): cc.Node {
         if (!original) return;
@@ -66,57 +81,122 @@ class Loader {
         return newNode;
     }
 
-    public setResource(target: cc.Node, compType: cc.Component, url: string|ButtonResType, isLock?: boolean) {
+    public setResource(target: cc.Node, compType: typeof cc.Component, url: string|ButtonResType, isLock?: boolean): void {
         if (!target.getComponent('AutoRelease')) {
             this._addNode(target, isLock);
         }
+        isLock = isLock ? true : false;
         target.getComponent('AutoRelease').Source(url, compType, isLock);
     }
 
-    public setAnimation(target: cc.Node, url: string, compType: cc.Component, complete: AnimateCompleteT, isLock?: boolean) {
+    public setAnimation(target: cc.Node, url: string, compType: typeof cc.Component, complete: AnimateCompleteType, isLock?: boolean): void {
         if (!target.getComponent('AutoRelease')) {
             this._addNode(target, isLock);
         }
+        isLock = isLock ? true : false;
         target.getComponent('AutoRelease').Animation(url, compType, complete, isLock);
     }
 
+    public setAudio(url: string, complete: (asset: cc.AudioClip) => void, isLock: boolean): void {
+        let audio: cc.AudioClip = cc.loader.getRes(url);
+        if (audio) {
+            complete && complete(audio);
+        }
+        else {
+            isLock = isLock ? true : false;
+            this.loadRes(url, cc.AudioClip, (err: Error, asset: cc.AudioClip) => {
+                if (err) {
+                    throw console.error(`音频加载错误 ${url}`);
+                }
+                complete && complete(asset);
+            }, isLock);
+        }
+    }
+
     public removeChild(target: cc.Node, cleanup?: boolean) {
-        if (!cc.isValid(target)) return;
+        if (!cc.isValid(target, true)) return;
         target.removeFromParent(cleanup);
         target.destroy();
     }
 
+    /**强制释放所有资源，谨慎使用 */
     public gc() {
-        this._resMap.forEach((value: any, key: string) => {
+        this._animatePool.clear();
+        Loader._resMap.forEach((value: ResConfig, key: string) => {
             if (value.isLock) {
                 value.isLock = false;
-                value._releaseCount = 0;
-                this._releaseRes(value.url);
-                this._resMap.delete(key);
+                value.refCount = 1;
+                Loader._resMap.set(key, value);
             }
+            this.release(value.url);
+        });
+        Loader._staticResReleaseMap.forEach((value: ResConfig, key: string) => {
+            if (value.isLock) {
+                value.isLock = false;
+                value.refCount = 1;
+                Loader._staticResReleaseMap.set(key, value);
+            }
+            this.release(value.url);
         });
     }
 
     public retain(url: string) {
         let key: string = this.makeKey(this.getResUrl(url));
-        if (this._resMap.has(key)) {
-            let tempRes: any = this._resMap.get(key);
-            tempRes._releaseCount++;
-            console.log(`retain ${key} `, tempRes._releaseCount);
-            this._resMap.set(key, tempRes);
+        if (Loader._resMap.has(key)) {
+            let tempRes: ResConfig = Loader._resMap.get(key);
+            tempRes.refCount++;
+            // cck.log('do retain res key',key,'release count', tempRes.refCount);
+            Loader._resMap.set(key, tempRes);
+        }
+        else {
+            if (key) {
+                let resUrl: string = this.getResUrl(url);
+                let res: any = cc.loader['_cache'][resUrl];
+                if (res) {
+                    Loader._resMap.set(key, {key: key, url: resUrl, refCount: 1, isLock: false});
+                }
+                else {
+                    cck.log('Loader >> retain 资源 URL 为静态资源', resUrl);
+                    Loader._resMap.set(key, {key: key, url: resUrl, refCount: 1, isLock: true});
+                }
+            }
         }
     }
 
     public release(url: string) {
         let key: string = this.makeKey(this.getResUrl(url));
-        if (this._resMap.has(key)) {
-            let tempRes: any = this._resMap.get(key);
-            tempRes._releaseCount--;
-            console.log(`release ${key} `, tempRes._releaseCount);
-            if (tempRes._releaseCount === 0) {
-                if (tempRes.isLock) return;
+        if (Loader._resMap.has(key)) {
+            let tempRes: ResConfig = Loader._resMap.get(key);
+            tempRes.refCount--;
+            // cck.log('do release res key', key,'release count', tempRes.refCount);
+            if (tempRes.refCount <= 0) {
+                if (tempRes.isLock) {
+                    cck.log('静态资源，不能自动释放', tempRes.url);
+                    Loader._staticResReleaseMap.set(tempRes.key, tempRes);
+                    Loader._resMap.delete(tempRes.key);
+                    return;
+                }
+                cck.log('do release res', tempRes.url);
                 this._releaseRes(tempRes.url);
-                this._resMap.delete(key);
+                Loader._resMap.delete(key);
+            }
+        }
+        else {
+            if (key) {
+                let resUrl: string = this.getResUrl(url);
+                let res: any = cc.loader['_cache'][resUrl];
+                if (res) {
+                    Loader._resMap.set(key, {key: key, url: resUrl, refCount: 1, isLock: false});
+                    this.release(resUrl);
+                }
+                else {
+                    cck.log('Loader >> release 资源 URL 为静态资源', resUrl);
+                    Loader._resMap.set(key, {key: key, url: resUrl, refCount: 1, isLock: true});
+                    this.release(resUrl);
+                }
+            }
+            else {
+                cck.warn('Loader >> release 资源 URL 不正确', url);
             }
         }
     }
@@ -126,12 +206,48 @@ class Loader {
     }
 
     public getResUrl(url: string): string {
+        let res: any = cc.loader['_cache'][url];
+        if (res) {
+            return url;
+        }
+        else {
+            return this._getUrl(url);
+        }
+    }
+
+    public addResConfig(url: string, isLock: boolean, isPrefab: boolean) {
+        let resUrl: string = this.getResUrl(url);
+        if (!resUrl || resUrl.length === 0) {
+            // cck.log('Loader >> addResConfig 资源对象为空');
+            return;
+        }
+        if (cc.loader['_cache'][resUrl]) {
+            this._initReleaseCount(resUrl, isLock);
+        }
+        else {
+            if (isPrefab) {
+                this._initReleaseCount(resUrl, isLock);
+            }
+            else {
+                this._initReleaseCount(resUrl, true);
+                cck.log('Loader >> addResConfig 资源为静态资源', url);
+            }
+        }
+    }
+
+    private _getUrl(url: string): string {
         let res: any = cc.loader.getRes(url);
         if (res instanceof cc.Texture2D) {
             return res.url;
         }
         else if (res instanceof cc.BitmapFont) {
             return res['spriteFrame'].getTexture().url;
+        }
+        else if (res instanceof cc.AudioClip) {
+            return res.nativeUrl;
+        }
+        if (!url || url.length === 0) {
+            cck.log('Loader >> _getUrl 资源对象为空', url);
         }
         return url;
     }
@@ -189,16 +305,15 @@ class Loader {
     }
 
     private _releaseRes(url: string) {
-        let cacheRes: any[] = cc.loader['_cache'];
         let dependKeysMap: Map<string, any> = new Map();
         let releaseAsset: string[] = [];
-        for (let key in cacheRes) {
-            if (cacheRes[key].dependKeys && cacheRes[key].dependKeys.length > 0) {
-                dependKeysMap.set(key, cacheRes[key].dependKeys);
+        for (let key in cc.loader['_cache']) {
+            if (cc.loader['_cache'][key].dependKeys && cc.loader['_cache'][key].dependKeys.length > 0) {
+                dependKeysMap.set(key, cc.loader['_cache'][key].dependKeys);
             }
         }
 
-        console.log('do release ', url);
+        cck.log('do release ', url);
         cc.loader.release(url);
         releaseAsset.push(url);
         this._releaseDependKeys(releaseAsset, dependKeysMap);
@@ -206,13 +321,12 @@ class Loader {
 
     private _releaseDependKeys(releaseAsset: string[], dependKeysMap: Map<string, any>) {
         let res_json: string[] = [];
-        let cacheRes: any[] = cc.loader['_cache'];
         dependKeysMap.forEach((value, key) => {
             for (let i: number = 0; i < value.length; ++i) {
                 if (releaseAsset.indexOf(value[i]) !== -1) {
-                    res_json.push(cacheRes[key].url);
-                    console.log('do release ', cacheRes[key].url);
-                    cc.loader.release(cacheRes[key].url);
+                    res_json.push(cc.loader['_cache'][key].url);
+                    cck.log('do release ', cc.loader['_cache'][key].url);
+                    cc.loader.release(cc.loader['_cache'][key].url);
                 }
             }
         });
@@ -221,19 +335,12 @@ class Loader {
         }
     }
 
-    private _initReleaseCount(res: any, isLock: boolean) {
-        if (!res) return;
-        if (res._releaseCount === undefined || res._releaseCount === null) {
-            res._releaseCount = 0;
-            this._resMap.set(this.makeKey(res.url), res);
+    private _initReleaseCount(url: string, isLock: boolean) {
+        let key: string = this.makeKey(url);
+        if (!Loader._resMap.has(key)) {
+            let resCfg: ResConfig = {key: key, url: url, refCount: 0, isLock: isLock};
+            Loader._resMap.set(key, resCfg);
         }
-        this._setAutoRelease(this.makeKey(res.url), isLock);
-    }
-
-    private _setAutoRelease(key: string, is: boolean) {
-        let tempRes: any = this._resMap.get(key);
-        tempRes._isLock = is;
-        this._resMap.set(key, tempRes);
     }
 
     private _addNode(target: cc.Node, isLock: boolean) {
@@ -249,74 +356,72 @@ class Loader {
 
     private _parseNode(target: cc.Node, isLock: boolean) {
         let autoComponent = target.getComponent('AutoRelease');
-        let cacheRes = cc.loader['_cache'];
         let sprite: cc.Sprite = target.getComponent(cc.Sprite);
         if (sprite && sprite.spriteFrame) {
-            this._initReleaseCount(cacheRes[sprite.spriteFrame.getTexture().url], isLock);
+            this.addResConfig(sprite.spriteFrame.getTexture().url, isLock, false);
             autoComponent.SetCurrRes(sprite.spriteFrame.getTexture().url);
         }
 
         let button: cc.Button = target.getComponent(cc.Button);
         if (button && button.transition === cc.Button.Transition.SPRITE) {
             if (button.normalSprite) {
-                this._initReleaseCount(cacheRes[button.normalSprite.getTexture().url], isLock);
+                this.addResConfig(button.normalSprite.getTexture().url, isLock, false);
             }
             if (button.pressedSprite) {
-                this._initReleaseCount(cacheRes[button.pressedSprite.getTexture().url], isLock);
+                this.addResConfig(button.pressedSprite.getTexture().url, isLock, false);
             }
             if (button.hoverSprite) {
-                this._initReleaseCount(cacheRes[button.hoverSprite.getTexture().url], isLock);
+                this.addResConfig(button.hoverSprite.getTexture().url, isLock, false);
             }
             if (button.disabledSprite) {
-                this._initReleaseCount(cacheRes[button.disabledSprite.getTexture().url], isLock);
+                this.addResConfig(button.disabledSprite.getTexture().url, isLock, false);
             }
             let buttonRes: ButtonResType = {
-                normal: button.normalSprite.getTexture().url,
-                pressed: button.pressedSprite.getTexture().url,
-                hover: button.hoverSprite.getTexture().url,
-                disabled: button.disabledSprite.getTexture().url
+                normal: button.normalSprite && button.normalSprite.getTexture().url,
+                pressed: button.pressedSprite && button.pressedSprite.getTexture().url,
+                hover: button.hoverSprite && button.hoverSprite.getTexture().url,
+                disabled: button.disabledSprite && button.disabledSprite.getTexture().url
             }
             autoComponent.SetCurrRes(buttonRes);
         }
 
         let label: cc.Label = target.getComponent(cc.Label);
         if (label && label.font && label.font instanceof cc.BitmapFont && label.font['spriteFrame']) {
-            this._initReleaseCount(cacheRes[label.font['spriteFrame'].getTexture().url], isLock);
+            this.addResConfig(label.font['spriteFrame'].getTexture().url, isLock, false);
             autoComponent.SetCurrRes(label.font['spriteFrame'].getTexture().url);
         }
     
         let richText = target.getComponent(cc.RichText);
         if (richText && richText.imageAtlas) {
-            this._initReleaseCount(cacheRes[richText.imageAtlas.getTexture().url], isLock);
+            this.addResConfig(richText.imageAtlas.getTexture().url, isLock, false);
             autoComponent.SetCurrRes(richText.imageAtlas.getTexture().url);
         }
     
         let particleSystem = target.getComponent(cc.ParticleSystem) as cc.ParticleSystem;
         if (particleSystem && particleSystem.texture) {
-            this._initReleaseCount(cacheRes[particleSystem.texture], isLock);
+            this.addResConfig(particleSystem.texture, isLock, false);
             autoComponent.SetCurrRes(particleSystem.texture);
-            this._initReleaseCount(cacheRes[particleSystem.file], isLock);
+            this.addResConfig(particleSystem.file, isLock, false);
             autoComponent.SetCurrRes(particleSystem.file);
         }
     
         let pageViewIndicator = target.getComponent(cc.PageViewIndicator);
         if (pageViewIndicator && pageViewIndicator.spriteFrame) {
-            this._initReleaseCount(cacheRes[pageViewIndicator.spriteFrame.getTexture().url], isLock);
+            this.addResConfig(pageViewIndicator.spriteFrame.getTexture().url, isLock, false);
             autoComponent.SetCurrRes(pageViewIndicator.spriteFrame.getTexture().url);
         }
     
         let editBox = target.getComponent(cc.EditBox);
         if (editBox && editBox.backgroundImage) {
-            this._initReleaseCount(cacheRes[editBox.backgroundImage.getTexture().url], isLock);
+            this.addResConfig(editBox.backgroundImage.getTexture().url, isLock, false);
             autoComponent.SetCurrRes(editBox.backgroundImage.getTexture().url);
         }
     
         let mask = target.getComponent(cc.Mask);
         if (mask && mask.spriteFrame) {
-            this._initReleaseCount(cacheRes[mask.spriteFrame.getTexture().url], isLock);
+            this.addResConfig(mask.spriteFrame.getTexture().url, isLock, false);
             autoComponent.SetCurrRes(mask.spriteFrame.getTexture().url);
         } 
     }
 }
-
 export const UILoader = new Loader();
