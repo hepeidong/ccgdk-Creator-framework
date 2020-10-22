@@ -456,8 +456,8 @@ export default class TouchControl extends cc.Component {
     private getMinDisOfIndex(targetList: cc.Node[]|cc.Vec3[], ball: cc.Node, parent: cc.Node, callback: (index: number) => boolean): number {
         let min: {dis: number; index: number;} = {dis: 0, index: 0};
         for (let i: number = 0; i < targetList.length; ++i) {
-            let position: cc.Vec2 = utils.convertPosition(ball.parent, parent, cc.v2(ball.x, ball.y));
-            let dis: number = utils.EngineUtil.distance(position, targetList[i]);
+            let position: cc.Vec2 = utils.EngineUtil.convertPosition(ball.parent, parent, cc.v2(ball.x, ball.y));
+            let dis: number = utils.EngineUtil.distance(cc.v3(position.x, position.y), targetList[i]);
             min = {dis: dis, index: i};
             if (min.dis > dis && callback(i)) {
                 min = {dis: dis, index: i};
@@ -602,7 +602,7 @@ export default class TouchControl extends cc.Component {
     onTouchStart(data: any) {
         if (this.activeTouch) {
             this._oldPosition = cc.v3(this.ballList[data.content.i].ball.x, this.ballList[data.content.i].ball.y);
-            let pos: cc.Vec2 = utils.transitionPosition(this.ballList[data.content.i].ball.parent, cc.v2(data.content.x, data.content.y));
+            let pos: cc.Vec2 = this.ballList[data.content.i].ball.parent.convertToNodeSpaceAR(cc.v2(data.content.x, data.content.y));
             this.ballList[data.content.i].ball.position = cc.v3(pos.x, pos.y);
         }
         if (this.touchStartEvent) {
@@ -612,11 +612,10 @@ export default class TouchControl extends cc.Component {
 
     onTouchMove(data: any) {
         if (this.activeTouch) {
-            let position = utils.transitionPosition(this.ballList[data.content.i].ball.parent, cc.v2(data.content.x, data.content.y));
-            // cc.tween(this.ballList[data.content.i].ball).to(0.1, {position: cc.v3(position.x, position.y)}).start();
+            let position = this.ballList[data.content.i].ball.parent.convertToNodeSpaceAR(cc.v2(data.content.x, data.content.y));
             this.ballList[data.content.i].ball.x = position.x;
             this.ballList[data.content.i].ball.y = position.y;
-            this.ballList[data.content.i].intersect = utils.inersectJudge(this.targetArea.target, this.ballList[data.content.i].ball, this._targetRect);
+            this.ballList[data.content.i].intersect = utils.EngineUtil.inersectJudge(this.targetArea.target, this.ballList[data.content.i].ball, this._targetRect);
             this.ballList[data.content.i].removed = this.removedJudge(this.ballList[data.content.i].ball, data.content.i);
         }
         if (this.touchMoveEvent) {

@@ -152,6 +152,36 @@ export class TargetListener {
         return this;
     }
 
+    public onMouseEnter(callback: Function): TargetListener {
+        this.on(cc.Node.EventType.MOUSE_ENTER, callback);
+        return this;
+    }
+
+    public onMouseLeave(callback: Function): TargetListener {
+        this.on(cc.Node.EventType.MOUSE_LEAVE, callback);
+        return this;
+    }
+
+    public onMouseDown(callback: Function): TargetListener {
+        this.on(cc.Node.EventType.MOUSE_DOWN, callback);
+        return this;
+    }
+
+    public onMouseMove(callback: Function): TargetListener {
+        this.on(cc.Node.EventType.MOUSE_MOVE, callback);
+        return this;
+    }
+
+    public onMouseUp(callback: Function): TargetListener {
+        this.on(cc.Node.EventType.MOUSE_UP, callback);
+        return this;
+    }
+
+    public onMouseWheel(callback: Function): TargetListener {
+        this.on(cc.Node.EventType.MOUSE_WHEEL, callback);
+        return this;
+    }
+
     public onStart(callback: Function): TargetListener {
         this.on(cc.Node.EventType.TOUCH_START, callback);
         return this;
@@ -180,6 +210,30 @@ export class TargetListener {
             throw new Error('[targetListener] function<onCall>:自定义事件监听类型时，必须要传入事件类型！');
         }
         return this;
+    }
+
+    public offMouseEnter(): void {
+        this.off(cc.Node.EventType.MOUSE_ENTER);
+    }
+
+    public offMouseDown(): void {
+        this.off(cc.Node.EventType.MOUSE_DOWN);
+    }
+
+    public offMouseLeave(): void {
+        this.off(cc.Node.EventType.MOUSE_LEAVE);
+    }
+
+    public offMouseMove(): void {
+        this.off(cc.Node.EventType.MOUSE_MOVE);
+    }
+
+    public offMouseUp(): void {
+        this.off(cc.Node.EventType.MOUSE_UP);
+    }
+
+    public offMouseWheel(): void {
+        this.off(cc.Node.EventType.MOUSE_WHEEL);
     }
 
     public offStart(): void {

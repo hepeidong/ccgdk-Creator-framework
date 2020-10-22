@@ -359,9 +359,14 @@ export class Animat {
             if (this._animatIndex < this._animatList.length) {
                 //如果下一个不是spine骨骼动画，则判断是否为剪辑动画，进而进行播放
                 if (this._animatList[this._animatIndex].type === AnimatType.SPINE) {
-                    this._animatList[this._animatIndex].animat.repeatCount--;
-                    let delay: number = (this._animatList[this._animatIndex].animat as ISpineAnimat).delay
-                    this.setSepine((this._animatList[this._animatIndex].animat as ISpineAnimat).name, delay);
+                    if (this._animatList[this._animatIndex].animat.repeatCount > 0) {
+                        this._animatList[this._animatIndex].animat.repeatCount--;
+                        this._skeleton.setAnimation(0, (this._animatList[this._animatIndex].animat as ISpineAnimat).name, false);
+                    }
+                    else {
+                        let delay: number = (this._animatList[this._animatIndex].animat as ISpineAnimat).delay
+                        this.setSepine((this._animatList[this._animatIndex].animat as ISpineAnimat).name, delay);
+                    }
                 }
                 else if (this._animatList[this._animatIndex].type === AnimatType.ANIMATION) {
                     if (this._firstFlagOfClip) {
@@ -382,7 +387,7 @@ export class Animat {
         animat.repeatCount--;
         this.timeoutId = setTimeout(() => {
             clearTimeout(this.timeoutId);
-            this._skeleton && this._skeleton.setAnimation(0, (this._animatList[this._animatIndex].animat as ISpineAnimat).name, false);
+            this._skeleton.setAnimation(0, (this._animatList[this._animatIndex].animat as ISpineAnimat).name, false);
         }, delay * 1000);
     }
 
@@ -392,6 +397,6 @@ export class Animat {
             this._target.pauseSystemEvents(true);
             return;
         }
-        this._skeleton && this._skeleton.addAnimation(0, name, false, delay);
+        this._skeleton.addAnimation(0, name, false, delay);
     }
 }

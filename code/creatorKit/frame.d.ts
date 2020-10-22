@@ -409,11 +409,23 @@ declare namespace kit {
         editDidEnded(handler: string): TargetListener;
         textChanged(handler: string): TargetListener;
         editDidBegan(handler: string): TargetListener;
+        onMouseEnter(callback: Function): TargetListener;
+        onMouseLeave(callback: Function): TargetListener;
+        onMouseDown(callback: Function): TargetListener;
+        onMouseMove(callback: Function): TargetListener;
+        onMouseUp(callback: Function): TargetListener;
+        onMouseWheel(callback: Function): TargetListener;
         onStart(callback: (event: cc.Event.EventTouch) => void): TargetListener;
         onMove(callback: (event: cc.Event.EventTouch) => void): TargetListener;
         onEnd(callback: (event: cc.Event.EventTouch) => void): TargetListener;
         onCancel(callback: (event: cc.Event.EventTouch) => void): TargetListener;
         onCall(callback: Function): TargetListener;
+        offMouseEnter(): void;
+        offMouseDown(): void;
+        offMouseLeave(): void;
+        offMouseMove(): void;
+        offMouseUp(): void;
+        offMouseWheel(): void;
         offStart(): void;
         offMove(): void;
         offEnd(): void;
@@ -1086,12 +1098,42 @@ declare namespace utils {
         static addEditDidBegan(node: cc.Node, target: cc.Node, component: string, handler: string, data?: any): void;
         static loadImage(target: cc.Node, url: string, type?: string): void;
         /**
+         * 某一个节点其坐标点是否在另一节点矩形内
+         * @param target 目标节点
+         * @param currNode 当前节点
+         * @param rect 目标节点2D矩形
+         */
+        static inersectJudge(target: cc.Node, currNode: cc.Node, targetRect?: cc.Rect): boolean
+        /**
+         * 从一个父节点坐标系转换到另一个父节点坐标系
+         * @param {any} fromParent 当前父节点
+         * @param {any} toParent 目标父节点
+         * @param {any} position 需要转换的位置
+         */
+        static convertPosition(fromParent: cc.Node, toParent: cc.Node, position: cc.Vec2): cc.Vec2
+        /**
          * 转换到微信小游戏坐标系，转换后的坐标是以右上角为原点
          * @param position 要转换的坐标点
          */
         static convertToWechatSpace(position: cc.Vec2): cc.Vec2;
         static convertToWechatSpaceAR(rect: cc.Rect): cc.Vec2;
+        /**
+         * 微信坐标转换为Cocos坐标
+         * @param wxPosition 微信坐标位置
+         */
+        static wechatSpaceToCCSpace(wxPosition: cc.Vec2): cc.Vec2;
+        /**
+         * 把节点位置坐标转换到另一个节点坐标系下
+         * @param fromTarget 
+         * @param toTarget 
+         */
         static positionConvert(fromTarget: cc.Node, toTarget: cc.Node): cc.Vec2;
+        /**
+         * 计算两点距离
+         * @param v1 
+         * @param v2 
+         */
+        static distance(v1: cc.Vec3, v2: cc.Vec3): number;
         /**
          * 设置节点的显示状态，建议在节点有绑定的脚本组件，并且脚本组件实现了onDisable和onEnable回调时调用
          * @param target 

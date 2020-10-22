@@ -56,7 +56,7 @@ export default class EngineUtil {
      * @param currNode 当前节点
      * @param rect 目标节点2D矩形
      */
-    inersectJudge(target: cc.Node, currNode: cc.Node, targetRect?: cc.Rect): boolean {
+    public static inersectJudge(target: cc.Node, currNode: cc.Node, targetRect?: cc.Rect): boolean {
         let x1 = - target.width * target.anchorX - (targetRect ? targetRect.x : 0);
         let x2 = target.width * target.anchorX + (targetRect ? targetRect.x : 0);
         let y1 = -target.height * target.anchorY - (targetRect ? targetRect.y : 0);
@@ -75,7 +75,7 @@ export default class EngineUtil {
      * @param {any} toParent 目标父节点
      * @param {any} position 需要转换的位置
      */
-    convertPosition(fromParent: cc.Node, toParent: cc.Node, position: cc.Vec2) {
+    public static convertPosition(fromParent: cc.Node, toParent: cc.Node, position: cc.Vec2): cc.Vec2 {
         let worldPos = fromParent.convertToWorldSpaceAR(position);
         return toParent.convertToNodeSpaceAR(worldPos);
     }
@@ -119,6 +119,11 @@ export default class EngineUtil {
         return new cc.Vec2(x, y);
     }
 
+    /**
+     * 把节点位置坐标转换到另一个节点坐标系下
+     * @param fromTarget 
+     * @param toTarget 
+     */
     public static positionConvert(fromTarget: cc.Node, toTarget: cc.Node): cc.Vec2 {
         let worldPos: cc.Vec2 = fromTarget.parent.convertToWorldSpaceAR(fromTarget.position);
         let pos: cc.Vec2 = toTarget.convertToNodeSpaceAR(worldPos);
