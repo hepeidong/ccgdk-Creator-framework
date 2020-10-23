@@ -30,3 +30,7 @@ export { TargetListener } from "./event_manager/TargetListener";
 export { GameFileManager } from "./data_manager/GameFileManager";
 export { Animat } from "./dyn_effect_manager/AnimatManager";
 export { Audio } from "./dyn_effect_manager/AudioManager";
+
+export function animat(target: cc.Node) { return kit.Animat.create.target(target); }
+export function audio(props: IAudio) { return kit.Audio.create.audio(props); }
+export function event(target: cc.Node, caller: any) { return kit.TargetListener.listener(target, caller); }

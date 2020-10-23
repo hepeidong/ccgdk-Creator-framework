@@ -1,4 +1,4 @@
-import { CtrlClass } from "../js_decorator/JsDecorator";
+import { KClass } from "../js_decorator/JsDecorator";
 import ControllerManager from "./ControllerManager";
 
 
@@ -8,7 +8,7 @@ import ControllerManager from "./ControllerManager";
  * name: 控制器基类
  * description: 控制器基类主要完成控制器里公共的底层功能，例如加载，显示，销毁，释放资源 
  */
-@CtrlClass
+@KClass
 export abstract class Controller {
     private urls: string[];           //图集资源相对路劲
     private _loadedRes: boolean;          //资源是否加载了

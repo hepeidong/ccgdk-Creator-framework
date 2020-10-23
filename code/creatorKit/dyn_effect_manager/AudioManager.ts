@@ -70,10 +70,10 @@ export class Audio {
     }
     /**开始播放音频 */
     public play() {
-        this.playAudio((resolves: audio_resolved_t[], reject: (val: any) => void) => {
+        this.promise((resolves: audio_resolved_t[], reject: (val: any) => void) => {
             try {
                 if (this._status === 'pending') {
-                    this.loadAudio(resolves, reject);
+                    this.playAudio(resolves, reject);
                 }
                 else if (this._status === 'rejected') {
                     reject(this._err);
@@ -85,7 +85,7 @@ export class Audio {
         return this;
     }
 
-    private loadAudio(resolves: audio_resolved_t[], reject: Function) {
+    private playAudio(resolves: audio_resolved_t[], reject: Function) {
         cc.loader.loadRes(this._audioList[this._audioIndex].audio.url, (err, clip: cc.AudioClip) => {
             if (err) {
                 this._status = 'rejected';
@@ -124,7 +124,7 @@ export class Audio {
 
     private _callback: Function;
     private _timeoutId: number;
-    private playAudio(callback: (resolves: audio_resolved_t[], reject: (val: any) => void) => void) {
+    private promise(callback: (resolves: audio_resolved_t[], reject: (val: any) => void) => void) {
         this._callback = callback;
         this.playInterval();
     }

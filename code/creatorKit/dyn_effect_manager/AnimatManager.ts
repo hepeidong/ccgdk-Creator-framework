@@ -66,6 +66,7 @@ export class Animat {
                         this._err = new Error('该节点没有Animation组件!');
                     }
                     else {
+                        this._status = 'resolved';
                         this.playClip();
                     }
                 }
@@ -253,12 +254,14 @@ export class Animat {
 
     private playClip() {
         if (this.isStop) {
-            this._animator && this._animator.stop();
+            this._animator.stop();
             this._animator = null;
             return;
         }
         this._firstFlagOfClip = true;
-        this._animator && this._animator.on('play', (evt) => {
+        this._animator.off('play');
+        this._animator.off('stop');
+        this._animator.on('play', (evt) => {
             let callbacks = this._animatList[this._animatIndex].callbacks;
             for (let e of callbacks) {
                 if (e.type === 'play') {
@@ -266,7 +269,7 @@ export class Animat {
                 }
             }
         }, this._target);
-        this._animator && this._animator.on('stop', (evt) => {
+        this._animator.on('stop', (evt) => {
             let callbacks = this._animatList[this._animatIndex].callbacks;
             for (let e of callbacks) {
                 if (e.type === 'stop') {

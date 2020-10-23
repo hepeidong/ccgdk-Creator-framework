@@ -13,7 +13,7 @@ import { ENABLE,
          SAFE_AUTORELEASE,
          SAFE_RETAIN,
          SAFE_DESTROY_VIEW, 
-         SAFE_CALLBACK} from "./CFDefine";
+         SAFE_CALLBACK} from "./KDefine";
 import Utils from "./utils/Utils";
 import { WX } from "./wx_api/WxApi";
 
@@ -74,18 +74,6 @@ if (_ENABLE) {
     kit = Kit;
     utils = Utils;
     wx = WX;
-}
-
-kit.animat = function(node) {
-    return kit.AnimatManager.create.target(node);
-}
-
-kit.audio = function(props) {
-    return kit.AudioManager.create.audio(props);
-}
-
-kit.event = function(target, caller) {
-    return kit.TargetListener.listener(target, caller);
 }
 
 if (_DEBUG) {

@@ -31,9 +31,9 @@ function loadView() {
 }
 
 /**控制器类的装饰器 */
-export function CtrlClass(prefabUrl: string): Function;
-export function CtrlClass(target?: Function): void;
-export function CtrlClass(param?: any) {
+export function KClass(prefabUrl: string): Function;
+export function KClass(target?: Function): void;
+export function KClass(param?: any) {
     if (typeof param === 'function') {
         param.prototype.LoadView = function() {
             loadView.bind(this)();
@@ -57,8 +57,8 @@ export function Denpends(urls: string[]) {
 }
 
 /**控制器属性装饰器 */
-export function CtrlProperty(options: typeof cc.Node|typeof cc.Component|{type: typeof cc.Node|typeof cc.Component, path?: string}): Function;
-export function CtrlProperty(options: any) {
+export function KProperty(options: typeof cc.Node|typeof cc.Component|{type: typeof cc.Node|typeof cc.Component, path?: string}): Function;
+export function KProperty(options: any) {
     return function (target: any, key: string) {
         delete target[key];
         Object.defineProperty(target, key, {
