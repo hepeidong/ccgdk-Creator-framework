@@ -356,32 +356,31 @@ export class Animat {
                     SAFE_CALLBACK(e.call, animat.name);
                 }
             }
-            if (animat.repeatCount === 0) {
-                this._animatIndex++;
+            //迭代播放
+            if (animat.repeatCount > 0) {
+                animat.repeatCount--;
+                this._skeleton.setAnimation(0, animat.name, false);
             }
-            if (this._animatIndex < this._animatList.length) {
-                //如果下一个不是spine骨骼动画，则判断是否为剪辑动画，进而进行播放
-                if (this._animatList[this._animatIndex].type === AnimatType.SPINE) {
-                    if (this._animatList[this._animatIndex].animat.repeatCount > 0) {
-                        this._animatList[this._animatIndex].animat.repeatCount--;
-                        this._skeleton.setAnimation(0, (this._animatList[this._animatIndex].animat as ISpineAnimat).name, false);
-                    }
-                    else {
+            else {
+                this._animatIndex++;
+                if (this._animatIndex < this._animatList.length) {
+                    //如果下一个不是spine骨骼动画，则判断是否为剪辑动画，进而进行播放
+                    if (this._animatList[this._animatIndex].type === AnimatType.SPINE) {
                         let delay: number = (this._animatList[this._animatIndex].animat as ISpineAnimat).delay
                         this.setSepine((this._animatList[this._animatIndex].animat as ISpineAnimat).name, delay);
                     }
-                }
-                else if (this._animatList[this._animatIndex].type === AnimatType.ANIMATION) {
-                    if (this._firstFlagOfClip) {
-                        this.setClipState();
+                    else if (this._animatList[this._animatIndex].type === AnimatType.ANIMATION) {
+                        if (this._firstFlagOfClip) {
+                            this.setClipState();
+                        }
+                        else {
+                            this.playClip();
+                        }
                     }
-                    else {
-                        this.playClip();
-                    }
                 }
-            }
-            else {
-                this.delAniCtrl();
+                else {
+                    this.delAniCtrl();
+                }
             }
         });
         

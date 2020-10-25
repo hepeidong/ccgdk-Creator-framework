@@ -32,9 +32,8 @@ export class Audio {
         else {
             let audio: audio_t = {audio: {
                 url: props.url,
-                isLoop: props.isLoop,
-                repeatCount: props.repeatCount,
-                volume: props.volume,
+                isLoop: (props.isLoop === undefined || props.isLoop === null) ? false : props.isLoop,
+                volume: (props.volume === null || props.volume === undefined) ? 1 : props.volume,
                 delay: props.delay ? props.delay : 0
             }, 
                 callbacks: []
@@ -69,7 +68,7 @@ export class Audio {
         this._rejectCallback = reject;
     }
     /**开始播放音频 */
-    public play() {
+    public play(): Audio {
         this.promise((resolves: audio_resolved_t[], reject: (val: any) => void) => {
             try {
                 if (this._status === 'pending') {
@@ -85,6 +84,13 @@ export class Audio {
         return this;
     }
 
+    public stop(): Audio {
+        if (this.audioId) {
+            cc.audioEngine.stop(this.audioId);
+        }
+        return this;
+    }
+
     private playAudio(resolves: audio_resolved_t[], reject: Function) {
         cc.loader.loadRes(this._audioList[this._audioIndex].audio.url, (err, clip: cc.AudioClip) => {
             if (err) {
@@ -96,17 +102,12 @@ export class Audio {
                 cc.audioEngine.stop(this.audioId);
             }
             let audio: IAudio = this._audioList[this._audioIndex].audio;
-            let v: number = (audio.volume === null || audio.volume === undefined) ? cc.audioEngine.getVolume(this.audioId) : audio.volume;
-            let isLoop: boolean = (audio.isLoop === undefined || audio.isLoop === null) ? false : audio.isLoop;
-            this.audioId = cc.audioEngine.play(clip, isLoop ? true : false, v);
-            let durat = cc.audioEngine.getDuration(this.audioId);
+            this.audioId = cc.audioEngine.play(clip, audio.isLoop, audio.volume);
+            
             cc.audioEngine.setFinishCallback(this.audioId, () => {
-                if (!isLoop) {
-                    cc.audioEngine.stop(this.audioId);
-                }
                 for (let e of resolves) {
                     if (e.type === 'stop') {
-                       SAFE_CALLBACK(e.call, durat);
+                       SAFE_CALLBACK(e.call, cc.audioEngine.getDuration(this.audioId));
                     }
                 }
                 this._audioIndex++;

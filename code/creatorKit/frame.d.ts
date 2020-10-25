@@ -12,7 +12,6 @@ type AnimateT = sp.SkeletonData;
 
 interface IAudio {
     url: string;
-    repeatCount?: number;
     isLoop?: boolean;
     delay?: number;
     volume?: number;
@@ -293,7 +292,7 @@ declare namespace kit {
     export var ErrorID: Function;
 
     export function animat(target: cc.Node): Animat;
-    export function audio(props: Audio): Audio;
+    export function audio(props: IAudio): Audio;
     export function event(target: cc.Node, caller: any): TargetListener;
 
     /**
@@ -352,6 +351,8 @@ declare namespace kit {
         then<T extends 'play'|'stop', P = T extends 'play'|'stop' ? play_callback_t : stop_callback_t>(callType: T, resolve: P): Audio
         /**开始播放音频 */
         play(): Audio;
+        /**停止播放 */
+        stop(): Audio;
         /**
          * 抛出异常
          * @param reject 
