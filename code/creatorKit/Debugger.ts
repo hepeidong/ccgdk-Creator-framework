@@ -3,15 +3,15 @@
 export function initDebugSetting(logTag: string): void {
     
     if (_DEBUG) {
-        kit.Log = console.log.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
-        kit.Warn = console.warn.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
-        kit.Error = console.error.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
-        kit.Info = console.debug.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
-        kit.Debug = console.debug.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
+        kit.log = console.log.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
+        kit.warn = console.warn.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
+        kit.error = console.error.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
+        kit.info = console.debug.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
+        kit.debug = console.debug.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
 
-        kit.LogID = genLogFunc(kit.Log, 'Log');
-        kit.WarnID = genLogFunc(kit.Warn, 'Warning');
-        kit.ErrorID = genLogFunc(kit.Error, 'Error');
+        kit.LogID = genLogFunc(kit.log, 'log');
+        kit.WarnID = genLogFunc(kit.warn, 'Warning');
+        kit.ErrorID = genLogFunc(kit.error, 'error');
     }
 }
 

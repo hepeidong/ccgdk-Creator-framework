@@ -20,36 +20,36 @@ export class Reference extends EventListeners {
     /** @public 资源的key值*/
     public get Key():string { return this._key; }
 
-    public Retain(): void {
+    public retain(): void {
         ++this._referenceCount;
         // kit.LogID(203, `${this.Key} ${this._referenceCount}`);
     }
 
-    public IsDestroyed(): boolean { return this._isDestoryed; }
+    public isDestroyed(): boolean { return this._isDestoryed; }
 
-    public Release(): void {
+    public release(): void {
         --this._referenceCount;
         // kit.LogID(201, `${this.Key} ${this._referenceCount}`);
         if (this._referenceCount == 0) {
             if (_DEBUG) {
-                if (PoolManager.Instance.GetCurrentPool().IsClearing() && PoolManager.Instance.IsObjectInPools(this)) {
+                if (PoolManager.Instance.getCurrentPool().isClearing() && PoolManager.Instance.isObjectInPools(this)) {
                     ASSERT(false, "The reference shouldn't be 0 because it is still in autorelease pool.");
                 }
             }
-            this.Destroy();
+            this.destroy();
         }
     }
 
-    public AutoRelease(): Reference {
-        PoolManager.Instance.GetCurrentPool().AddObject(this);
+    public autoRelease(): Reference {
+        PoolManager.Instance.getCurrentPool().addObject(this);
         return this;
     }
 
-    public GetReferenceCount(): number {
+    public getReferenceCount(): number {
         return this._referenceCount;
     }
 
-    protected Destroy(): void {
+    protected destroy(): void {
         this._isDestoryed = true;
     }
 }

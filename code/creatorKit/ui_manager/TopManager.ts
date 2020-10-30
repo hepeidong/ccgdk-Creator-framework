@@ -22,7 +22,7 @@ export default class TopManager extends LayerManager {
         const list: Array<Controller> = this._list as Array<Controller>;
         if (list.length > 0) {
             const view: Controller = list.pop();
-            view.ExitView(cleanup);
+            view.exitView(cleanup);
             return true;
         }
         return false;

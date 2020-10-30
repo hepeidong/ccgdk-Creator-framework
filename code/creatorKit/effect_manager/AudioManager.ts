@@ -32,7 +32,7 @@ export class Audio {
         else {
             let audio: audio_t = {audio: {
                 url: props.url,
-                isLoop: (props.isLoop === undefined || props.isLoop === null) ? false : props.isLoop,
+                loop: (props.loop === undefined || props.loop === null) ? false : props.loop,
                 volume: (props.volume === null || props.volume === undefined) ? 1 : props.volume,
                 delay: props.delay ? props.delay : 0
             }, 
@@ -102,7 +102,7 @@ export class Audio {
                 cc.audioEngine.stop(this.audioId);
             }
             let audio: IAudio = this._audioList[this._audioIndex].audio;
-            this.audioId = cc.audioEngine.play(clip, audio.isLoop, audio.volume);
+            this.audioId = cc.audioEngine.play(clip, audio.loop, audio.volume);
             
             cc.audioEngine.setFinishCallback(this.audioId, () => {
                 for (let e of resolves) {

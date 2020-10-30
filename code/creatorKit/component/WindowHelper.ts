@@ -97,7 +97,7 @@ class WinContent {
                     this.leftNode.removeFromParent();
                 }
                 this.leftNode = null;
-                kit.Log('删除');
+                kit.log('删除');
             }
             return false;
         }
@@ -175,12 +175,12 @@ export default class WindowHelper extends cc.Component {
                     let newNode: cc.Node = new cc.Node();
                     this.node.addChild(newNode);
                     this.popupNode = newNode;
-                    kit.Log('构建了popupNode 节点属性：', this.popupNode.name);
+                    kit.log('构建了popupNode 节点属性：', this.popupNode.name);
                 }
                 return true;
             }
             if (this.popupNode && this.style !== StyleType.FADE_IN_AND_OUT) {
-                kit.Log('移除了popupNode 节点属性：', this.popupNode.name);
+                kit.log('移除了popupNode 节点属性：', this.popupNode.name);
                 if (this.popupNode.name === 'New Node' && this.popupNode.childrenCount === 0) {
                     this.popupNode.removeFromParent();
                 }
@@ -413,20 +413,20 @@ export default class WindowHelper extends cc.Component {
         }
     }
 
-    private getPosList(target1: cc.Node, target2: cc.Node, close: boolean = false): cc.Vec2[] {
-        let startPos1: cc.Vec2;
-        let startPos2: cc.Vec2;
-        let endtPos1: cc.Vec2;
-        let endtPos2: cc.Vec2;
+    private getPosList(target1: cc.Node, target2: cc.Node, close: boolean = false): cc.Vec3[] {
+        let startPos1: cc.Vec3;
+        let startPos2: cc.Vec3;
+        let endtPos1: cc.Vec3;
+        let endtPos2: cc.Vec3;
         if (close) {
             startPos1 = target1.position;
             startPos2 = target2.position;
-            endtPos1 = new cc.Vec2(-AdapterCtrl.Instance.getScreenSize().width - target1.width / 2, target1.position.y);
-            endtPos2 = new cc.Vec2(AdapterCtrl.Instance.getScreenSize().width + target2.width / 2, target2.position.y);
+            endtPos1 = new cc.Vec3(-AdapterCtrl.Instance.getScreenSize().width - target1.width / 2, target1.position.y);
+            endtPos2 = new cc.Vec3(AdapterCtrl.Instance.getScreenSize().width + target2.width / 2, target2.position.y);
         }
         else {
-            startPos1 = new cc.Vec2(-AdapterCtrl.Instance.getScreenSize().width - target1.width / 2, target1.position.y);
-            startPos2 = new cc.Vec2(AdapterCtrl.Instance.getScreenSize().width + target2.width / 2, target2.position.y);
+            startPos1 = new cc.Vec3(-AdapterCtrl.Instance.getScreenSize().width - target1.width / 2, target1.position.y);
+            startPos2 = new cc.Vec3(AdapterCtrl.Instance.getScreenSize().width + target2.width / 2, target2.position.y);
             endtPos1 = target1.position;
             endtPos2 =target2.position;
         }
@@ -434,9 +434,9 @@ export default class WindowHelper extends cc.Component {
         return [startPos1, startPos2, endtPos1, endtPos2];
     }
 
-    private moveTow(target1: cc.Node, target2: cc.Node, endPos1: cc.Vec2, endPos2: cc.Vec2) {
-        let moveTo1: cc.ActionInterval = cc.moveTo(0.3, endPos1);
-        let moveTo2: cc.ActionInterval = cc.moveTo(0.3, endPos2);
+    private moveTow(target1: cc.Node, target2: cc.Node, endPos1: cc.Vec3, endPos2: cc.Vec3) {
+        let moveTo1: cc.ActionInterval = cc.moveTo(0.3, cc.v2(endPos1.x, endPos1.y));
+        let moveTo2: cc.ActionInterval = cc.moveTo(0.3, cc.v2(endPos2.x, endPos2.y));
 
         let callFunc1: cc.ActionInstant = cc.callFunc(() => {
             SAFE_CALLBACK(this._startFn);

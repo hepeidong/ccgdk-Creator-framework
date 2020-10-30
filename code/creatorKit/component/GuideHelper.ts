@@ -113,7 +113,7 @@ export default class GuideHelper extends cc.Component {
     onLoad () {
         if (!CC_EDITOR) {
             for (let i: number = 0; i < this.guideNodes.length; ++i) {
-                kit.Log(this.guideNodes[i]);
+                kit.log(this.guideNodes[i]);
                 if (this.guideNodes[i] && this.guideNodes[i].target) {
                     GuideManager.Instance.addGuideTarget(this.guideNodes[i]);
                 }

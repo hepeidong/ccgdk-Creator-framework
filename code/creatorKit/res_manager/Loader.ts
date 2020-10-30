@@ -47,58 +47,58 @@ export class Loader {
     
     }
 
-    public static Instanitate(url: string, original: cc.Prefab): cc.Node {
+    public static instanitate(url: string, original: cc.Prefab): cc.Node {
         if (!original){
             return;
         }
-        let key: string = this.MakeKey(url, cc.Prefab);
-        let res: any = this.GetCacheRes(key, cc.Prefab);
+        let key: string = this.makeKey(url, cc.Prefab);
+        let res: any = this.getCacheRes(key, cc.Prefab);
         let newNode: cc.Node = cc.instantiate(original);
         let autoRelease: kit.AutoRelease = newNode.getComponent(kit.AutoRelease);
         if (!autoRelease) {
             autoRelease = newNode.addComponent(kit.AutoRelease);
         }
-        autoRelease.RecordPrefabRes(res.id);
+        autoRelease.recordPrefabRes(res.id);
         return newNode;
     }
 
-    public static SetResource(target: cc.Node, compType: any, url: string|ButtonResT, isLock: boolean = false): void {
+    public static setResource(target: cc.Node, compType: any, url: string|ButtonResT, isLock: boolean = false): void {
         let autoRelease: kit.AutoRelease = target.getComponent(kit.AutoRelease);
         if (!autoRelease) {
             autoRelease = target.addComponent(kit.AutoRelease);
         }
-        autoRelease.Source(url, compType, isLock);
+        autoRelease.source(url, compType, isLock);
     }
 
 
-    public static Gc(): void {
-        kit.PoolManager.Instance.GetCurrentPool().Clear();
+    public static gc(): void {
+        kit.PoolManager.Instance.getCurrentPool().clear();
     }
 
-    public static GetRes(url: string, type: typeof cc.RawAsset): kit.Resource {
-        return kit.PoolManager.Instance.GetCurrentPool().GetObject(this.MakeKey(url, type)) as kit.Resource;
+    public static getRes(url: string, type: typeof cc.Asset): kit.Resource {
+        return kit.PoolManager.Instance.getCurrentPool().getObject(this.makeKey(url, type)) as kit.Resource;
     }
 
-    public static Retain(url: string, type: typeof cc.RawAsset): void {
-        SAFE_RETAIN(kit.PoolManager.Instance.GetCurrentPool().GetObject(this.MakeKey(url, type)));
+    public static retain(url: string, type: typeof cc.Asset): void {
+        SAFE_RETAIN(kit.PoolManager.Instance.getCurrentPool().getObject(this.makeKey(url, type)));
     }
 
-    public static Release(url: string|string[], type: typeof cc.RawAsset): void {
+    public static release(url: string|string[], type: typeof cc.Asset): void {
         if (typeof url === 'object') {
             if (url instanceof Array) {
                 for (let i: number = 0; i < url.length; ++i) {
-                    SAFE_RELEASE(kit.PoolManager.Instance.GetCurrentPool().GetObject(this.MakeKey(url[i], type)));
+                    SAFE_RELEASE(kit.PoolManager.Instance.getCurrentPool().getObject(this.makeKey(url[i], type)));
                 }
             }
         }
         else if (typeof url === 'string') {
-            SAFE_RELEASE(kit.PoolManager.Instance.GetCurrentPool().GetObject(this.MakeKey(url, type)));
+            SAFE_RELEASE(kit.PoolManager.Instance.getCurrentPool().getObject(this.makeKey(url, type)));
         }
     }
 
-    public static Load(url: string|string[]|UrlOfLoadT, progressFn: progressT, completeFn: Function|null, isLock: boolean): void;
-    public static Load(url: string|string[]|UrlOfLoadT, completeFn: completed, isLock: boolean): void;
-    public static Load(): void {
+    public static load(url: string|string[]|UrlOfLoadT, progressFn: progressT, completeFn: Function|null, isLock: boolean): void;
+    public static load(url: string|string[]|UrlOfLoadT, completeFn: completed, isLock: boolean): void;
+    public static load(): void {
         let args: LoadArgs = this.MakeLoadArgs.apply(null, arguments);    
         if (args.url instanceof Array) {
             kit.ErrorID(102);
@@ -129,13 +129,13 @@ export class Loader {
         }
     }
 
-    public static LoadRes(url: string, type: typeof cc.RawAsset, progressFn: progressT, completeCallback: completeTOfRes|null, isLock?: boolean): void;
-    public static LoadRes(url: string, type: typeof cc.RawAsset, completeFn: completeTOfRes, isLock?: boolean): void;
-    public static LoadRes(url: string, type: typeof cc.RawAsset, isLock?: boolean): void;
-    public static LoadRes(url: string, progressFn: progressT, completeCallback: completeTOfRes|null, isLock?: boolean): void;
-    public static LoadRes(url: string, completeFn: completeTOfRes, isLock?: boolean): void;
-    public static LoadRes(url: string, isLock?: boolean): void;	
-    public static LoadRes(): void {
+    public static loadRes(url: string, type: typeof cc.Asset, progressFn: progressT, completeCallback: completeTOfRes|null, isLock?: boolean): void;
+    public static loadRes(url: string, type: typeof cc.Asset, completeFn: completeTOfRes, isLock?: boolean): void;
+    public static loadRes(url: string, type: typeof cc.Asset, isLock?: boolean): void;
+    public static loadRes(url: string, progressFn: progressT, completeCallback: completeTOfRes|null, isLock?: boolean): void;
+    public static loadRes(url: string, completeFn: completeTOfRes, isLock?: boolean): void;
+    public static loadRes(url: string, isLock?: boolean): void;	
+    public static loadRes(): void {
         let args: LoadArgs = this.MakeLoadArgs.apply(null, arguments);
         if (typeof args.url !== 'string') {
             kit.ErrorID(102);
@@ -145,7 +145,7 @@ export class Loader {
         let completedFn = (err: Error, asset: any) => {
             if (!err) {
                 if (args.type) {
-                    this.FinishedLoad(args.url as string, args.type, args.isLock);
+                    this.finishedLoad(args.url as string, args.type, args.isLock);
                 }
                 else {
                     this.ParserAssetType(args.url as string, asset, args.isLock);
@@ -165,13 +165,13 @@ export class Loader {
         }
     }
 
-    public static LoadResDir(url: string, type: typeof cc.RawAsset, progressFn: progressT, completeCallback: completeTOfDir|null, isLock?: boolean): void;
-    public static LoadResDir(url: string, type: typeof cc.RawAsset, completeFn: completeTOfDir, isLock?: boolean): void;
-    public static LoadResDir(url: string, type: typeof cc.RawAsset, isLock?: boolean): void;
-    public static LoadResDir(url: string, progressFn: progressT, completeCallback: completeTOfDir|null, isLock?: boolean): void;
-    public static LoadResDir(url: string, completeFn: completeTOfDir, isLock?: boolean): void;
-    public static LoadResDir(url: string, isLock?: boolean): void;
-    public static LoadResDir(): void {
+    public static loadResDir(url: string, type: typeof cc.Asset, progressFn: progressT, completeCallback: completeTOfDir|null, isLock?: boolean): void;
+    public static loadResDir(url: string, type: typeof cc.Asset, completeFn: completeTOfDir, isLock?: boolean): void;
+    public static loadResDir(url: string, type: typeof cc.Asset, isLock?: boolean): void;
+    public static loadResDir(url: string, progressFn: progressT, completeCallback: completeTOfDir|null, isLock?: boolean): void;
+    public static loadResDir(url: string, completeFn: completeTOfDir, isLock?: boolean): void;
+    public static loadResDir(url: string, isLock?: boolean): void;
+    public static loadResDir(): void {
         let args: LoadArgs = this.MakeLoadArgs.apply(null, arguments);
         if (typeof args.url !== 'string') {
             kit.ErrorID(102);
@@ -181,7 +181,7 @@ export class Loader {
             if (!err) {
                 if (args.type) {
                     for (let i: number = 0; i < urls.length; ++i) {
-                        this.FinishedLoad(urls[i], args.type, args.isLock);
+                        this.finishedLoad(urls[i], args.type, args.isLock);
                     }
                 }
                 else {
@@ -205,20 +205,20 @@ export class Loader {
         }
     }
 
-    public static LoadResArray(url: string[], type: typeof cc.RawAsset, progressFn: progressT, completeCallback: completeTOfArray|null, isLock?: boolean): void;
-    public static LoadResArray(url: string[], type: typeof cc.RawAsset, completeFn: completeTOfArray, isLock?: boolean): void;
-    public static LoadResArray(url: string[], type: typeof cc.RawAsset, isLock?: boolean): void;
-    public static LoadResArray(url: string[], progressFn: progressT, completeCallback: completeTOfArray|null, isLock?: boolean): void;
-    public static LoadResArray(url: string[], completeFn: completeTOfArray, isLock?: boolean): void;
-    public static LoadResArray(url: string[], isLock?: boolean): void;
-    public static LoadResArray(): void {
+    public static loadResArray(url: string[], type: typeof cc.Asset, progressFn: progressT, completeCallback: completeTOfArray|null, isLock?: boolean): void;
+    public static loadResArray(url: string[], type: typeof cc.Asset, completeFn: completeTOfArray, isLock?: boolean): void;
+    public static loadResArray(url: string[], type: typeof cc.Asset, isLock?: boolean): void;
+    public static loadResArray(url: string[], progressFn: progressT, completeCallback: completeTOfArray|null, isLock?: boolean): void;
+    public static loadResArray(url: string[], completeFn: completeTOfArray, isLock?: boolean): void;
+    public static loadResArray(url: string[], isLock?: boolean): void;
+    public static loadResArray(): void {
         let args: LoadArgs = this.MakeLoadArgs.apply(null, arguments);
         let completedFn = (err: Error, asset: any[]) => {
             if (!err) {
                 if (args.url instanceof Array) {
                     if (args.type) {
                         for (let i: number = 0; i < args.url.length; ++i) {
-                            this.FinishedLoad(args.url[i], args.type, args.isLock);
+                            this.finishedLoad(args.url[i], args.type, args.isLock);
                         }
                     }
                     else {
@@ -247,7 +247,7 @@ export class Loader {
         }
     }
 
-    public static GetCacheRes(url: string, type: typeof cc.RawAsset): any {
+    public static getCacheRes(url: string, type: typeof cc.Asset): any {
         let res: any = cc.loader['_cache'][url];
         if (!res) {
             let uuid: string = cc.loader._getResUuid(url, type, null);
@@ -263,7 +263,7 @@ export class Loader {
      * 构建资源key值
      * @param url 资源路劲
      */
-    public static MakeKey(url: string, type: typeof cc.RawAsset): string {
+    public static makeKey(url: string, type: typeof cc.Asset): string {
         let res: any = cc.loader['_cache'][url];
         if (res && res.id) {
             return res.id;
@@ -278,8 +278,8 @@ export class Loader {
         return '';
     }
 
-    public static FinishedLoad(url: string, type: typeof cc.RawAsset, isLock: boolean): void {
-        let res: any = this.GetCacheRes(url, type);
+    public static finishedLoad(url: string, type: typeof cc.Asset, isLock: boolean): void {
+        let res: any = this.getCacheRes(url, type);
         if (!this.AddResItem(res, isLock)) {
             kit.WarnID(205, url);
         }
@@ -288,9 +288,9 @@ export class Loader {
     /**记录缓存的资源 */
     private static AddResItem(item: any, isLock: boolean): boolean {
         if (item && item.id) {
-            let resInfo: kit.Resource = kit.PoolManager.Instance.GetCurrentPool().GetObject(item.id) as kit.Resource;
+            let resInfo: kit.Resource = kit.PoolManager.Instance.getCurrentPool().getObject(item.id) as kit.Resource;
             if (!resInfo) {
-                resInfo = kit.Resource.Create(item.id, isLock);
+                resInfo = kit.Resource.create(item.id, isLock);
             }
             this.BulidResInfo(item, resInfo);
             return true;
@@ -303,20 +303,20 @@ export class Loader {
             for (let depKey of item.dependKeys) {
                 let depRes: any = cc.loader['_cache'][depKey];
                 if (depRes) {
-                    if (!resInfo.HasDepend(depKey)) {
-                        resInfo.AddDepend(depKey);
+                    if (!resInfo.hasDepend(depKey)) {
+                        resInfo.addDepend(depKey);
                     }
-                    let depInfo: kit.Resource = kit.PoolManager.Instance.GetCurrentPool().GetObject(depKey) as kit.Resource;
+                    let depInfo: kit.Resource = kit.PoolManager.Instance.getCurrentPool().getObject(depKey) as kit.Resource;
                     if (depInfo) {
                         this.BulidResInfo(depRes, depInfo);
                     }
                     else if (!depInfo) {
-                        depInfo = kit.Resource.Create(depRes.id, false);
+                        depInfo = kit.Resource.create(depRes.id, false);
                         this.BulidResInfo(depRes, depInfo);
                     }
                 }
                 else {
-                    kit.PoolManager.Instance.GetCurrentPool().Delete(depKey);
+                    kit.PoolManager.Instance.getCurrentPool().delete(depKey);
                 }
             }
         }
@@ -330,7 +330,7 @@ export class Loader {
         let args: LoadArgs = {url: arguments[0]} as LoadArgs;
         for (let i: number = 1; i < arguments.length; ++i) {
             //第二个参数是资源的类型type
-            if (i === 1 && cc.js.isChildClassOf(arguments[i], cc.RawAsset)) {
+            if (i === 1 && cc.js.isChildClassOf(arguments[i], cc.Asset)) {
                 args.type = arguments[i];
             }
             else if (i === arguments.length - 1 && typeof arguments[i] === 'boolean') {
@@ -374,36 +374,36 @@ export class Loader {
         return args;
     }
 
-    private static ParserAssetType(url: string, asset: cc.RawAsset, isLock: boolean): void { 
+    private static ParserAssetType(url: string, asset: cc.Asset, isLock: boolean): void { 
         if (asset instanceof cc.SpriteFrame) {
-            this.FinishedLoad(url, cc.SpriteFrame, isLock);
+            this.finishedLoad(url, cc.SpriteFrame, isLock);
         }
         else if (asset instanceof cc.SpriteAtlas) {
-            this.FinishedLoad(url, cc.SpriteAtlas, isLock);
+            this.finishedLoad(url, cc.SpriteAtlas, isLock);
         }
         else if (asset instanceof cc.BitmapFont) {
-            this.FinishedLoad(url, cc.BitmapFont, isLock);
+            this.finishedLoad(url, cc.BitmapFont, isLock);
         }
         else if (asset instanceof cc.ParticleAsset) {
-            this.FinishedLoad(url, cc.ParticleAsset, isLock);
+            this.finishedLoad(url, cc.ParticleAsset, isLock);
         }
         else if (asset instanceof sp.SkeletonData) {
-            this.FinishedLoad(url, sp.SkeletonData, isLock);
+            this.finishedLoad(url, sp.SkeletonData, isLock);
         }
         else if (asset instanceof cc.JsonAsset) {
-            this.FinishedLoad(url, cc.JsonAsset, isLock);
+            this.finishedLoad(url, cc.JsonAsset, isLock);
         }
         else if (asset instanceof cc.LabelAtlas) {
-            this.FinishedLoad(url, cc.LabelAtlas, isLock);
+            this.finishedLoad(url, cc.LabelAtlas, isLock);
         }
         else if (asset instanceof cc.Font) {
-            this.FinishedLoad(url, cc.Font, isLock);
+            this.finishedLoad(url, cc.Font, isLock);
         }
         else if (asset instanceof cc.Prefab) {
-            this.FinishedLoad(url, cc.Prefab, isLock);
+            this.finishedLoad(url, cc.Prefab, isLock);
         }
         else if (asset instanceof cc.AudioClip) {
-            this.FinishedLoad(url, cc.AudioClip, isLock);
+            this.finishedLoad(url, cc.AudioClip, isLock);
         }
     }
 }

@@ -1,4 +1,5 @@
 import { Controller } from "./Controller";
+import { PriorityQueue } from "../data_struct/PriorityQueue";
 
 /**
  * author: HePeiDong
@@ -13,26 +14,25 @@ export abstract class LayerManager {
     protected _list: Controller[]|kit.PriorityQueue<{priority: number, view: Controller}>;
     constructor(canDel: boolean, TypeList: typeof Array|typeof kit.PriorityQueue) {
         this._canDel = canDel;
-        if (TypeList === Array) {
+        if (TypeList === typeof Array) {
             this._list = new TypeList();
         }
-        else if (TypeList === kit.PriorityQueue) {
+        else if (TypeList === typeof kit.PriorityQueue) {
             //从大到小排列，优先级小的在后面弹出
             this._list = new TypeList((a: {priority: number, view: Controller}, b: {priority: number, view: Controller}) => {
                 return a.priority > b.priority;
             });
         }
-        
     }
 
     public SetVisible(visible: boolean) {
-        for (let ele of this._list) {
+        for (let i: number = 0; i < this._list.length; ++i) {
             if (visible) {
-                if (ele instanceof Controller) {
-                    ele.HideView();
+                if (this._list[i] instanceof Controller) {
+                    (this._list[i] as Controller).hideView();
                 }
                 else {
-                    ele.view.HideView();
+                    (this._list as kit.PriorityQueue<{priority: number, view: Controller}>)[i].view.hideView();
                 }
             }
         }
@@ -47,8 +47,8 @@ export abstract class LayerManager {
     abstract DelView(cleanup: boolean): boolean;
 
     public HasView(view: Controller): boolean {
-        for (let ele of this._list) {
-            if (ele === view) {
+        for (let i: number = 0; i < this._list.length; ++i) {
+            if (this._list[i] === view) {
                 return true;
             }
         }
@@ -65,12 +65,12 @@ export abstract class LayerManager {
                 ele = (this._list[i] as {priority: number, view: Controller}).view;
             }
             if (ele === view) {
-                view.ExitView();
+                view.exitView();
                 if (this._list instanceof Array) {
                     this._list.splice(i, 1);
                 }
                 else {
-                    this._list.Delete(i);
+                    this._list.delete(i);
                 }
                 return true;
             }
@@ -78,20 +78,20 @@ export abstract class LayerManager {
         return false;
     }
 
-    public Clear(): void {
-        for (let ele of this._list) {
-            if (ele instanceof Controller) {
-                ele.ExitView();
+    public clear(): void {
+        for (let i: number = 0; i < this._list.length; ++i) {
+            if (this._list[i] instanceof Controller) {
+                (this._list[i] as Controller).exitView();
             }
             else {
-                ele.view.ExitView();
+                (this._list as kit.PriorityQueue<{priority: number, view: Controller}>)[i].view.exitView();
             }
         }
         if (this._list instanceof Array) {
             this._list.splice(0, this._list.length);
         }
         else {
-            this._list.Clear();
+            this._list.clear();
         }
     }
 
@@ -102,15 +102,15 @@ export abstract class LayerManager {
      * @param node 视图结点
      */
     protected AddToRootWindow(node: cc.Node): void {
-        kit.WindowView.Instance.AddRootWindow(node);
+        kit.WindowView.Instance.addRootWindow(node);
     }
 
     /**
      * 增加到中间窗口
      * @param node 视图结点
      */
-    protected AddToCenterWindow(node: cc.Node): void {
-        kit.WindowView.Instance.AddCenterWindow(node);
+    protected addToCenterWindow(node: cc.Node): void {
+        kit.WindowView.Instance.addCenterWindow(node);
     }
 
     /**
@@ -118,6 +118,6 @@ export abstract class LayerManager {
      * @param node 视图结点
      */
     protected AddToTopWindow(node: cc.Node): void {
-        kit.WindowView.Instance.AddTopWindow(node);
+        kit.WindowView.Instance.addTopWindow(node);
     }
 }

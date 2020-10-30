@@ -15,10 +15,10 @@ export class AutoReleasePool extends EventListeners {
         _DEBUG && (this._isClearing = false);
         this._managedObjectMap = new Map();
         ASSERT(!this._managedObjectMap, 'The managedObjectMap is null!');
-        PoolManager.Instance.Push(this);
+        PoolManager.Instance.push(this);
     }
 
-    public IsClearing(): boolean {
+    public isClearing(): boolean {
         return this._isClearing;
     }
 
@@ -26,45 +26,45 @@ export class AutoReleasePool extends EventListeners {
      * 增加资源对象
      * @param object 资源对象
      */
-    public AddObject(object: kit.Reference): void {
+    public addObject(object: kit.Reference): void {
         this._managedObjectMap.set(object.Key, object);
     }
     
-    public AddAnimateData(key: string, animate: AnimateT): void {
+    public addAnimateData(key: string, animate: AnimateT): void {
         this._animateMap.set(key, animate);
     }
 
-    public GetObject(key: string): kit.Reference {
+    public getObject(key: string): kit.Reference {
         return this._managedObjectMap.get(key);
     }
 
-    public GetAnimateData(key: string): AnimateT {
+    public getAnimateData(key: string): AnimateT {
         return this._animateMap.get(key);
     }
 
-    public Contains(key: string): boolean {
+    public contains(key: string): boolean {
         return this._managedObjectMap.has(key);
     }
 
-    public Delete(key: string): void {
+    public delete(key: string): void {
         this._managedObjectMap.delete(key);
     }
 
     /**释放所有锁定的资源 */
-    public Clear(): void {
+    public clear(): void {
         _DEBUG && (this._isClearing = true);
         this._managedObjectMap.forEach((value: kit.Reference, key: string, map: Map<string, kit.Reference>) => {
             let res: kit.Resource = value as kit.Resource;
-            if (res.IsLock) {
-                res.IsLock = false;
+            if (res.isLock) {
+                res.isLock = false;
                 map.delete(key);
                 SAFE_RELEASE(res);
             }
         });
     }
 
-    public Dump(): void {
-        kit.Debug('autorelease pool ' + ': ' + this._name.toString() + ', number of managed object ' + this._managedObjectMap.size);
+    public dump(): void {
+        kit.debug('autorelease pool ' + ': ' + this._name.toString() + ', number of managed object ' + this._managedObjectMap.size);
     }
 }
 
@@ -74,7 +74,7 @@ export class PoolManager extends EventListeners {
     constructor() {
         super();
         _DEBUG && ASSERT(!this._releasePoolStack, 'The "_releasePoolStack" is null!');
-        this._releasePoolStack.Reserve(10, true);
+        this._releasePoolStack.reserve(10, true);
     }
 
     public static get Instance(): PoolManager {
@@ -86,30 +86,30 @@ export class PoolManager extends EventListeners {
         return this._ins;
     }
 
-    public static PurgePoolManager(): void {
-        this.DestroyPoolManager();
+    public static purgePoolManager(): void {
+        this.destroyPoolManager();
     }
 
-    public static DestroyPoolManager(): void {
+    public static destroyPoolManager(): void {
         delete this._ins;
         this._ins = null;
     }
 
-    public GetCurrentPool(): AutoReleasePool {
-        return this._releasePoolStack.Back();
+    public getCurrentPool(): AutoReleasePool {
+        return this._releasePoolStack.back();
     }
 
-    public Push(pool: AutoReleasePool): void {
-        this._releasePoolStack.Push(pool);
+    public push(pool: AutoReleasePool): void {
+        this._releasePoolStack.push(pool);
     }
 
-    public Pop(): AutoReleasePool {
-        return this._releasePoolStack.Pop();
+    public pop(): AutoReleasePool {
+        return this._releasePoolStack.pop();
     }
 
-    public IsObjectInPools(object: Reference): boolean {
-        for (let key: number = 0; key < this._releasePoolStack.Length(); ++key) {
-            if (this._releasePoolStack.Back(key).Contains((object as kit.Resource).Key)) {
+    public isObjectInPools(object: Reference): boolean {
+        for (let key: number = 0; key < this._releasePoolStack.length; ++key) {
+            if (this._releasePoolStack.back(key).contains((object as kit.Resource).Key)) {
                 return true;
             }
         }

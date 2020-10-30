@@ -106,7 +106,7 @@ export class TargetListener {
             this._eventArgs.target.emit(type, arg1, arg2, arg3, arg4, arg5);
         }
         else {
-            kit.Error('[TargetListener] function<emit>:传入的目标节点为', this._eventArgs.target);
+            kit.error('[TargetListener] function<emit>:传入的目标节点为', this._eventArgs.target);
         }
     }
 
@@ -335,7 +335,7 @@ export class TargetListener {
                 handlerEvents.push(eventHandler);
             }
             else {
-                kit.Warn(`${component.node.name} 节点上没有 ${type.name} 组件`);
+                kit.warn(`${component.node.name} 节点上没有 ${type.name} 组件`);
             }
         }
     }

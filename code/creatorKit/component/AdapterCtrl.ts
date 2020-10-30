@@ -70,7 +70,7 @@ export default class AdapterCtrl {
     }
 
     public getScreenSize(): cc.Size{
-        kit.Log('After the Adapter of scrren size:', this._screenSize);
+        kit.log('After the Adapter of scrren size:', this._screenSize);
         return this._screenSize;
     }
 

@@ -48,7 +48,7 @@ export default class GuideManager {
             }
         }
         else {
-            kit.Error(`错误：${target.target.name}节点不是引导节点`);
+            kit.error(`错误：${target.target.name}节点不是引导节点`);
             debugger;
         }
     }
@@ -58,14 +58,14 @@ export default class GuideManager {
         let guideInfo: GuideConfig = this.syncFromStorage();
         if (guideInfo) {
             if (guideInfo.syncId !== -1) {
-                this._guideInfo = this._guideFile.Get(guideInfo.syncId);
+                this._guideInfo = this._guideFile.get(guideInfo.syncId);
                 this._isGuiding = true;
                 cc.game.emit(GuideManager.EventType.START_GUIDE);
             }
         }
         else {
             //如果没有缓存的引导数据，就从第一个引导数据开始引导
-            this._guideInfo = this._guideFile.Get(1);
+            this._guideInfo = this._guideFile.get(1);
             this._isGuiding = true;
             this.syncToStorage();
             cc.game.emit(GuideManager.EventType.START_GUIDE);
@@ -81,27 +81,27 @@ export default class GuideManager {
         return this._guideTargets.delete(guideId);
     }
 
-    public getTargetPosition(): cc.Vec2 {
-        let worldPos: cc.Vec2 = this.guideTarget.target.parent.convertToWorldSpaceAR(this.guideTarget.target.position);
-        let targetPos: cc.Vec2 = cc.Canvas.instance.node.convertToNodeSpaceAR(worldPos);
+    public getTargetPosition(): cc.Vec3 {
+        let worldPos: cc.Vec3 = this.guideTarget.target.parent.convertToWorldSpaceAR(this.guideTarget.target.position);
+        let targetPos: cc.Vec3 = cc.Canvas.instance.node.convertToNodeSpaceAR(worldPos);
         return targetPos;
     }
 
-    public setGuidePosition(guide: cc.Node, pos: cc.Vec2) {
+    public setGuidePosition(guide: cc.Node, pos: cc.Vec3) {
         let mask: cc.Node = guide.getChildByName('mask');
-        let worldPos: cc.Vec2 = guide.convertToWorldSpaceAR(mask.position);
+        let worldPos: cc.Vec3 = guide.convertToWorldSpaceAR(mask.position);
         guide.position = pos;
-        let maskPos: cc.Vec2 = guide.convertToNodeSpaceAR(worldPos);
+        let maskPos: cc.Vec3 = guide.convertToNodeSpaceAR(worldPos);
         mask.position = maskPos;
     }
 
     /**从缓存中获取同步引导 */
     public syncFromStorage(): GuideConfig {
-        return kit.UserDefault.Get(this._storage_key);
+        return kit.UserDefault.get(this._storage_key);
     }
 
     /**将同步引导存储到缓存中 */
     public syncToStorage() {
-        kit.UserDefault.Set(this._storage_key, this._guideInfo);
+        kit.UserDefault.set(this._storage_key, this._guideInfo);
     }
 }

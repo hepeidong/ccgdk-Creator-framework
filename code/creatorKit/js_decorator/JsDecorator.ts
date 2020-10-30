@@ -1,32 +1,32 @@
 function loadView() {
     if (!this._loadedRes) {
-        kit.Loader.LoadResArray(this.urls, cc.SpriteAtlas, (err: Error, asset: Array<any>) => {
+        kit.Loader.loadResArray(this.urls, cc.SpriteAtlas, (err: Error, asset: Array<any>) => {
             if (err) {
                 throw err;
             }
             this._assetArray = asset;
             this._loadedRes = true;
             for (let url of this.urls) {
-                let key: string = kit.Loader.MakeKey(url, cc.SpriteAtlas);
-                let res: kit.Resource = kit.PoolManager.Instance.GetCurrentPool().GetObject(key) as kit.Resource;
+                let key: string = kit.Loader.makeKey(url, cc.SpriteAtlas);
+                let res: kit.Resource = kit.PoolManager.Instance.getCurrentPool().getObject(key) as kit.Resource;
                 SAFE_RETAIN(res);
             }
             
             if (!this._loadedView) {
-                kit.Loader.LoadRes(this.prefabUrl, cc.Prefab, (err: Error, asset: any) => {
+                kit.Loader.loadRes(this.prefabUrl, cc.Prefab, (err: Error, asset: any) => {
                     if (err) {
                         throw err;
                     }
-                    let newNode: cc.Node = kit.Loader.Instanitate(this.prefabUrl, asset);
+                    let newNode: cc.Node = kit.Loader.instanitate(this.prefabUrl, asset);
                     this._node = newNode;
                     this.InitProperty && this.InitProperty();
-                    this.Loaded();
+                    this.loaded();
                 });
             }
         });
     }
     else {
-        this.Loaded();
+        this.loaded();
     }
 }
 
@@ -35,14 +35,14 @@ export function KClass(prefabUrl: string): Function;
 export function KClass(target?: Function): void;
 export function KClass(param?: any) {
     if (typeof param === 'function') {
-        param.prototype.LoadView = function() {
+        param.prototype.loadView = function() {
             loadView.bind(this)();
         }
     }
     else if (typeof param === 'string') {
         return function (target: Function) {
             target.prototype.prefabUrl = param;
-            target.prototype.LoadView = function() {
+            target.prototype.loadView = function() {
                 loadView.bind(this)();
             }
         } 

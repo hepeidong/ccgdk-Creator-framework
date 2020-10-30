@@ -68,12 +68,12 @@ export class EventListeners {
      * @returns {boolean}
      * @constructor
      */
-    public HasListener(type: string): boolean {
+    public hasListener(type: string): boolean {
         let listener: any = this._event && this._event[type];
         return !!listener;
     }
 
-    public Emit(type: string, ...data: any[]): boolean {
+    public emit(type: string, ...data: any[]): boolean {
         if (!this._event || !this._event[type]) return false;
         let listeners: any = this._event[type];
         if (listeners.apply) {
@@ -96,15 +96,15 @@ export class EventListeners {
         return true;
     }
 
-    public On(type:string, caller:any, listener:Function, ...args: any[]): EventListeners {
+    public on(type:string, caller:any, listener:Function, ...args: any[]): EventListeners {
         return this.CreateListener(type, caller, listener, args, false);
     }
 
-    public Once(type:string, caller:any, listener:Function, ...args: any[]): EventListeners {
+    public once(type:string, caller:any, listener:Function, ...args: any[]): EventListeners {
         return this.CreateListener(type, caller, listener, args, true);
     }
 
-    public Off(type:string, caller:any, listener:Function, once: boolean = false): EventListeners {
+    public off(type:string, caller:any, listener:Function, once: boolean = false): EventListeners {
         if (!this._event || !this._event[type]) return this;
         var listeners:any = this._event[type];
         if (listeners != null) {
@@ -134,7 +134,7 @@ export class EventListeners {
         return this;
     }
 
-    public OffAll(type:string = null):EventListeners {
+    public offAll(type:string = null):EventListeners {
         let events: any = this._event;
         if (!events) return this;
         if (type) {
@@ -149,17 +149,17 @@ export class EventListeners {
         return this;
     }
 
-    public OffAllCaller(caller: any): EventListeners {
+    public offAllCaller(caller: any): EventListeners {
         if (caller && this._event) {
             for (var name in this._event) {
-                this.Off(name, caller, null);
+                this.off(name, caller, null);
             }
         }
         return this;
     }
 
     private CreateListener(type:string, caller:any, listener:Function, args:Array<any>, once:boolean, offBefore:boolean = true): EventListeners {
-        offBefore && this.Off(type, caller, listener, once);
+        offBefore && this.off(type, caller, listener, once);
         this._event || (this._event = {});
         let handler: Handler = Handler.create(caller, listener, args, once);
         if (!this._event[type]) this._event[type] = handler;

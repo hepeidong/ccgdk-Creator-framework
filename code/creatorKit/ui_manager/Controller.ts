@@ -23,14 +23,14 @@ export abstract class Controller {
     }
 
     public OpenView() {
-        this.LoadView();
+        this.loadView();
     }
 
     public CloseView() {
         ControllerManager.Instance.DelView(this._ctrlIndex);
     }
 
-    protected LoadView(): void {}
+    protected loadView(): void {}
 
     public get node(): cc.Node { return this._node; }
 
@@ -50,19 +50,19 @@ export abstract class Controller {
     }
 
     /**具体控制器实现退出的方式，隐藏或者销毁 */
-    abstract ExitView(cleanup?: boolean): void;
+    abstract exitView(cleanup?: boolean): void;
 
     /***************控制器生命周期函数***************/
     /**试图加载完调用 */
-    abstract OnViewLoaded(): void;
+    abstract onViewLoaded(): void;
     /**试图显示后调用 */
-    abstract OnViewDidAppear(): void;
+    abstract onViewDidAppear(): void;
     /**试图隐藏后调用 */
-    abstract OnViewDidHide(): void;
+    abstract onViewDidHide(): void;
     /**试图销毁后调用 */
-    abstract OnViewDidDisappear(): void;
+    abstract onViewDidDisappear(): void;
 
-    protected GetSpriteFrame(fileName: string): cc.SpriteFrame {
+    protected getSpriteFrame(fileName: string): cc.SpriteFrame {
         if (this._assetArray && this._assetArray.length > 0) {
             let sf: cc.SpriteFrame;
             for (let i: number = 0; i < this._assetArray.length; ++i) {
@@ -73,37 +73,37 @@ export abstract class Controller {
         }
     }
 
-    public HideView(): void {
+    public hideView(): void {
         let action = cc.hide();
         this.node.runAction(action);
-        this.OnViewDidHide();
+        this.onViewDidHide();
     }
 
-    public ShowView(): void {
+    public showView(): void {
         let action = cc.show();
         this.node.runAction(action);
-        this.OnViewDidAppear();
+        this.onViewDidAppear();
     }
 
-    public Destroy(cleanup: boolean = true): void {
+    public destroy(cleanup: boolean = true): void {
         this._loadedRes = false;
         this._loadedView = false;
         this._assetArray = null;
         this.node.stopAllActions();
         this.node.removeFromParent(cleanup);
         for (let url of this.urls) {
-            let key: string = kit.Loader.MakeKey(url, cc.SpriteAtlas);
-            let res: kit.Resource = kit.PoolManager.Instance.GetCurrentPool().GetObject(key) as kit.Resource;
+            let key: string = kit.Loader.makeKey(url, cc.SpriteAtlas);
+            let res: kit.Resource = kit.PoolManager.Instance.getCurrentPool().getObject(key) as kit.Resource;
             SAFE_RELEASE(res);
         }
         this.node.destroy();
-        this.OnViewDidDisappear();
+        this.onViewDidDisappear();
     }
 
-    private Loaded(): void {
+    private loaded(): void {
         ControllerManager.Instance.AddView(this);
         this._loadedView = true;
-        this.OnViewLoaded();
+        this.onViewLoaded();
     }
 }
 

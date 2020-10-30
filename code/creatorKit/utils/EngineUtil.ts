@@ -41,7 +41,7 @@ export default class EngineUtil {
     public static loadImage(target: cc.Node, url: string, type: string = 'png'): void {
         cc.loader.load({ url, type }, (err: Error, tex: cc.Texture2D) => {
             if (err) {
-                kit.Error('加载头像纹理错误：', err);
+                kit.error('加载头像纹理错误：', err);
                 return;
             }
             if (target && target.getComponent(cc.Sprite)) {
@@ -124,9 +124,9 @@ export default class EngineUtil {
      * @param fromTarget 
      * @param toTarget 
      */
-    public static positionConvert(fromTarget: cc.Node, toTarget: cc.Node): cc.Vec2 {
-        let worldPos: cc.Vec2 = fromTarget.parent.convertToWorldSpaceAR(fromTarget.position);
-        let pos: cc.Vec2 = toTarget.convertToNodeSpaceAR(worldPos);
+    public static positionConvert(fromTarget: cc.Node, toTarget: cc.Node): cc.Vec3 {
+        let worldPos: cc.Vec3 = fromTarget.parent.convertToWorldSpaceAR(fromTarget.position);
+        let pos: cc.Vec3 = toTarget.convertToNodeSpaceAR(worldPos);
         return pos;
     }
 

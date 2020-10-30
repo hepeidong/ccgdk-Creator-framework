@@ -1,6 +1,6 @@
 export interface IViewController {
-    OnViewLoaded(): void;
-    OnViewDidAppear(): void;
-    OnViewDidHide(): void;
-    OnViewDidDisappear(): void;
+    onViewLoaded(): void;
+    onViewDidAppear(): void;
+    onViewDidHide(): void;
+    onViewDidDisappear(): void;
 }

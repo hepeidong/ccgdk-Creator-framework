@@ -54,7 +54,7 @@ export class ALGraph {
     public get VertexNum(): number { return this._vertex_num; }
 
 
-    public static Create(type: GraphType = GraphType.UDG): ALGraph {
+    public static create(type: GraphType = GraphType.UDG): ALGraph {
         let alGraph: ALGraph = new ALGraph(type);
         return alGraph;
     }

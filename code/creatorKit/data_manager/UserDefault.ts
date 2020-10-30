@@ -8,12 +8,12 @@ export class UserDefault {
         
     }
 
-    public static Set(key: string, value: any): void {
+    public static set(key: string, value: any): void {
         let data: DataT = {value: value};
         cc.sys.localStorage.setItem(key, JSON.stringify(data));
     }
 
-    public static Get(key: string): ValueT {
+    public static get(key: string): ValueT {
         let data: string = cc.sys.localStorage.getItem(key);
         if (data) {
             let map: DataT = JSON.parse(data);
@@ -22,7 +22,7 @@ export class UserDefault {
         return null;
     }
 
-    public static GetPriorityQueue<T extends kit.PriorityQueue<T>>(comparefn: (a: T, b: T) => boolean): kit.PriorityQueue<T> {
+    public static getPriorityQueue<T extends kit.PriorityQueue<T>>(comparefn: (a: T, b: T) => boolean): kit.PriorityQueue<T> {
         let pq: kit.PriorityQueue<T> = new kit.PriorityQueue(comparefn);
         if (!pq) {
             throw new Error('无法实例化优先队列');
@@ -30,7 +30,7 @@ export class UserDefault {
         return pq;
     }
 
-    public static GetVector<T extends kit.Vector<T>>(len: number = 50): kit.Vector<T> {
+    public static getVector<T extends kit.Vector<T>>(len: number = 50): kit.Vector<T> {
         let vtr: kit.Vector<T> = new kit.Vector(len);
         if (!vtr) {
             throw new Error('无法实例化队列');

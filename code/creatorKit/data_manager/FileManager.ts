@@ -5,11 +5,11 @@ import { GameFileManager } from "./GameFileManager";
 export class FileManager extends GameFileManager {
     constructor() {
         super();
-        this.AddGameTable('npcs', TestNpcs);
+        this.addGameTable('npcs', TestNpcs);
     }
 
     public get npcs(): kit.FileContainer<TestNpcs> {
-        return this.Get(TestNpcs);
+        return this.get(TestNpcs);
     }
 
     private static _ins: FileManager = null;

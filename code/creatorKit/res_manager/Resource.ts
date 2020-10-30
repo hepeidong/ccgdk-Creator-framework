@@ -13,44 +13,44 @@ export class Resource extends Reference {
         this._isLock = false;
     }
 
-    static Create(key: string, isLock: boolean): Resource {
+    static create(key: string, isLock: boolean): Resource {
         let res: Resource = new Resource();
         if (res) {
             res.Key = key;
-            res.IsLock = isLock;
+            res.isLock = isLock;
         }
         SAFE_AUTORELEASE(res);
         return res;
     }
 
-    public AddDepend(dep: string): void { this._depends.add(dep); }
-    public HasDepend(key: string): boolean { return this._depends.has(key); }
+    public addDepend(dep: string): void { this._depends.add(dep); }
+    public hasDepend(key: string): boolean { return this._depends.has(key); }
     /** @public 是否加锁，加锁则需要手动释放 */
-    public set IsLock(is: boolean) { this._isLock = is; }
+    public set isLock(is: boolean) { this._isLock = is; }
     /** @public 是否加锁，加锁则需要手动释放 */
-    public get IsLock(): boolean { return this._isLock; }
+    public get isLock(): boolean { return this._isLock; }
 
-    public Release() {
-        super.Release();
+    public release() {
+        super.release();
         this._depends.forEach((value: string, _value2: string, _set: Set<string>) => {
-            SAFE_RELEASE(kit.PoolManager.Instance.GetCurrentPool().GetObject(value) as kit.Resource);
+            SAFE_RELEASE(kit.PoolManager.Instance.getCurrentPool().getObject(value) as kit.Resource);
         });
     }
 
-    public Retain() {
-        super.Retain();
+    public retain() {
+        super.retain();
         this._depends.forEach((value: string, _value2: string, _set: Set<string>) => {
-            SAFE_RETAIN(kit.PoolManager.Instance.GetCurrentPool().GetObject(value) as kit.Resource);
+            SAFE_RETAIN(kit.PoolManager.Instance.getCurrentPool().getObject(value) as kit.Resource);
         });
     }
 
-    Destroy(): void {
+    destroy(): void {
         if (!this._isLock) {
-            super.Destroy();
-            kit.PoolManager.Instance.GetCurrentPool().Delete(this.Key);
+            super.destroy();
+            kit.PoolManager.Instance.getCurrentPool().delete(this.Key);
             // kit.LogID(202, this.Key);
             cc.loader.release(this.Key);
-            this.Emit(kit.EventName.DESTROYED_AFTER, this.Key);
+            this.emit(kit.EventName.DESTROYED_AFTER, this.Key);
         }
     }
 }

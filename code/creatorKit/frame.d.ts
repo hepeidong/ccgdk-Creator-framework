@@ -1,7 +1,11 @@
 declare namespace cc {
     export module loader {
-        function _getResUuid(url: string, type: typeof cc.RawAsset, mount: string): string;
+        function _getResUuid(url: string, type: typeof cc.Asset, mount: string): string;
         function _getReferenceKey(uuid: string): any;
+    }
+
+    export module LogManager {
+        function init(tag: string): void;
     }
 }
 
@@ -12,7 +16,7 @@ type AnimateT = sp.SkeletonData;
 
 interface IAudio {
     url: string;
-    isLoop?: boolean;
+    loop?: boolean;
     delay?: number;
     volume?: number;
 }
@@ -22,27 +26,35 @@ type play_callback_t = (currentTime: number) => void;
 type stop_callback_t = (duration: number) => void;
 type audio_resolved_t = {type: string; call: any}
 
-interface IFrameAnimat {
+interface IAnimat {
+    /**动画名称 */
     name: string;
+    /**延迟播放 */
     delay?: number;
-    isLoop?: boolean;
+    /**是否循环 */
+    loop?: boolean;
+    /**迭代播放次数 */
     repeatCount?: number;
+}
+
+interface IFrameAnimat extends IAnimat {
+    /**动画播放速率 */
     speed?: number;
+    /**动画开始时间 */
     startTime?: number;
-    isDefault?: boolean;
+    /**是否是默认动画 */
+    default?: boolean;
+    /**动画播放时长 */
     duration?: number;
 }
 
-interface ISpineAnimat {
-    name: string;
-    delay?: number;
-    isLoop?: boolean;
-    repeatCount?: number;
+interface ISpineAnimat extends IAnimat {
     trackIndex?: number;
 }
 
 type resolved_t = { call: Function; type: string; };
-type animat_t = { type: AnimatType; animat: FrameAnimat | SpineAnimat; callbacks: resolved_t[] };
+type frameAnimat_t = {props: IFrameAnimat, callbacks: resolved_t[]};
+type spineAnimat_t = {props: ISpineAnimat, callbacks: resolved_t[]};
 
 
 /************************************微信小游戏定义*******************************************/
@@ -273,19 +285,19 @@ declare namespace wx {
  */
 declare namespace kit {
     interface IViewController {
-        OnViewLoaded(view: cc.Node): void;
-        OnViewDidAppear(): void;
-        OnViewDidHide(): void;
-        OnViewDidDisappear(): void;
+        onViewLoaded(view: cc.Node): void;
+        onViewDidAppear(): void;
+        onViewDidHide(): void;
+        onViewDidDisappear(): void;
     }
 
     export var _LogInfos: object;
 
-    export function Log(msg: string | any, ...subst: any[]): void;
-    export function Warn(msg: any, ...subst: any[]): void;
-    export function Error(msg: any, ...subst: any[]): void;
-    export function Info(msg: any, ...subst: any[]): void;
-    export function Debug(msg: any, ...subst: any[]): void;
+    export function log(msg: string | any, ...subst: any[]): void;
+    export function warn(msg: any, ...subst: any[]): void;
+    export function error(msg: any, ...subst: any[]): void;
+    export function info(msg: any, ...subst: any[]): void;
+    export function debug(msg: any, ...subst: any[]): void;
 
     export var LogID: Function;
     export var WarnID: Function;
@@ -362,20 +374,20 @@ declare namespace kit {
 
     export class AutoReleasePool extends EventListeners {
         constructor(name: string = null);
-        IsClearing(): boolean;
+        isClearing(): boolean;
         /**
          * 增加资源对象
          * @param object 资源对象
          */
-        AddObject(object: Reference): void;
-        AddAnimateData(key: string, animate: AnimateT): void;
-        GetObject(key: string): Reference;
-        GetAnimateData(key: string): AnimateT;
-        Contains(key: string): boolean;
+        addObject(object: Reference): void;
+        addAnimateData(key: string, animate: AnimateT): void;
+        getObject(key: string): Reference;
+        getAnimateData(key: string): AnimateT;
+        contains(key: string): boolean;
         /**释放所有锁定的资源 */
-        Clear(): void;
-        Delete(key: string): void;
-        Dump(): void;
+        clear(): void;
+        delete(key: string): void;
+        dump(): void;
     }
 
     export interface EventListener {
@@ -438,12 +450,12 @@ declare namespace kit {
 
     export class PoolManager extends EventListeners {
         readonly static Instance: PoolManager;
-        static PurgePoolManager(): void;
-        static DestroyPoolManager(): void;
-        GetCurrentPool(): AutoReleasePool;
-        Push(pool: AutoReleasePool): void;
-        Pop(): AutoReleasePool;
-        IsObjectInPools(object: Reference): boolean;
+        static purgePoolManager(): void;
+        static destroyPoolManager(): void;
+        getCurrentPool(): AutoReleasePool;
+        push(pool: AutoReleasePool): void;
+        pop(): AutoReleasePool;
+        isObjectInPools(object: Reference): boolean;
     }
 
     export class EventName {
@@ -458,14 +470,14 @@ declare namespace kit {
     export class Reference extends EventListeners {
         /**对象key值 */
         Key: string;
-        Retain(): void;
-        Release(): void;
+        retain(): void;
+        release(): void;
         /**把资源增加到自动释放池里 */
-        AutoRelease(): Reference;
+        autoRelease(): Reference;
         /**返回当前引用计数 */
-        GetReferenceCount(): number;
-        IsDestroyed(): boolean;
-        protected Destroy(): void;
+        getReferenceCount(): number;
+        isDestroyed(): boolean;
+        protected destroy(): void;
     }
 
     export class Loader extends EventListeners {
@@ -476,8 +488,8 @@ declare namespace kit {
          * @param completeFn 加载成功回调函数
          * @param isLock 是否锁定资源
          */
-        static Load(url: string | string[] | { url?: string, type?: string }, progressFn: (completedCount: number, totalCount: number, item: any) => void, completeFn: Function | null, isLock: boolean): void;
-        static Load(url: string | string[] | { url?: string, type?: string }, completeFn: (err: Error, asset: any) => void, isLock: boolean): void;
+        static load(url: string | string[] | { url?: string, type?: string }, progressFn: (completedCount: number, totalCount: number, item: any) => void, completeFn: Function | null, isLock: boolean): void;
+        static load(url: string | string[] | { url?: string, type?: string }, completeFn: (err: Error, asset: any) => void, isLock: boolean): void;
 
         /**
          * 从resources文件夹中加载资源
@@ -487,12 +499,12 @@ declare namespace kit {
          * @param completeCallback 加载成功回调函数
          * @param isLock 是否锁定资源
          */
-        static LoadRes(url: string, type: typeof cc.RawAsset, progressFn: (completedCount: number, totalCount: number, item: any) => void, completeCallback: ((error: Error, resource: any) => void) | null, isLock?: boolean): void;
-        static LoadRes(url: string, type: typeof cc.RawAsset, completeFn: (error: Error, resource: any) => void, isLock?: boolean): void;
-        static LoadRes(url: string, type: typeof cc.RawAsset, isLock?: boolean): void;
-        static LoadRes(url: string, progressFn: (completedCount: number, totalCount: number, item: any) => void, completeCallback: ((error: Error, resource: any) => void) | null, isLock?: boolean): void;
-        static LoadRes(url: string, completeFn: (error: Error, resource: any) => void, isLock?: boolean): void;
-        static LoadRes(url: string, isLock?: boolean): void;
+        static loadRes(url: string, type: typeof cc.Asset, progressFn: (completedCount: number, totalCount: number, item: any) => void, completeCallback: ((error: Error, resource: any) => void) | null, isLock?: boolean): void;
+        static loadRes(url: string, type: typeof cc.Asset, completeFn: (error: Error, resource: any) => void, isLock?: boolean): void;
+        static loadRes(url: string, type: typeof cc.Asset, isLock?: boolean): void;
+        static loadRes(url: string, progressFn: (completedCount: number, totalCount: number, item: any) => void, completeCallback: ((error: Error, resource: any) => void) | null, isLock?: boolean): void;
+        static loadRes(url: string, completeFn: (error: Error, resource: any) => void, isLock?: boolean): void;
+        static loadRes(url: string, isLock?: boolean): void;
 
         /**
          * 加载resources目录下某个文件夹的全部资源
@@ -502,12 +514,12 @@ declare namespace kit {
          * @param completeCallback 加载成功回调函数
          * @param isLock 是否锁定资源
          */
-        static LoadResDir(url: string, type: typeof cc.RawAsset, progressFn: (completedCount: number, totalCount: number, item: any) => void, completeCallback: ((error: Error, resource: any[], urls: string[]) => void) | null, isLock?: boolean): void;
-        static LoadResDir(url: string, type: typeof cc.RawAsset, completeFn: (error: Error, resource: any[], urls: string[]) => void, isLock?: boolean): void;
-        static LoadResDir(url: string, type: typeof cc.RawAsset, isLock?: boolean): void;
-        static LoadResDir(url: string, progressFn: (completedCount: number, totalCount: number, item: any) => void, completeCallback: ((error: Error, resource: any[], urls: string[]) => void) | null, isLock?: boolean): void;
-        static LoadResDir(url: string, completeFn: (error: Error, resource: any[], urls: string[]) => void, isLock?: boolean): void;
-        static LoadResDir(url: string, isLock?: boolean): void;
+        static loadResDir(url: string, type: typeof cc.Asset, progressFn: (completedCount: number, totalCount: number, item: any) => void, completeCallback: ((error: Error, resource: any[], urls: string[]) => void) | null, isLock?: boolean): void;
+        static loadResDir(url: string, type: typeof cc.Asset, completeFn: (error: Error, resource: any[], urls: string[]) => void, isLock?: boolean): void;
+        static loadResDir(url: string, type: typeof cc.Asset, isLock?: boolean): void;
+        static loadResDir(url: string, progressFn: (completedCount: number, totalCount: number, item: any) => void, completeCallback: ((error: Error, resource: any[], urls: string[]) => void) | null, isLock?: boolean): void;
+        static loadResDir(url: string, completeFn: (error: Error, resource: any[], urls: string[]) => void, isLock?: boolean): void;
+        static loadResDir(url: string, isLock?: boolean): void;
 
         /**
          * 同时加载resources目录下的多个资源
@@ -517,14 +529,14 @@ declare namespace kit {
          * @param completeCallback 加载成功回调函数
          * @param isLock 是否锁定资源 
          */
-        static LoadResArray(url: string[], type: typeof cc.RawAsset, progressFn: (completedCount: number, totalCount: number, item: any) => void, completeCallback: ((error: Error, resource: any[]) => void) | null, isLock?: boolean): void;
-        static LoadResArray(url: string[], type: typeof cc.RawAsset, completeFn: (error: Error, resource: any[]) => void, isLock?: boolean): void;
-        static LoadResArray(url: string[], type: typeof cc.RawAsset, isLock?: boolean): void;
-        static LoadResArray(url: string[], progressFn: (completedCount: number, totalCount: number, item: any) => void, completeCallback: ((error: Error, resource: any[]) => void) | null, isLock?: boolean): void;
-        static LoadResArray(url: string[], completeFn: (error: Error, resource: any[]) => void, isLock?: boolean): void;
-        static LoadResArray(url: string[], isLock?: boolean): void;
+        static loadResArray(url: string[], type: typeof cc.Asset, progressFn: (completedCount: number, totalCount: number, item: any) => void, completeCallback: ((error: Error, resource: any[]) => void) | null, isLock?: boolean): void;
+        static loadResArray(url: string[], type: typeof cc.Asset, completeFn: (error: Error, resource: any[]) => void, isLock?: boolean): void;
+        static loadResArray(url: string[], type: typeof cc.Asset, isLock?: boolean): void;
+        static loadResArray(url: string[], progressFn: (completedCount: number, totalCount: number, item: any) => void, completeCallback: ((error: Error, resource: any[]) => void) | null, isLock?: boolean): void;
+        static loadResArray(url: string[], completeFn: (error: Error, resource: any[]) => void, isLock?: boolean): void;
+        static loadResArray(url: string[], isLock?: boolean): void;
 
-        static Instanitate(url: string, original: cc.Prefab): cc.Node;
+        static instanitate(url: string, original: cc.Prefab): cc.Node;
         /**
          * 设置结点的资源
          * @param target 目标结点
@@ -532,37 +544,37 @@ declare namespace kit {
          * @param url 资源相对路劲
          * @param isLock 是否锁定
          */
-        static SetResource(target: cc.Node, compType: any, url: string | { normal: string, pressed: string, hover: string, disabled: string }, isLock: boolean = false): void;
+        static setResource(target: cc.Node, compType: any, url: string | { normal: string, pressed: string, hover: string, disabled: string }, isLock: boolean = false): void;
         /**
          * 释放被锁定的动态资源
          */
-        static Gc(): void
+        static gc(): void
         /**
          * 获取已加载的资源key值信息
          * @param url 资源路劲
          * @param type 资源类型
          */
-        static GetRes(url: string, type: typeof cc.RawAsset): Resource;
+        static getRes(url: string, type: typeof cc.Asset): Resource;
         /**
          * 引用计数加一
          * @param url 资源路劲
          * @param type 资源类型
          */
-        static Retain(url: string, type: typeof cc.RawAsset): void;
+        static retain(url: string, type: typeof cc.Asset): void;
         /**
          * 引用计数减一
          * @param url 资源路劲
          * @param type 资源类型
          */
-        static Release(url: string, type: typeof cc.RawAsset): void;
-        static MakeKey(url: string, type: typeof cc.RawAsset): string;
+        static release(url: string, type: typeof cc.Asset): void;
+        static makeKey(url: string, type: typeof cc.Asset): string;
         /**
          * 返回被引用计数记录的缓存资源
          * @param url 资源路劲
          * @param type 资源类型
          */
-        static GetCacheRes(url: string, type: typeof cc.RawAsset): any;
-        static FinishedLoad(url: string, type: typeof cc.RawAsset, isLock: boolean): void;
+        static getCacheRes(url: string, type: typeof cc.Asset): any;
+        static finishedLoad(url: string, type: typeof cc.Asset, isLock: boolean): void;
     }
 
     export class Handler {
@@ -593,8 +605,8 @@ declare namespace kit {
     }
 
     export class EventListeners {
-        HasListener(type: string): boolean;
-        Emit(type: string, data: any = null): boolean;
+        hasListener(type: string): boolean;
+        emit(type: string, data: any = null): boolean;
         /**
          * 注册事件监听,可以多次响应
          * @param type 事件类型
@@ -602,7 +614,7 @@ declare namespace kit {
          * @param listener 监听函数
          * @param args 参数列表
          */
-        On(type: string, caller: any, listener: Function, args: Array<any> = null): EventListeners;
+        on(type: string, caller: any, listener: Function, args: Array<any> = null): EventListeners;
         /**
          * 注册事件监听，只响应一次
          * @param type 事件类型
@@ -610,7 +622,7 @@ declare namespace kit {
          * @param listener 监听函数
          * @param args 参数列表
          */
-        Once(type: string, caller: any, listener: Function, args: Array<any> = null): EventListeners;
+        once(type: string, caller: any, listener: Function, args: Array<any> = null): EventListeners;
         /**
          * 注销事件
          * @param type 事件类型
@@ -618,17 +630,17 @@ declare namespace kit {
          * @param listener 监听函数
          * @param once 是否注销单词响应事件
          */
-        Off(type: string, caller: any, listener: Function, once: boolean = false): EventListeners;
+        off(type: string, caller: any, listener: Function, once: boolean = false): EventListeners;
         /**
          * 注销所有事件
          * @param type 事件类型
          */
-        OffAll(type: string = null): EventListeners;
+        offAll(type: string = null): EventListeners;
         /**
          * 通过事件注册者注销所有事件
          * @param caller 事件注册者
          */
-        OffAllCaller(caller: any): EventListeners;
+        offAllCaller(caller: any): EventListeners;
     }
 
     export class Resource extends Reference {
@@ -637,17 +649,15 @@ declare namespace kit {
          * @param key 资源key值
          * @param isLock 锁定资源
          */
-        static Create(key: string, isLock: boolean): Resource;
+        static create(key: string, isLock: boolean): Resource;
         /**记录依赖资源 */
-        AddDepend(dep: string): void;
-        HasDepend(key: string): boolean;
+        addDepend(dep: string): void;
+        hasDepend(key: string): boolean;
         /** @public 是否加锁，加锁则需要手动释放 */
-        set IsLock(is: boolean);
-        /** @public 是否加锁，加锁则需要手动释放 */
-        IsLock: boolean;
-        OnDestroy(): void;
-        Release(): void;
-        Retain(): void;
+        isLock: boolean;
+        onDestroy(): void;
+        release(): void;
+        retain(): void;
     }
 
     export abstract class Controller extends EventListeners {
@@ -655,38 +665,30 @@ declare namespace kit {
         /**视图节点 */
         readonly node: cc.Node;
 
+        /**具体控制器实现退出的方式，隐藏或者销毁 */
+        abstract exitView(cleanup?: boolean): void;
         /***************控制器生命周期函数***************/
         /**试图加载完调用 */
-        abstract OnViewLoaded(): void;
+        abstract onViewLoaded(): void;
         /**试图显示后调用 */
-        abstract OnViewDidAppear(): void;
+        abstract onViewDidAppear(): void;
         /**试图隐藏后调用 */
-        abstract OnViewDidHide(): void;
+        abstract onViewDidHide(): void;
         /**试图销毁后调用 */
-        abstract OnViewDidDisappear(): void;
+        abstract onViewDidDisappear(): void;
 
-        /**
-         * 设置基本信息，资源路劲参数的格式
-         * @param url 资源路劲
-         */
-        protected SetResUrl(url: string): void;
-        /**
-         * 绑定Ui（预制体）
-         * @param url ui（预制体）的路劲
-         */
-        protected UiBinding(url: string): void;
-        protected Loaded(): void;
+        protected loaded(): void;
         /**
          * 获取图集里面的精灵帧
          * @param fileName 图片文件名 
          */
-        protected GetSpriteFrame(fileName: string): cc.SpriteFrame;
-        HideView(): void;
-        ShowView(): void;
+        protected getSpriteFrame(fileName: string): cc.SpriteFrame;
+        hideView(): void;
+        showView(): void;
         /**销毁视图 */
-        Destroy(cleanup: boolean): void;
+        destroy(cleanup: boolean): void;
         /**加载视图 */
-        protected LoadView(fn: () => void): void;
+        protected loadView(fn: () => void): void;
     }
 
     /**
@@ -700,62 +702,62 @@ declare namespace kit {
          * @param controller 视图控制器
          * @param nextTo 是否紧挨着屏幕边缘
          */
-        AddToUpWindow(controller: UIViewController, nexTo: boolean = false): void;
+        addToUpWindow(controller: UIViewController, nexTo: boolean = false): void;
 
         /**
          * 增加到下方窗口
          * @param controller 视图控制器
          * @param nextTo 是否紧挨着屏幕边缘
          */
-        AddToDownWindow(controller: UIViewController, nexTo: boolean = false): void;
+        addToDownWindow(controller: UIViewController, nexTo: boolean = false): void;
 
         /**
          * 增加到左边窗口
          * @param controller 视图控制器
          * @param nextTo 是否紧挨着屏幕边缘
          */
-        AddToLeftWindow(controller: UIViewController, nexTo: boolean = false): void;
+        addToLeftWindow(controller: UIViewController, nexTo: boolean = false): void;
 
         /**
          * 增加到右边窗口
          * @param controller 视图控制器
          * @param nextTo 是否紧挨着屏幕边缘
          */
-        AddToRightWindow(controller: UIViewController, nexTo: boolean = false): void;
+        addToRightWindow(controller: UIViewController, nexTo: boolean = false): void;
 
         /**
          * 增加到中间窗口
          * @param controller 视图控制器
          */
-        AddToCenterWindow(controller: UIViewController): void;
+        addToCenterWindow(controller: UIViewController): void;
 
         /**
          * 增加到左上窗口
          * @param controller 视图控制器
          * @param nextTo 是否紧挨着屏幕边缘
          */
-        AddToUpperLWindow(controller: UIViewController, nexTo: boolean = false): void;
+        addToUpperLWindow(controller: UIViewController, nexTo: boolean = false): void;
 
         /**
          * 增加到右上窗口
          * @param controller 视图控制器
          * @param nextTo 是否紧挨着屏幕边缘
          */
-        AddToUpperRWindow(controller: UIViewController, nexTo: boolean = false): void;
+        addToUpperRWindow(controller: UIViewController, nexTo: boolean = false): void;
 
         /**
          * 增加到左下窗口
          * @param controller 视图控制器
          * @param nextTo 是否紧挨着屏幕边缘
          */
-        AddToLowerLWindow(controller: UIViewController, nexTo: boolean = false): void;
+        addToLowerLWindow(controller: UIViewController, nexTo: boolean = false): void;
 
         /**
          * 增加到右下窗口
          * @param controller 视图控制器
          * @param nextTo 是否紧挨着屏幕边缘
          */
-        AddToLowerRWindow(controller: UIViewController, nexTo: boolean = false): void;
+        addToLowerRWindow(controller: UIViewController, nexTo: boolean = false): void;
 
     }
 
@@ -765,59 +767,71 @@ declare namespace kit {
          * 增加根视图
          * @param node 根视图结点
          */
-        AddRootWindow(node: cc.Node): void;
+        addRootWindow(node: cc.Node): void;
 
         /**
          * 增加中间窗口
          * @param node 视图结点
          */
-        AddCenterWindow(node: cc.Node): void;
+        addCenterWindow(node: cc.Node): void;
 
         /**
          * 增加顶层窗口
          * @param node 视图结点
          */
-        AddTopWindow(node: cc.Node): void;
+        addTopWindow(node: cc.Node): void;
     }
 
     /**
      * 循环队列
      */
-    export class Vector<T> {
-        constructor(len?: number);
+    export interface Vector<T> {
+        [Symbol.iterator](): IterableIterator<T>;
+        readonly length: number;
+        constructor(capacity: number = 50): Vector<T>;
         /**
-         * 队列的长度
-         * @param len 长度
+         * 队列的容量
+         * @param capacity 容量
          * @param autoDilt 是否自动扩容
          * @constructor
          */
-        Reserve(len: number, autoDilt: boolean = false): void;
+        reserve(capacity: number, autoDilt: boolean = false): void;
         /**
          * 入队列
          * @param e 入队的元素
          * @returns {boolean}
          * @constructor
          */
-        Push(e: T): boolean;
+        push(e: T): boolean;
         /**
          * 出列，然后删除对顶元素
          * @returns {any}
          * @constructor
          */
-        Pop(): T;
+        pop(): T|undefined;
         /**
          * 出列，不删除对顶元素
          * @param index
          * @returns {T}
          * @constructor
          */
-        Back(index: number = this._front): T;
-        IsEmpty(): boolean;
-        IsFull(): boolean;
-        Clear(): void;
-        Contains(e: T): boolean;
-        Length(): number;
+        back(index: number = this._front): T|undefined;
+        isEmpty(): boolean;
+        isFull(): boolean;
+        clear(): void;
+        contains(e: T): boolean;
+        [n: number]: T;
     }
+
+    export interface VectorContructor<T> {
+        new(capacity?: number): any[];
+        new<T>(capacity: number): T[];
+        (capacity?: number): any[];
+        <T>(capacity: number): T[];
+        readonly prototype: Vector<T>;
+    }
+
+    export var Vector: VectorContructor;
 
     /**优先队列
      * 优先队列采用二叉堆存储结构（数组存储结构的二叉树），优先从左节点存储数据，第一个根节点默认也存储数据（这个可以改成第一个结点不存储数据的没问题）
@@ -825,20 +839,20 @@ declare namespace kit {
      * 若传入的规则中a > b，则是从大到小排列，反之，从小到大排列
      */
     export interface PriorityQueue<T> {
-        [Symbol.iterator](): Iterator<T>;
+        [Symbol.iterator](): IterableIterator<T>;
         length: number;
         /**
          * 压入元素，从左子树开始，左子树在数组中的下标为2*i+1，因此相应的父节点下标为(i-1)/2，右子树的下标为2*i+2，相应的父节点下标为(i-2)/2
          * @param e 压入的元素
          */
-        Push(e: T): void;
+        push(e: T): void;
         /**
          * 出队列，把队列的根节点删除，并返回删除的元素，删除的过程是把根节点不断的下沉到最后的位置，然后删除最后一个元素
          */
-        Pop(): T | undefined;
+        pop(): T | undefined;
         Front(): T | undefined;
-        Delete(index: number): T;
-        Clear(): void;
+        delete(index: number): T;
+        clear(): void;
         [n: number]: T;
     }
 
@@ -847,7 +861,7 @@ declare namespace kit {
         new <T>(compareFn: (a: T, b: T) => boolean): T[];
         (compareFn: (a: T, b: T) => boolean): any[];
         <T>(compareFn: (a: T, b: T) => boolean): T[];
-        readonly prototype: PriorityQueue<any>;
+        readonly prototype: PriorityQueue<T>;
     }
 
     export var PriorityQueue: QueueConstructor;
@@ -862,22 +876,22 @@ declare namespace kit {
          * @param key 键
          * @param value 值
          */
-        static Set(key: string, value: any): void;
+        static set(key: string, value: any): void;
         /**
          * 获取缓存数据
          * @param key 
          */
-        static Get(key: string): any;
+        static get(key: string): any;
         /**
          * 实例化优先队列
          * @param comparefn 优先级规则
          */
-        static GetPriorityQueue<T extends kit.PriorityQueue<T>>(comparefn: (a: T, b: T) => boolean): kit.PriorityQueue<T>;
+        static getPriorityQueue<T extends kit.PriorityQueue<T>>(comparefn: (a: T, b: T) => boolean): kit.PriorityQueue<T>;
         /**
          * 实例化队列
          * @param len  
          */
-        static GetVector<T extends kit.Vector<T>>(len?: number): kit.Vector<T>;
+        static getVector<T extends kit.Vector<T>>(len?: number): kit.Vector<T>;
     }
 
     export class AutoRelease extends cc.Component {
@@ -885,14 +899,14 @@ declare namespace kit {
          * 记录预制体资源
          * @param url 
          */
-        RecordPrefabRes(url: string): void;
+        recordPrefabRes(url: string): void;
         /**
          * 修改节点引用的资源
          * @param url 资源路劲
          * @param compType 组件类型
          * @param isLock 是否为静态资源
          */
-        Source(url: string | { normal: string, pressed: string, hover: string, disabled: string }, compType: typeof cc.Component, isLock?: boolean): void;
+        source(url: string | { normal: string, pressed: string, hover: string, disabled: string }, compType: typeof cc.Component, isLock?: boolean): void;
         /**
          * 修改结点动画资源
          * @param url 资源路劲
@@ -906,14 +920,14 @@ declare namespace kit {
          * @param url 
          * @param comp 
          */
-        SetResUrl(url: string, comp: cc.Sprite | cc.Button | cc.Mask | cc.PageViewIndicator | cc.EditBox | cc.Label | cc.RichText | cc.ParticleSystem): void;
+        setResUrl(url: string, comp: cc.Sprite | cc.Button | cc.Mask | cc.PageViewIndicator | cc.EditBox | cc.Label | cc.RichText | cc.ParticleSystem): void;
     }
     export class FileContainer<T extends DataTable> {
         length: number;
-        Get(id: number): any;
-        Add(id: any, value: any): void;
-        Del(id: any): boolean;
-        Contains(id: any): boolean;
+        get(id: number): any;
+        add(id: any, value: any): void;
+        del(id: any): boolean;
+        contains(id: any): boolean;
     }
     /**
      * 配置表管理父类，负责配置表的读取存储
@@ -921,11 +935,11 @@ declare namespace kit {
      * class FileManager extends GameFileManager {
      *      constructor() {
      *         super();
-     *         this.AddGameTable('npcs', NpcsTable);
+     *         this.addGameTable('npcs', NpcsTable);
      *      }
      * 
      *      public get npcs(): kit.FileContainer<NpcsTable> {
-     *          return this.Get(NpcsTable);
+     *          return this.get(NpcsTable);
      *      }
      * 
      *      private static _ins: FileManager = null;
@@ -935,16 +949,16 @@ declare namespace kit {
      * }
      */
     export class GameFileManager {
-        AddGameTable(name: string, tableType: typeof DataTable): void;
-        Get<T extends DataTable>(type: {prototype: T}): FileContainer<T>;
-        GetById<T extends DataTable>(type: {prototype: T}, id: number): FileContainer<T>;
+        addGameTable(name: string, tableType: typeof DataTable): void;
+        get<T extends DataTable>(type: {prototype: T}): FileContainer<T>;
+        getById<T extends DataTable>(type: {prototype: T}, id: number): FileContainer<T>;
         /**
          * 加载配置表
          * @param url 配置表目录的路劲
          * @param progressfn 加载进度回调
          * @param completefn 加载完成回调
          */
-        LoadCSVTable(url: string, progressfn?: (completedCount: number, totalCount: number) => void, completefn?: (error: Error) => void): void;
+        loadCSVTable(url: string, progressfn?: (completedCount: number, totalCount: number) => void, completefn?: (error: Error) => void): void;
     }
 }
 
@@ -1240,4 +1254,5 @@ declare function SAFE_RETAIN(_Obj: Reference): void;
 declare function SAFE_AUTORELEASE(_Obj: Reference): void;
 /**安全销毁视图 */
 declare function SAFE_DESTROY_VIEW(_Obj: Controller): void;
+/**安全执行回调 */
 declare function SAFE_CALLBACK(callback: Function, ...args: any[]): void;

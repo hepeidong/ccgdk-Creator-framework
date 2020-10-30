@@ -197,7 +197,7 @@ class WXVideoAd {
         this.quitfn = quitfn;
         if (!this.videoAd) {
             this.videoAd = wx.createRewardedVideoAd({adUnitId : adId});
-            this.videoAd.onLoad(() => { kit.Log('激励视频 广告加载完成'); });
+            this.videoAd.onLoad(() => { kit.log('激励视频 广告加载完成'); });
             this.videoAd.onClose(res => this._onClose(res));
             this.videoAd.onError(res => this._onError(res));
         }
@@ -207,7 +207,7 @@ class WXVideoAd {
             this.videoAd.load()
                 .then(() => this.videoAd.show())
                 .catch(err => {
-                    kit.Error('激励视频 广告显示失败 ', err);
+                    kit.error('激励视频 广告显示失败 ', err);
                 });
         });
     }
@@ -217,12 +217,12 @@ class WXVideoAd {
         // 小于 2.1.0 的基础库版本，res 是一个 undefined
         if (res && res.isEnded || res === undefined) {
             // 正常播放结束，可以下发游戏奖励
-            kit.Log('激励视频 广告播放结束');
+            kit.log('激励视频 广告播放结束');
             SAFE_CALLBACK(this.completefn);
         }
         else {
             // 播放中途退出，不下发游戏奖励
-            kit.Log('激励视频 广告播放中途退出');
+            kit.log('激励视频 广告播放中途退出');
             SAFE_CALLBACK(this.quitfn);
         }
     }

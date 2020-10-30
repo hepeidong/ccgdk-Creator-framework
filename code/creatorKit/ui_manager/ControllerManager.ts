@@ -78,10 +78,10 @@ export default class ControllerManager {
         return count;
     }
 
-    public Clear() {
+    public clear() {
         for (let ele of this._managers) {
             if (ele.CanDel && ele.GetCount() > 0) {
-                ele.Clear();
+                ele.clear();
             }
         }
     }

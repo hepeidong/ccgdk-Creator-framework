@@ -50,26 +50,26 @@ export class PriorityQueue<T> {
      * 压入元素，从左子树开始，左子树在数组中的下标为2*i+1，因此相应的父节点下标为(i-1)/2，右子树的下标为2*i+2，相应的父节点下标为(i-2)/2
      * @param e 压入的元素
      */
-    public Push(e: T) {
+    public push(e: T) {
         let node: HeapNode<T> = new HeapNode(e);
         if (!node) {
             throw new Error('堆结点实例化失败！');
         }
         this[this.length++] = node;
-        this.BuildMaxHeap();
+        this.buildMaxHeap();
     }
 
     /**
      * 出队列，把队列的根节点删除，并返回删除的元素，删除的过程是把根节点不断的下沉到最后的位置，然后删除最后一个元素
      */
-    public Pop(): T {
-        this.SearchHeap(0);
+    public pop(): T {
+        this.searchHeap(0);
         let node: HeapNode<T> = this[--this.length];
         delete this[this.length];
         return node ? node.value : null;
     }
 
-    public Delete(index: number): T {
+    public delete(index: number): T {
         if (index < 0 || index >= this.length) {
             return null;
         }
@@ -85,7 +85,7 @@ export class PriorityQueue<T> {
         return ele;
     }
 
-    public Clear(): void {
+    public clear(): void {
         for (let i: number = 0; i < this.length; ++i) {
             delete this[i];
         }
@@ -93,40 +93,40 @@ export class PriorityQueue<T> {
     }
 
     /**互换结点 */
-    private Swap(a: number, b: number): void {
+    private swap(a: number, b: number): void {
         let temp: HeapNode<T> = this[a];
         this[a] = this[b];
         this[b] = temp;
     }
 
     /**构建最大堆结点，把最大堆结点上浮到队头 */
-    private BuildMaxHeap(): void {
+    private buildMaxHeap(): void {
         let index: number = this.length - 1;
         if (index <= 0) return;
         let parentIndex: number = HeapNode.ParentIndex(index);
         while (parentIndex >= 0 && this._compareFn && this._compareFn(this[index].value, this[parentIndex].value)) {
-            this.Swap(index, parentIndex);
+            this.swap(index, parentIndex);
             index = parentIndex;
             parentIndex = HeapNode.ParentIndex(index);
         }
     }
 
     /**搜寻和维护堆结点，把堆结点下沉到最后的叶节点 */
-    private SearchHeap(index: number): void {
+    private searchHeap(index: number): void {
         let lIndex: number = HeapNode.LeftIndex(index);
         let rIndex: number = HeapNode.RightIndex(index);
         let endIndex: number = this.length - 1;
         while (1) {
             if (rIndex <= endIndex) {
                 if (this._compareFn && this._compareFn(this[lIndex].value, this[rIndex].value)) {
-                    this.Swap(index, lIndex);
+                    this.swap(index, lIndex);
                     index = lIndex;
                 } else {
-                    this.Swap(index, rIndex);
+                    this.swap(index, rIndex);
                     index = rIndex;
                 }
             } else if (lIndex <= endIndex) {
-                this.Swap(index, lIndex);
+                this.swap(index, lIndex);
                 index = lIndex;
             } else {
                 break;
@@ -136,7 +136,7 @@ export class PriorityQueue<T> {
             rIndex = HeapNode.RightIndex(index);
         }
         if (index != endIndex) {
-            this.Swap(index, endIndex);
+            this.swap(index, endIndex);
         }
     }
 }

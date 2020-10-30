@@ -15,14 +15,14 @@ export default class ToastManager extends LayerManager {
     AddView(view: Controller): void {
         const list: Array<Controller> = this._list as Array<Controller>;
         list.push(view);
-        this.AddToCenterWindow(view.node);
+        this.addToCenterWindow(view.node);
     }
 
     DelView(cleanup: boolean): boolean {
         const list: Array<Controller> = this._list as Array<Controller>;
         if (list.length > 0) {
             const view: Controller = list.shift();
-            view.ExitView(cleanup);
+            view.exitView(cleanup);
             return true;
         }
         return false;

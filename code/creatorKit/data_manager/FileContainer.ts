@@ -1,10 +1,10 @@
 import DataTable from "./DataTable";
 
 interface IContainer {
-    Get(id: number): any;
-    Add(id: any, table: any): void;
-    Del(id: any): boolean;
-    Contains(id: any): boolean;
+    get(id: number): any;
+    add(id: any, table: any): void;
+    del(id: any): boolean;
+    contains(id: any): boolean;
 }
 
 export default class FileContainer<T extends DataTable> implements IContainer {
@@ -14,18 +14,18 @@ export default class FileContainer<T extends DataTable> implements IContainer {
         this.length = 0;
     }
 
-    Get(id: number): T {
+    get(id: number): T {
         return this[id];
     }
 
-    Add(id: any, value: T): void {
+    add(id: any, value: T): void {
         if (!this[id]) {
             this.length++;
         }
         this[id] = value;
     }
 
-    Del(id: any): boolean {
+    del(id: any): boolean {
         if (this[id]) {
             delete this[id];
             return true;
@@ -33,7 +33,7 @@ export default class FileContainer<T extends DataTable> implements IContainer {
         return false;
     }
 
-    Contains(id: any): boolean {
+    contains(id: any): boolean {
         if (this[id] !== null && this[id] !== undefined) {
             return true;
         }

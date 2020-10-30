@@ -20,15 +20,15 @@ export default class ActivityManager extends LayerManager {
 
     AddView(view: Controller): void {
         const list: kit.PriorityQueue<{priority: number, view: Controller}> = this._list as kit.PriorityQueue<{priority: number, view: Controller}>;
-        list.Push({priority: this._priority, view: view});
-        this.AddToCenterWindow(view.node)
+        list.push({priority: this._priority, view: view});
+        this.addToCenterWindow(view.node)
     }
 
     DelView(cleanup: boolean): boolean {
         const list: kit.PriorityQueue<{priority: number, view: Controller}> = this._list as kit.PriorityQueue<{priority: number, view: Controller}>;
         if (list.length > 0) {
-            const view: Controller = list.Pop().view;
-            view.ExitView(cleanup);
+            const view: Controller = list.pop().view;
+            view.exitView(cleanup);
             return true;
         }
         return false;

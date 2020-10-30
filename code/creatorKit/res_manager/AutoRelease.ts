@@ -7,7 +7,7 @@ type AnimateCompleteT = (asset: any) => void;
 type AnimateT = sp.SkeletonData;
 
 @ccclass
-export class AutoRelease extends cc.Component {
+export class autoRelease extends cc.Component {
 
     /** 结点引用的资源*/
     private _resMap: Map<string, string> = new Map();
@@ -20,12 +20,12 @@ export class AutoRelease extends cc.Component {
 
     }
 
-    public RecordPrefabRes(url: string) {
+    public recordPrefabRes(url: string) {
         this._prefabRes = url;
-        SAFE_RETAIN(kit.PoolManager.Instance.GetCurrentPool().GetObject(this._prefabRes) as kit.Resource);
+        SAFE_RETAIN(kit.PoolManager.Instance.getCurrentPool().getObject(this._prefabRes) as kit.Resource);
     }
 
-    public Source(url: string|ButtonResT, compType: typeof cc.Component, isLock: boolean = false) {
+    public source(url: string|ButtonResT, compType: typeof cc.Component, isLock: boolean = false) {
         this._isLock = isLock;
         if (!compType) {
             kit.ErrorID(109);
@@ -33,74 +33,74 @@ export class AutoRelease extends cc.Component {
         }
         
         let comp: any = this.node.getComponent(compType);
-        this.ParseSource(comp, compType, url);
+        this.parseSource(comp, compType, url);
     }
 
-    public Animation(url: string, compType: typeof cc.Component, complete: AnimateCompleteT, isLock: boolean = false) {
+    public animation(url: string, compType: typeof cc.Component, complete: AnimateCompleteT, isLock: boolean = false) {
         this._isLock = isLock;
         let comp: any = this.node.getComponent(compType);
-        this.ParseAnimate(comp, url, complete);
+        this.parseAnimate(comp, url, complete);
     }
 
-    public SetResUrl(url: string, comp: ComponentT) {
+    public setResUrl(url: string, comp: ComponentT) {
         if (url === '' || !url) return;
         this.retain(url, comp);
     }
 
-    private ParseAnimate(comp: ComponentT, url: string, complete: AnimateCompleteT) {
+    private parseAnimate(comp: ComponentT, url: string, complete: AnimateCompleteT) {
         if (comp && comp.uuid) {
             this.release(this._resMap.get(comp.uuid));
         }
         if (comp instanceof sp.Skeleton) {
-            this.LoadAnimate(comp, url, sp.SkeletonData, complete);
+            this.loadAnimat(comp, url, sp.SkeletonData, complete);
         }
     }
 
-    private LoadAnimate(comp: ComponentT, url: string, type: typeof cc.Asset, complete: AnimateCompleteT) {
-        let key: string = kit.Loader.MakeKey(url, type);
-        let animate: AnimateT = kit.PoolManager.Instance.GetCurrentPool().GetAnimateData(key);
+    private loadAnimat(comp: ComponentT, url: string, type: typeof cc.Asset, complete: AnimateCompleteT) {
+        let key: string = kit.Loader.makeKey(url, type);
+        let animate: AnimateT = kit.PoolManager.Instance.getCurrentPool().getAnimateData(key);
         if (animate) {
-            this.SetResUrl(key, comp);
+            this.setResUrl(key, comp);
             complete && complete(animate);
         }
         else {
-            kit.Loader.LoadRes(url, type, (err: Error, asset: any) => {
-                let key: string = kit.Loader.MakeKey(url, type);
-                this.SetResUrl(key, comp);
-                kit.PoolManager.Instance.GetCurrentPool().AddAnimateData(key, asset);
+            kit.Loader.loadRes(url, type, (err: Error, asset: any) => {
+                let key: string = kit.Loader.makeKey(url, type);
+                this.setResUrl(key, comp);
+                kit.PoolManager.Instance.getCurrentPool().addAnimateData(key, asset);
                 complete && complete(asset);
             }, this._isLock);
         }
     }
 
-    private ParseSource(comp: ComponentT, compType: any, url: string|ButtonResT): void {
+    private parseSource(comp: ComponentT, compType: any, url: string|ButtonResT): void {
         if (comp instanceof cc.Sprite || comp instanceof cc.Mask || comp instanceof cc.PageViewIndicator) {
-            this.SetSpriteFrame(compType, url as string, 'spriteFrame');
+            this.setSpriteFrame(compType, url as string, 'spriteFrame');
         }
         else if (comp instanceof cc.Button) {
-            this.SetSpriteFrame(compType, (url as ButtonResT).normal, 'spriteFrame');
-            this.SetSpriteFrame(compType, (url as ButtonResT).pressed, 'spriteFrame');
-            this.SetSpriteFrame(compType, (url as ButtonResT).disabled, 'spriteFrame');
-            this.SetSpriteFrame(compType, (url as ButtonResT).hover, 'spriteFrame');
+            this.setSpriteFrame(compType, (url as ButtonResT).normal, 'spriteFrame');
+            this.setSpriteFrame(compType, (url as ButtonResT).pressed, 'spriteFrame');
+            this.setSpriteFrame(compType, (url as ButtonResT).disabled, 'spriteFrame');
+            this.setSpriteFrame(compType, (url as ButtonResT).hover, 'spriteFrame');
         }
         else if (comp instanceof cc.Label) {
-            this.SetFont(url as string);
+            this.setFont(url as string);
         }
         else if (comp instanceof cc.ParticleSystem) {
-            this.SetPartSys(url as string);
+            this.setPartSys(url as string);
         }
         else if (comp instanceof cc.EditBox) {
-            this.SetSpriteFrame(compType, url as string, 'backgroundImage');
+            this.setSpriteFrame(compType, url as string, 'backgroundImage');
         }
         else if (comp instanceof cc.RichText) {
-            this.SetImageAtlas(url as string);
+            this.setImageAtlas(url as string);
         }
         else {
             throw kit.ErrorID(200);
         }
     }
 
-    private SetSpriteFrame(compType: any , url: string, sfName: string):void {
+    private setSpriteFrame(compType: any , url: string, sfName: string):void {
         if (!url) {
             return;
         }
@@ -109,94 +109,94 @@ export class AutoRelease extends cc.Component {
             throw kit.ErrorID(106);
         }
         this.release(comp.uuid);
-        let key: string = kit.Loader.MakeKey(url, cc.SpriteFrame);
+        let key: string = kit.Loader.makeKey(url, cc.SpriteFrame);
         let res: cc.Texture2D = cc.loader.getRes(key);
         if (res) {
-            this.SetResUrl(key, comp);
+            this.setResUrl(key, comp);
             comp[sfName] = new cc.SpriteFrame(res);
         }else {
             //不存在，则进行加载操作
-            kit.Loader.LoadRes(url, cc.SpriteFrame, (err: Error, asset: any) => {
+            kit.Loader.loadRes(url, cc.SpriteFrame, (err: Error, asset: any) => {
                 if (err) {
-                    kit.Error(err);
+                    kit.error(err);
                     return;
                 }
-                kit.Loader.FinishedLoad(url, cc.SpriteFrame, this._isLock);
-                this.SetResUrl(kit.Loader.MakeKey(url, cc.SpriteFrame), this.node.getComponent(compType));
+                kit.Loader.finishedLoad(url, cc.SpriteFrame, this._isLock);
+                this.setResUrl(kit.Loader.makeKey(url, cc.SpriteFrame), this.node.getComponent(compType));
                 this.node.getComponent(compType)[sfName] = asset;
             }, this._isLock);
         }
     }
 
-    private SetFont(url: string):void {
+    private setFont(url: string):void {
         let label: cc.Label = this.node.getComponent(cc.Label);
         if (!label) {
             throw kit.ErrorID(106);
         }
         this.release(label.uuid);
-        let key: string = kit.Loader.MakeKey(url, cc.BitmapFont);
+        let key: string = kit.Loader.makeKey(url, cc.BitmapFont);
         let res: cc.BitmapFont = cc.loader.getRes(key);
         if (res) {
-            this.SetResUrl(key, label);
+            this.setResUrl(key, label);
             label.font = res;
         }else {
-            kit.Loader.LoadRes(url, cc.BitmapFont, (err: Error, asset: any) => {
+            kit.Loader.loadRes(url, cc.BitmapFont, (err: Error, asset: any) => {
                 if (err) {
-                    kit.Error(err);
+                    kit.error(err);
                     return;
                 }
-                kit.Loader.FinishedLoad(url, cc.BitmapFont, this._isLock);
-                this.SetResUrl(kit.Loader.MakeKey(url, cc.BitmapFont), this.node.getComponent(cc.Label));
+                kit.Loader.finishedLoad(url, cc.BitmapFont, this._isLock);
+                this.setResUrl(kit.Loader.makeKey(url, cc.BitmapFont), this.node.getComponent(cc.Label));
                 this.node.getComponent(cc.Label).font = asset;
             }, this._isLock);
         }
     }
 
-    private SetImageAtlas(url: string):void {
+    private setImageAtlas(url: string):void {
         let richText = this.node.getComponent(cc.RichText);
         if (!richText) {
             throw kit.ErrorID(106);
         }
         this.release(richText.uuid);
-        let key: string = kit.Loader.MakeKey(url, cc.SpriteAtlas);
+        let key: string = kit.Loader.makeKey(url, cc.SpriteAtlas);
         let res: cc.SpriteAtlas = cc.loader.getRes(key);
         if (res) {
-            this.SetResUrl(key, richText);
+            this.setResUrl(key, richText);
             richText.imageAtlas = res;
         }
         else {
-            kit.Loader.LoadRes(url, cc.SpriteAtlas, (err: Error, asset: any) => {
+            kit.Loader.loadRes(url, cc.SpriteAtlas, (err: Error, asset: any) => {
                 if (err) {
-                    kit.Error(err);
+                    kit.error(err);
                     return;
                 }
-                kit.Loader.FinishedLoad(url, cc.SpriteAtlas, this._isLock);
-                this.SetResUrl(kit.Loader.MakeKey(url, cc.SpriteAtlas), this.node.getComponent(cc.RichText));
+                kit.Loader.finishedLoad(url, cc.SpriteAtlas, this._isLock);
+                this.setResUrl(kit.Loader.makeKey(url, cc.SpriteAtlas), this.node.getComponent(cc.RichText));
                 this.node.getComponent(cc.RichText).imageAtlas = asset;
             }, this._isLock);
         }
     }
 
-    private SetPartSys(url: string) {
+    private setPartSys(url: string) {
         let partSys: cc.ParticleSystem = this.node.getComponent(cc.ParticleSystem);
         if (!partSys) {
             throw kit.ErrorID(106);
         }
         this.release(partSys.uuid);
-        let key: string = kit.Loader.MakeKey(url, cc.ParticleAsset);
+        let key: string = kit.Loader.makeKey(url, cc.ParticleAsset);
         let res: any = cc.loader.getRes(key);
         if (res) {
-            this.SetResUrl(key, partSys);
+            this.setResUrl(key, partSys);
             partSys.file = res;
         }
         else {
-            kit.Loader.LoadRes(url, cc.ParticleAsset, (err: Error, asset: any) => {
+            kit.Loader.loadRes(url, cc.ParticleAsset, (err: Error, asset: any) => {
                 if (err) {
-                    kit.Error(err);
+                    kit.error(err);
                     return;
                 }
-                kit.Loader.FinishedLoad(url, cc.ParticleAsset, this._isLock);
-                this.SetResUrl(kit.Loader.MakeKey(url, cc.ParticleAsset), this.node.getComponent(cc.ParticleSystem));
+                kit.Loader.finishedLoad(url, cc.ParticleAsset, this._isLock);
+                this.setResUrl(kit.Loader.makeKey(url, cc.ParticleAsset), this.node.getComponent(cc.ParticleSystem));
                 this.node.getComponent(cc.ParticleSystem).file = asset;
             }, this._isLock);
         }
@@ -207,14 +207,14 @@ export class AutoRelease extends cc.Component {
     // }
 
     private release(key: string) {
-        SAFE_RELEASE(kit.PoolManager.Instance.GetCurrentPool().GetObject(this._resMap.get(key)) as kit.Resource);
+        SAFE_RELEASE(kit.PoolManager.Instance.getCurrentPool().getObject(this._resMap.get(key)) as kit.Resource);
         this._resMap.delete(key);
     }
 
     private retain(url: string, comp: ComponentT) {
         if (!this._resMap.has(comp.uuid)) {
             this._resMap.set(comp.uuid, url);
-            SAFE_RETAIN(kit.PoolManager.Instance.GetCurrentPool().GetObject(url) as kit.Resource);
+            SAFE_RETAIN(kit.PoolManager.Instance.getCurrentPool().getObject(url) as kit.Resource);
         }
     }
 
@@ -223,7 +223,7 @@ export class AutoRelease extends cc.Component {
             this.release(key);
         });
 
-        SAFE_RELEASE(kit.PoolManager.Instance.GetCurrentPool().GetObject(this._prefabRes) as kit.Resource);
+        SAFE_RELEASE(kit.PoolManager.Instance.getCurrentPool().getObject(this._prefabRes) as kit.Resource);
     }
 
     onDestroy() {

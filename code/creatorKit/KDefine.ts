@@ -22,24 +22,24 @@ export function ASSERT(_Expression1: boolean, _Expression2: string = ''): void {
 
 export function SAFE_RELEASE(_Obj: kit.Reference): void {
     do {
-        if (_Obj && _Obj.GetReferenceCount() > 0) {  _Obj.Release(); }
+        if (_Obj && _Obj.getReferenceCount() > 0) {  _Obj.release(); }
     } while (0);
 }
 
 export function SAFE_RELEASE_NULL(_Obj: kit.Reference): void {
-    do { if (_Obj) { _Obj.Release(); _Obj = null; } } while (0);
+    do { if (_Obj) { _Obj.release(); _Obj = null; } } while (0);
 }
 
 export function SAFE_RETAIN(_Obj: kit.Reference): void {
-    do { if (_Obj) { _Obj.Retain(); } } while (0);
+    do { if (_Obj) { _Obj.retain(); } } while (0);
 }
 
 export function SAFE_AUTORELEASE(_Obj: kit.Reference): void {
-    do { if ( _Obj) { _Obj.AutoRelease(); } } while (0);
+    do { if ( _Obj) { _Obj.autoRelease(); } } while (0);
 }
 
 export function SAFE_DESTROY_VIEW(_Obj: kit.Controller): void {
-    do { if (_Obj) {_Obj.Destroy(false); } } while (0);
+    do { if (_Obj) {_Obj.destroy(false); } } while (0);
 }
 
 export function SAFE_CALLBACK(fn, ...args) {

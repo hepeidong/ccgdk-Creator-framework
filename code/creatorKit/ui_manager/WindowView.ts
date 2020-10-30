@@ -40,7 +40,7 @@ export class WindowView {
      * 增加根视图
      * @param node 根视图结点
      */
-    public AddRootWindow(node: cc.Node): void {
+    public addRootWindow(node: cc.Node): void {
         this._rootWindow.addChild(node);
     }
 
@@ -48,7 +48,7 @@ export class WindowView {
      * 增加中间窗口
      * @param node 视图结点
      */
-    public AddCenterWindow(node: cc.Node): void {
+    public addCenterWindow(node: cc.Node): void {
         this._centerWindow.addChild(node);
     }
 
@@ -56,7 +56,7 @@ export class WindowView {
      * 增加顶层窗口
      * @param node 视图控结点
      */
-    public AddTopWindow(node: cc.Node): void {
+    public addTopWindow(node: cc.Node): void {
         this._topWindow.addChild(node);
     }
 }

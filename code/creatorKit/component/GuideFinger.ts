@@ -41,7 +41,7 @@ export default class GuideFinger extends cc.Component {
                 this.guide.addChild(this._mask);
                 mask.addComponent(cc.Sprite);
                 guide.addComponent(cc.Mask).inverted = true;
-                kit.Log('构建了 guide 节点属性', guide.name);
+                kit.log('构建了 guide 节点属性', guide.name);
             }
             if (!this.finger) {
                 let finger: cc.Node = new cc.Node('finger');
@@ -49,7 +49,7 @@ export default class GuideFinger extends cc.Component {
                 this.node.addChild(this.finger);
                 finger.addComponent(cc.Sprite);
                 finger.addComponent(cc.Animation);
-                kit.Log('构建了 finger 节点属性', finger.name);
+                kit.log('构建了 finger 节点属性', finger.name);
             }
         }
     }
@@ -61,7 +61,7 @@ export default class GuideFinger extends cc.Component {
     /**执行引导 */
     public executeGuide() {
         this.node.active = true;
-        let pos: cc.Vec2 = GuideManager.Instance.getTargetPosition();
+        let pos: cc.Vec3= GuideManager.Instance.getTargetPosition();
         this.finger.position = pos;
         GuideManager.Instance.setGuidePosition(this.guide, pos);
         this._mask.on(cc.Node.EventType.TOUCH_START, (e: cc.Event.EventTouch) => {

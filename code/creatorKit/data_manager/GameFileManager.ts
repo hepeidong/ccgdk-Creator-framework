@@ -11,7 +11,7 @@ export class GameFileManager {
        this._fileMap = new Map();
     }
 
-    public AddGameTable(fileName: string, tableType: typeof DataTable): void {
+    public addGameTable(fileName: string, tableType: typeof DataTable): void {
         let tableInfo = {name: fileName, type: tableType};
         this._csvTables.push(tableInfo);
     }
@@ -22,15 +22,15 @@ export class GameFileManager {
         }
     }
 
-    public Get<T extends DataTable>(type: {prototype: T}): FileContainer<T> {
+    public get<T extends DataTable>(type: {prototype: T}): FileContainer<T> {
         return this._fileMap.get(type);
     }
 
-    public GetById<T extends DataTable>(type: {prototype: T}, id: number): FileContainer<T> {
-        return this._fileMap.get(type).Get(id);
+    public getById<T extends DataTable>(type: {prototype: T}, id: number): FileContainer<T> {
+        return this._fileMap.get(type).get(id);
     }
 
-    public LoadCSVTable(url: string, progressfn?: (completedCount: number, totalCount: number) => void, completefn?: (error: Error) => void) {
+    public loadCSVTable(url: string, progressfn?: (completedCount: number, totalCount: number) => void, completefn?: (error: Error) => void) {
         cc.loader.loadResDir(url, (completedCount: number, totalCount: number, _item: any) => {
             progressfn && progressfn(completedCount, totalCount);
         }, (error: Error, resource: any[], urls: string[]) => {
@@ -66,7 +66,7 @@ export class GameFileManager {
             let fileData = this.GetTableObj(TableType);
             let id: any = result[dataIndex][keys[0]];
             fileData.Init(result[dataIndex++]);
-            fileContainer.Add(id, fileData);
+            fileContainer.add(id, fileData);
         }
         this._fileMap.set(TableType, fileContainer);
     }
