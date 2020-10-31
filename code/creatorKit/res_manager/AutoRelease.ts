@@ -7,7 +7,7 @@ type AnimateCompleteT = (asset: any) => void;
 type AnimateT = sp.SkeletonData;
 
 @ccclass
-export class autoRelease extends cc.Component {
+export class AutoRelease extends cc.Component {
 
     /** 结点引用的资源*/
     private _resMap: Map<string, string> = new Map();

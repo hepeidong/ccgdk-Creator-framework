@@ -46,12 +46,9 @@ function ifDefined(name) {
  */
 defineMacro('define', defineMacro);
 defineMacro('ifDefined', ifDefined);
-defineMacro('_ENABLE', ENABLE);
-defineMacro('_DEBUG', DEBUG);
-defineMacro('_IN_WEB_DEBUG', IN_WEB_DEBUG);
-defineMacro('MEMORY_CAP_SIZE', MEMORY_CAP_SIZE);
-defineMacro('EXPLOIT_PIXELS_W', EXPLOIT_PIXELS_W);
-defineMacro('EXPLOIT_PIXELS_H', EXPLOIT_PIXELS_H);
+defineMacro('ENABLE', ENABLE);
+defineMacro('DEBUG', DEBUG);
+defineMacro('IN_WEB_DEBUG', IN_WEB_DEBUG);
 defineMacro('ASSERT', ASSERT);
 defineMacro('SAFE_RELEASE', SAFE_RELEASE);
 defineMacro('SAFE_RELEASE_NULL', SAFE_RELEASE_NULL);
@@ -70,13 +67,13 @@ cc.LogManager = {
 _global.kit = _global.kit || {}
 _global.utils = _global.utils || {}
 _global.wx = _global.wx || {}
-if (_ENABLE) {
+if (ENABLE) {
     kit = Kit;
     utils = Utils;
     wx = WX;
 }
 
-if (_DEBUG) {
+if (DEBUG) {
     initDebugInfos();
 }
 initDebugSetting(cc.LogManager.tag);

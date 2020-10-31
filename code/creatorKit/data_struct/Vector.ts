@@ -50,7 +50,7 @@ export class Vector<T>  {
      * @constructor
      */
     public push(e: T): boolean {
-        _DEBUG && ASSERT(this.isFull(), 'error:Vector is pull!');
+        DEBUG && ASSERT(this.isFull(), 'error:Vector is pull!');
         if (!this.isFull()) {
             this[this._rear] = e;
             this._rear = (this._rear + 1)%this._max_length;
@@ -71,7 +71,7 @@ export class Vector<T>  {
      * @constructor
      */
     public pop(): T {
-        _DEBUG && ASSERT(this.isEmpty(), 'error:Vector is emty!');
+        DEBUG && ASSERT(this.isEmpty(), 'error:Vector is emty!');
         if (!this.isEmpty()) {
             let e: T = this[this._front];
             this[this._front] = null;

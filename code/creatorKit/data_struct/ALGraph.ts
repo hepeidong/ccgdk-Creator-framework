@@ -49,9 +49,9 @@ export class ALGraph {
     /**图的类型，无向图和有向图 */
     public static get GraphType(): { DG: number; UDG: number } { return this._graphType; }
     /**边的数量 */
-    public get EdgeNum(): number { return this._edge_num; }
+    public get edgeNum(): number { return this._edge_num; }
     /**顶点的数量 */
-    public get VertexNum(): number { return this._vertex_num; }
+    public get vertexNum(): number { return this._vertex_num; }
 
 
     public static create(type: GraphType = GraphType.UDG): ALGraph {
@@ -60,7 +60,7 @@ export class ALGraph {
     }
 
     /**通过顶点数据，找到顶点在顶点表中的序号,序号从0开始，如果没有这个顶点，返回-1 */
-    public LocateVertex(vt: Vertex_t): number {
+    public locateVertex(vt: Vertex_t): number {
         let ver_num: number = this._adjList.indexOf(vt);
         if (ver_num > -1) {
             return ver_num;
@@ -69,7 +69,7 @@ export class ALGraph {
     }
 
     /**通过序号，找到顶点数据 */
-    public GetVertex(num: number): Vertex_t {
+    public getVertex(num: number): Vertex_t {
         let vt: Vertex_t = this._adjList[num];
         if (vt) {
             return vt;
@@ -78,7 +78,7 @@ export class ALGraph {
     }
 
     /**通过序号，设置顶点 */
-    public SetVertex(n: number, vt: Vertex_t): boolean {
+    public setVertex(n: number, vt: Vertex_t): boolean {
         if (!vt) {
             return false;
         }
@@ -89,7 +89,7 @@ export class ALGraph {
     }
 
     /**插入一个顶点 */
-    public InsertVertex(vt: Vertex_t): boolean {
+    public insertVertex(vt: Vertex_t): boolean {
         if (this._adjList.indexOf(vt) === -1) {
             vt.firstArc = null;
             this._adjList[this._vertex_num] = vt;
@@ -100,22 +100,22 @@ export class ALGraph {
     }
 
     /**插入一条边 */
-    public InsertEdge(staVex: number, adjVex: number, weight: number = 1): boolean {
+    public insertEdge(staVex: number, adjVex: number, weight: number = 1): boolean {
         if (staVex === adjVex) {
             throw new Error('不能传入同一个顶点！');
         }
         if (this._graph_t === GraphType.DG) {
             //有向图的边指向其中一个顶点
-            return this.AddEdge(staVex, adjVex, weight);
+            return this.addEdge(staVex, adjVex, weight);
         }
         else if (this._graph_t === GraphType.UDG) {
             //无向图的边指向这条边的两个顶点
-            return this.AddEdge(staVex, adjVex, weight) && this.AddEdge(adjVex, staVex, weight);
+            return this.addEdge(staVex, adjVex, weight) && this.addEdge(adjVex, staVex, weight);
         }
     }
 
     /**删除一个顶点 */
-    public DeleteVertex(vt: Vertex_t): boolean {
+    public deleteVertex(vt: Vertex_t): boolean {
         if (!vt) {
             throw new Error('传入的顶点参数为空！');
         }
@@ -168,15 +168,15 @@ export class ALGraph {
     }
 
     /**删除一条边 */
-    public DeleteEdge(staVex: number, adjVex: number): boolean {
+    public deleteEdge(staVex: number, adjVex: number): boolean {
         if (staVex === adjVex) {
             throw new Error('不能传入同一个顶点！');
         }
         if (this._graph_t === GraphType.UDG) {
-            return this.MoveEdge(staVex, adjVex) && this.MoveEdge(adjVex, staVex);
+            return this.moveEdge(staVex, adjVex) && this.moveEdge(adjVex, staVex);
         }
         else if (this._graph_t === GraphType.DG) {
-            return this.MoveEdge(staVex, adjVex);
+            return this.moveEdge(staVex, adjVex);
         }
     }
 
@@ -232,7 +232,7 @@ export class ALGraph {
      * @param u 
      * @param v 
      */
-    public ExistPath(u: number, v: number): boolean {
+    public existPath(u: number, v: number): boolean {
         let re: { condition: boolean, vexList: number[] } = this.DFS(u, (_v: number) => {
             return _v === v;
         });
@@ -244,18 +244,18 @@ export class ALGraph {
      * @param u 
      * @param v 
      */
-    public FindAPath(u: number, v: number): number[] {
+    public findAPath(u: number, v: number): number[] {
         let re: { condition: boolean, vexList: number[] } = this.DFS(u, (_v: number) => {
             return _v === v;
         });
         return re.vexList;
     }
 
-    public FindAllPath(u: number, v: number) {
+    public findAllPath(u: number, v: number) {
         
     }
 
-    private AddEdge(staVex: number, adjVex: number, weight: number = 1): boolean {
+    private addEdge(staVex: number, adjVex: number, weight: number = 1): boolean {
         let edge: Edge_t;
         let n: number = -1;
         if (!this._adjList[staVex]) {
@@ -302,7 +302,7 @@ export class ALGraph {
         }
     }
 
-    private MoveEdge(staVex: number, adjVex: number) {
+    private moveEdge(staVex: number, adjVex: number) {
         let n: number = -1;
         if (!this._adjList[staVex]) {
             n = staVex;

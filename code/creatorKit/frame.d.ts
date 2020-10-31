@@ -300,6 +300,7 @@ declare namespace kit {
     export function error(msg: any, ...subst: any[]): void;
     export function info(msg: any, ...subst: any[]): void;
     export function debug(msg: any, ...subst: any[]): void;
+    export function assert(condition?: boolean, msg?: string, ...data: any[]): void;
 
     export var LogID: Function;
     export var WarnID: Function;
@@ -1263,17 +1264,11 @@ declare function define(name: string, defaultValue: any): void;
  */
 declare function ifDefined(name): boolean;
 /**启动游戏框架 */
-declare var _ENABLE: boolean;
+declare var ENABLE: boolean;
 /**调试模式 */
-declare var _DEBUG: boolean;
+declare var DEBUG: boolean;
 /**在web端调试游戏 */
-declare const _IN_WEB_DEBUG: boolean;
-/**内存上限 */
-declare const MEMORY_CAP_SIZE: number;
-/**设计分辨率宽 */
-declare const EXPLOIT_PIXELS_W: number;
-/**设计分辨率高 */
-declare const EXPLOIT_PIXELS_H: number;
+declare const IN_WEB_DEBUG: boolean;
 /**断言调试方法 */
 declare function ASSERT(_Expression1: boolean, _Expression2: string = ''): void;
 /**安全减少资源引用计数 */

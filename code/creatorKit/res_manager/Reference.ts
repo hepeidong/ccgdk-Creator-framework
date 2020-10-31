@@ -31,7 +31,7 @@ export class Reference extends EventListeners {
         --this._referenceCount;
         // kit.LogID(201, `${this.Key} ${this._referenceCount}`);
         if (this._referenceCount == 0) {
-            if (_DEBUG) {
+            if (DEBUG) {
                 if (PoolManager.Instance.getCurrentPool().isClearing() && PoolManager.Instance.isObjectInPools(this)) {
                     ASSERT(false, "The reference shouldn't be 0 because it is still in autorelease pool.");
                 }

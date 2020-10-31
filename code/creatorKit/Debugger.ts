@@ -2,12 +2,13 @@
 
 export function initDebugSetting(logTag: string): void {
     
-    if (_DEBUG) {
+    if (DEBUG) {
         kit.log = console.log.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
         kit.warn = console.warn.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
         kit.error = console.error.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
-        kit.info = console.debug.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
+        kit.info = console.info.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
         kit.debug = console.debug.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
+        kit.assert = console.assert.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
 
         kit.LogID = genLogFunc(kit.log, 'log');
         kit.WarnID = genLogFunc(kit.warn, 'Warning');
@@ -17,7 +18,7 @@ export function initDebugSetting(logTag: string): void {
 
 function genLogFunc(func: Function, type: string): Function {
     return function(id: number) {
-        if (_DEBUG) {
+        if (DEBUG) {
             if (arguments.length === 1) {
                 func(type + ': ' + kit._LogInfos[id]);
             }else {

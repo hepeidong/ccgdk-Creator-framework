@@ -18,9 +18,7 @@ export default class AdapterHelper extends cc.Component {
     // onLoad () {}
 
     start () {
-        // cck.log('多分辨率适配组件');
         if (CC_EDITOR) return;
-        // cck.log('开始适配');
         AdapterCtrl.Instance.adapter(this.autoAdapter);
     }
 
