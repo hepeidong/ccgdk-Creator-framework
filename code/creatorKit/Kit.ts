@@ -16,7 +16,7 @@ import WindowHelper from "./component/WindowHelper";
 
 export function log(msg: any, ...subst: any[]){}
 export function warn(msg: any, ...subst: any[]){}
-export function Error(msg: any, ...subst: any[]){}
+export function error(msg: any, ...subst: any[]){}
 export function debug(msg: any, ...subst: any[]){}
 export function info(msg: any, ...subst: any[]){}
 export function assert(condition?: boolean, msg?: string, ...data: any[]){}
