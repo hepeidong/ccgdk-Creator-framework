@@ -40,7 +40,7 @@ interface LoadArgs {
  * author: HePeiDong
  * date: 2019/9/11
  * name: 加载资源类
- * 加载资源，对加载的资源进行引用技术管理，包括解析预制体
+ * description: 资源管理模块，加载资源，对加载的资源进行引用技术管理，包括解析预制体
  */
 export class Loader {
     constructor() {
@@ -96,10 +96,10 @@ export class Loader {
         }
     }
 
-    public static load(url: string|string[]|UrlOfLoadT, progressFn: progressT, completeFn: Function|null, isLock: boolean): void;
-    public static load(url: string|string[]|UrlOfLoadT, completeFn: completed, isLock: boolean): void;
+    public static load(url: string|string[]|UrlOfLoadT, progressFn: progressT, completeFn: Function|null, isLock?: boolean): void;
+    public static load(url: string|string[]|UrlOfLoadT, completeFn: completed, isLock?: boolean): void;
     public static load(): void {
-        let args: LoadArgs = this.MakeLoadArgs.apply(null, arguments);    
+        let args: LoadArgs = this.makeLoadArgs.apply(null, arguments);    
         if (args.url instanceof Array) {
             kit.ErrorID(102);
             return;
@@ -107,15 +107,15 @@ export class Loader {
         let completedFn = (err: Error, asset: any) => {
             if (!err) {
                 if (typeof args.url === 'string') {
-                    this.ParserAssetType(args.url, asset, args.isLock);
+                    this.parserAssetType(args.url, asset, args.isLock);
                 }else if (typeof args.url === 'object') {
                     if (args.url instanceof Array) {
                         for (let i: number = 0; i < args.url.length; ++i) {
-                            this.ParserAssetType(args.url[i], asset[i], args.isLock);
+                            this.parserAssetType(args.url[i], asset[i], args.isLock);
                         }
                     }
                     else {
-                        this.ParserAssetType(args.url.url, asset, args.isLock);
+                        this.parserAssetType(args.url.url, asset, args.isLock);
                     }
                 }
             }
@@ -136,7 +136,7 @@ export class Loader {
     public static loadRes(url: string, completeFn: completeTOfRes, isLock?: boolean): void;
     public static loadRes(url: string, isLock?: boolean): void;	
     public static loadRes(): void {
-        let args: LoadArgs = this.MakeLoadArgs.apply(null, arguments);
+        let args: LoadArgs = this.makeLoadArgs.apply(null, arguments);
         if (typeof args.url !== 'string') {
             kit.ErrorID(102);
             return;
@@ -148,7 +148,7 @@ export class Loader {
                     this.finishedLoad(args.url as string, args.type, args.isLock);
                 }
                 else {
-                    this.ParserAssetType(args.url as string, asset, args.isLock);
+                    this.parserAssetType(args.url as string, asset, args.isLock);
                 }
             }
             args.completeFn && (args.completeFn as completeTOfRes)(err, asset);
@@ -172,7 +172,7 @@ export class Loader {
     public static loadResDir(url: string, completeFn: completeTOfDir, isLock?: boolean): void;
     public static loadResDir(url: string, isLock?: boolean): void;
     public static loadResDir(): void {
-        let args: LoadArgs = this.MakeLoadArgs.apply(null, arguments);
+        let args: LoadArgs = this.makeLoadArgs.apply(null, arguments);
         if (typeof args.url !== 'string') {
             kit.ErrorID(102);
             return;
@@ -186,7 +186,7 @@ export class Loader {
                 }
                 else {
                     for (let i: number = 0; i < urls.length; ++i) {
-                        this.ParserAssetType(urls[i], asset[i], args.isLock);
+                        this.parserAssetType(urls[i], asset[i], args.isLock);
                     }
                 }
                 
@@ -212,7 +212,7 @@ export class Loader {
     public static loadResArray(url: string[], completeFn: completeTOfArray, isLock?: boolean): void;
     public static loadResArray(url: string[], isLock?: boolean): void;
     public static loadResArray(): void {
-        let args: LoadArgs = this.MakeLoadArgs.apply(null, arguments);
+        let args: LoadArgs = this.makeLoadArgs.apply(null, arguments);
         let completedFn = (err: Error, asset: any[]) => {
             if (!err) {
                 if (args.url instanceof Array) {
@@ -223,7 +223,7 @@ export class Loader {
                     }
                     else {
                         for (let i: number = 0; i < args.url.length; ++i) {
-                            this.ParserAssetType(args.url[i], asset[i], args.isLock);
+                            this.parserAssetType(args.url[i], asset[i], args.isLock);
                         }
                     }
                     
@@ -280,25 +280,25 @@ export class Loader {
 
     public static finishedLoad(url: string, type: typeof cc.Asset, isLock: boolean): void {
         let res: any = this.getCacheRes(url, type);
-        if (!this.AddResItem(res, isLock)) {
+        if (!this.addResItem(res, isLock)) {
             kit.WarnID(205, url);
         }
     }
 
     /**记录缓存的资源 */
-    private static AddResItem(item: any, isLock: boolean): boolean {
+    private static addResItem(item: any, isLock: boolean): boolean {
         if (item && item.id) {
             let resInfo: kit.Resource = kit.PoolManager.Instance.getCurrentPool().getObject(item.id) as kit.Resource;
             if (!resInfo) {
                 resInfo = kit.Resource.create(item.id, isLock);
             }
-            this.BulidResInfo(item, resInfo);
+            this.bulidResInfo(item, resInfo);
             return true;
         }
         return false;
     }
 
-    private static BulidResInfo(item: any, resInfo: kit.Resource): void {
+    private static bulidResInfo(item: any, resInfo: kit.Resource): void {
         if (item && item.dependKeys && Array.isArray(item.dependKeys)) {
             for (let depKey of item.dependKeys) {
                 let depRes: any = cc.loader['_cache'][depKey];
@@ -308,11 +308,11 @@ export class Loader {
                     }
                     let depInfo: kit.Resource = kit.PoolManager.Instance.getCurrentPool().getObject(depKey) as kit.Resource;
                     if (depInfo) {
-                        this.BulidResInfo(depRes, depInfo);
+                        this.bulidResInfo(depRes, depInfo);
                     }
                     else if (!depInfo) {
                         depInfo = kit.Resource.create(depRes.id, false);
-                        this.BulidResInfo(depRes, depInfo);
+                        this.bulidResInfo(depRes, depInfo);
                     }
                 }
                 else {
@@ -322,7 +322,7 @@ export class Loader {
         }
     }
 
-    private static MakeLoadArgs(): LoadArgs {
+    private static makeLoadArgs(): LoadArgs {
         if (arguments.length <= 0) {
             kit.ErrorID(100);
             return null;
@@ -342,6 +342,7 @@ export class Loader {
                 //说明参数表里面有两回调函数，当前i就是第一个回调函数，如果最后一个是Boolean，说明参数表只有一个函数
                 //i只能是为一个的一个回调函数，所以是completedFn
                 if (i === arguments.length - 2) {
+                    //如果下一个参数类型也是函数，说明是最后一个回调函数
                     if (typeof arguments[i+1] === 'function') {
                         args.progressFn = arguments[i];
                     }
@@ -352,10 +353,6 @@ export class Loader {
                         kit.ErrorID(101);
                         return null;
                     }
-                }
-                //如果下一个参数类型也是函数，说明是最后一个回调函数
-                else if (typeof arguments[i+1] === 'function') {
-                    args.progressFn = arguments[i];
                 }
                 else if (i === arguments.length - 1) {
                     args.completeFn = arguments[i];
@@ -374,7 +371,7 @@ export class Loader {
         return args;
     }
 
-    private static ParserAssetType(url: string, asset: cc.Asset, isLock: boolean): void { 
+    private static parserAssetType(url: string, asset: cc.Asset, isLock: boolean): void { 
         if (asset instanceof cc.SpriteFrame) {
             this.finishedLoad(url, cc.SpriteFrame, isLock);
         }

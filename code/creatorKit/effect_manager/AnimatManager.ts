@@ -12,7 +12,7 @@ enum AnimatType {
 /**
  * author: 何沛东
  * date: 2020/10/20
- * description: 动画播放管理，支持链式结构播放多个不同类型的动画，可以按顺序同时播放帧动画和spine骨骼动画，可以延迟播放动画，可以抛出错误异常
+ * description: 动画播放管理，支持链式结构按顺序播放多个不同类型的动画，可以延迟播放动画，可以抛出错误异常
  */
 export class Animat {
     private _target: cc.Node;
@@ -27,8 +27,13 @@ export class Animat {
 
     }
 
-    static get create() {
+    public static get create() {
         return new Animat();
+    }
+
+    public static stopAll(): void {
+        FrameAnimat.stopAll();
+        SpineAnimat.stopAll();
     }
 
     public target(node: cc.Node) {
@@ -45,18 +50,8 @@ export class Animat {
         return this;
     }
 
-    public static stopAll() {
-        
-    }
-    private nextAnimat() {
-        this._animatIndex++;
-        if (this._animators[this._animatIndex] === AnimatType.ANIMATION) {
-            this._frameAnimat.play();
-        }
-        else if (this._animators[this._animatIndex] === AnimatType.SPINE) {
-            this._spineAnimat.play();
-        }
-    }
+    
+
     /**开始播放动画 */
     public play(): Animat {
         try {
@@ -88,7 +83,7 @@ export class Animat {
         return this;
     }
     /**停止动画 */
-    stop(): Animat {
+    public stop(): Animat {
         try {
             if (this._status === 'pending') {
                 if (this._animators[this._animatIndex] === AnimatType.ANIMATION) {
@@ -111,7 +106,7 @@ export class Animat {
         return this;
     }
     /**暂停电画 */
-    pause(): Animat {
+    public pause(): Animat {
         try {
             if (this._status === 'pending') {
                 if (this._animators[this._animatIndex] === AnimatType.ANIMATION) {
@@ -132,7 +127,7 @@ export class Animat {
         return this;
     }
     /**恢复动画 */
-    resume(): Animat {
+    public resume(): Animat {
         try {
             if (this._status === 'pending') {
                 if (this._animators[this._animatIndex] === AnimatType.ANIMATION) {
@@ -158,7 +153,7 @@ export class Animat {
      * @param delay 
      * @param startTime 
      */
-    defaultClip(delay?: number, startTime?: number): Animat {
+    public defaultClip(delay?: number, startTime?: number): Animat {
         try {
             if (this._status === 'pending') {
                 ///////////////////////////////////////////
@@ -186,7 +181,7 @@ export class Animat {
      * 把要播放的剪辑动画压入队列中，等待播放
      * @param props 剪辑动画属性
      */
-    clip(props: IFrameAnimat): Animat {
+    public clip(props: IFrameAnimat): Animat {
         try {
             if (this._status === 'pending') {
                 ///////////////////////////////////////////
@@ -207,7 +202,7 @@ export class Animat {
      * 增加剪辑动画
      * @param clip 剪辑动画 
      */
-    addClip(clip: cc.AnimationClip): Animat {
+    public addClip(clip: cc.AnimationClip): Animat {
         if (!this._frameAnimat) {
             this._frameAnimat = new FrameAnimat(this._target);
         }
@@ -219,7 +214,7 @@ export class Animat {
      * 把要播放的spine骨骼动画压入队列中，等待播放
      * @param props 骨骼动画属性
      */
-    spine(props: ISpineAnimat): Animat {
+    public spine(props: ISpineAnimat): Animat {
         try {
             if (this._status === 'pending') {
                 ///////////////////////////////////
@@ -237,9 +232,41 @@ export class Animat {
     }
 
     /**
-     * 增加动画播放的回调，play播放时执行，stop播放结束后执行
+     * 增加动画播放时的回调
+     * @param resolved 
      */
-    then(callType: 'play' | 'stop', resolved: (value?: string | cc.Event.EventCustom) => void): Animat {
+    public onPlay(resolved: (value: any) => void): Animat {
+        this.addCallback(resolved, 'play');
+        return this;
+    }
+
+    /**
+     * 增加动画播放结束后的回调
+     * @param resolved 
+     */
+    public onStop(resolved: (value: any) => void): Animat {
+        this.addCallback(resolved, 'stop');
+        return this;
+    }
+
+    /**捕获播放异常的方法，会给回调返回错误信息 */
+    public catch(rejected: (e: Error) => void): void {
+        if (this._status === 'rejected') {
+            rejected(this._err);
+        }
+    }
+
+    private nextAnimat() {
+        this._animatIndex++;
+        if (this._animators[this._animatIndex] === AnimatType.ANIMATION) {
+            this._frameAnimat.play();
+        }
+        else if (this._animators[this._animatIndex] === AnimatType.SPINE) {
+            this._spineAnimat.play();
+        }
+    }
+
+    private addCallback(resolved: (value: any) => void, type: string) {
         if (this._status === 'pending') {
             let len: number = this._animators.length;
             if (len === 0) {
@@ -248,19 +275,11 @@ export class Animat {
                 return this;
             }
             if (this._animators[len - 1] === AnimatType.ANIMATION) {
-                this._frameAnimat.addCallback({ call: resolved, type: callType });
+                this._frameAnimat.addCallback({ call: resolved, type: type });
             }
             else if (this._animators[len - 1] === AnimatType.SPINE) {
-                this._spineAnimat.addCallback({ call: resolved, type: callType });
+                this._spineAnimat.addCallback({ call: resolved, type: type });
             }
-        }
-        return this;
-    }
-
-    /**捕获播放异常的方法，会给回调返回错误信息 */
-    catch(rejected: (e: Error) => void): void {
-        if (this._status === 'rejected') {
-            rejected(this._err);
         }
     }
 }

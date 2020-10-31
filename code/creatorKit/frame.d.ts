@@ -35,6 +35,8 @@ interface IAnimat {
     loop?: boolean;
     /**迭代播放次数 */
     repeatCount?: number;
+    /**播放完成了 */
+    played?: boolean;
 }
 
 interface IFrameAnimat extends IAnimat {
@@ -303,8 +305,21 @@ declare namespace kit {
     export var WarnID: Function;
     export var ErrorID: Function;
 
+    /**
+     * 动画播放管理
+     * @param target 目标节点
+     */
     export function animat(target: cc.Node): Animat;
+    /**
+     * 音频播放管理
+     * @param props 音频属性 
+     */
     export function audio(props: IAudio): Audio;
+    /**
+     * 事件管理
+     * @param target 
+     * @param caller 
+     */
     export function event(target: cc.Node, caller: any): TargetListener;
 
     /**
@@ -313,6 +328,7 @@ declare namespace kit {
      */
     export class Animat {
         static readonly create: Animat;
+        /**在下一帧停止所有动画播放 */
         static stopAll(): void;
         target(node: cc.Node): Animat;
         /**开始播放 */
@@ -330,20 +346,30 @@ declare namespace kit {
          */
         defaultClip(delay?: number, startTime?: number): Animat;
         /**
-         * 把要播放的剪辑动画压入队列中，等待播放，如果当前对象没有该剪辑动画，则可以传入clip为对象增加剪辑动画
+         * 把要播放的剪辑动画压入队列中，等待播放
          * @param props 剪辑动画属性
-         * @param clip 剪辑动画
          */
-        clip(props: IFrameAnimat, clip?: cc.AnimationClip): Animat;
+        clip(props: IFrameAnimat): Animat;
+        /**
+         * 增加剪辑动画
+         * @param clip 剪辑动画 
+         */
+        addClip(clip: cc.AnimationClip): Animat;
         /**
          * 把要播放的spine骨骼动画压入队列中，等待播放
          * @param props 骨骼动画属性
          */
         spine(props: ISpineAnimat): Animat;
-        /**
-         * 增加动画播放的回调，play播放时执行，stop播放结束后执行
+         /**
+         * 增加动画播放时的回调
+         * @param resolved 
          */
-        then(callType: 'play' | 'stop', resolved: (value?: string | cc.Event.EventCustom) => void): Animat;
+        onPlay(resolved: (value: any) => void): Animat;
+            /**
+         * 增加动画播放结束后的回调
+         * @param resolved 
+         */
+        onStop(resolved: (value: any) => void): Animat;
         /**捕获播放异常的方法，会给回调返回错误信息 */
         catch(rejected: (e: Error) => void): void;
     }
@@ -480,6 +506,12 @@ declare namespace kit {
         protected destroy(): void;
     }
 
+    /**
+     * author: HePeiDong
+     * date: 2019/9/11
+     * name: 加载资源类
+     * description: 资源管理模块，加载资源，对加载的资源进行引用技术管理，包括解析预制体
+     */
     export class Loader extends EventListeners {
         /**
          * 从远程或本地加载一个资源
@@ -488,8 +520,8 @@ declare namespace kit {
          * @param completeFn 加载成功回调函数
          * @param isLock 是否锁定资源
          */
-        static load(url: string | string[] | { url?: string, type?: string }, progressFn: (completedCount: number, totalCount: number, item: any) => void, completeFn: Function | null, isLock: boolean): void;
-        static load(url: string | string[] | { url?: string, type?: string }, completeFn: (err: Error, asset: any) => void, isLock: boolean): void;
+        static load(url: string | string[] | { url?: string, type?: string }, progressFn: (completedCount: number, totalCount: number, item: any) => void, completeFn: Function | null, isLock?: boolean): void;
+        static load(url: string | string[] | { url?: string, type?: string }, completeFn: (err: Error, asset: any) => void, isLock?: boolean): void;
 
         /**
          * 从resources文件夹中加载资源

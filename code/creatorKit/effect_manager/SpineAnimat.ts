@@ -3,11 +3,21 @@ import AnimatBase from "./AnimatBase";
 
 export default class SpineAnimat extends AnimatBase {
     private _skeleton: sp.Skeleton;
+    /**动画队列 */
     private _animatList: kit.Vector<spineAnimat_t>;
-    private _nextCallback: Function;
     private timeoutId: number = 0;
+    private static isStop: boolean = false;
     constructor(target: cc.Node) {
-        super();
+        super(() => {
+            if (SpineAnimat.isStop && this._animatList) {
+                for (let i: number = 0; i < this._animatList.length; ++i) {
+                    this._animatList[i].props.played = true;
+                }
+                this.stop();
+            }
+            SpineAnimat.isStop = false;
+            SpineAnimat.isStop = false;
+        });
         this._animatList = new kit.Vector();
         this._target = target;
         this._skeleton = this._target.getComponent(sp.Skeleton);
@@ -18,6 +28,10 @@ export default class SpineAnimat extends AnimatBase {
         else {
             this.registerEvent();
         }
+    }
+
+    public static stopAll(): void {
+        this.isStop = true;
     }
 
     public addCallback(callback: resolved_t) {
@@ -31,6 +45,7 @@ export default class SpineAnimat extends AnimatBase {
             props.loop = props.loop ? props.loop : false;
             props.repeatCount = props.repeatCount ? props.repeatCount : 1;
             props.trackIndex = (props.trackIndex === null || props.trackIndex === undefined) ? 0 : props.trackIndex;
+            props.played = props.played ? props.played : false;
 
             this._animatList.push({props: props, callbacks: []});
         } catch (error) {
@@ -43,13 +58,15 @@ export default class SpineAnimat extends AnimatBase {
         try {
             if (this._status === 'pending') {
                 this._status = 'resolved';
-                if (this.index === 0) {
-                    this.playInterval();
-                }
-                else {
-                    let props: ISpineAnimat = this._animatList[this.index].props;
-                    props.repeatCount--;
-                    this._skeleton.addAnimation(props.trackIndex, props.name, props.loop, props.delay);
+                let props: ISpineAnimat = this._animatList[this.index].props;
+                if (!props.played) {
+                    if (this.index === 0) {
+                        this.playInterval();
+                    }
+                    else {
+                        props.repeatCount--;
+                        this._skeleton.addAnimation(props.trackIndex, props.name, props.loop, props.delay);
+                    }
                 }
             }
         } catch (error) {

@@ -39,7 +39,7 @@ export default class EngineUtil {
     }
 
     public static loadImage(target: cc.Node, url: string, type: string = 'png'): void {
-        cc.loader.load({ url, type }, (err: Error, tex: cc.Texture2D) => {
+        kit.Loader.load({ url, type }, (err: Error, tex: cc.Texture2D) => {
             if (err) {
                 kit.error('加载头像纹理错误：', err);
                 return;
