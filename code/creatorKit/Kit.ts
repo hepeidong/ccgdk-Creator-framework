@@ -1,13 +1,13 @@
-import AdapterHelper from "./component/AdapterHelper";
-import AdapterContent from "./component/AdapterContent";
-import BannerAd from "./component/BannerAd";
-import GuideDialogue from "./component/GuideDialogue";
-import GuideFinger from "./component/GuideFinger";
-import GuideText from "./component/GuideText";
-import GuideHelper from "./component/GuideHelper";
-import TouchHelper from "./component/TouchHelper";
-import VideoAd from "./component/VideoAd";
-import WindowHelper from "./component/WindowHelper";
+import AdapterHelper from "./component/adapter/AdapterHelper";
+import AdapterContent from "./component/adapter/AdapterContent";
+import BannerAd from "./component/advertising/BannerAd";
+import GuideDialogue from "./component/guide/GuideDialogue";
+import GuideFinger from "./component/guide/GuideFinger";
+import GuideText from "./component/guide/GuideText";
+import GuideHelper from "./component/guide/GuideHelper";
+import TouchHelper from "./component/ui/MultiTargetTouch";
+import VideoAd from "./component/advertising/VideoAd";
+import WindowHelper from "./component/ui/WindowHelper";
 
 
 /**

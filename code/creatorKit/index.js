@@ -4,9 +4,6 @@ import * as Kit from "./Kit";
 import { ENABLE,
          DEBUG,
          IN_WEB_DEBUG,
-         MEMORY_CAP_SIZE,
-         EXPLOIT_PIXELS_W,
-         EXPLOIT_PIXELS_H,
          ASSERT,
          SAFE_RELEASE,
          SAFE_RELEASE_NULL,
@@ -19,13 +16,13 @@ import { WX } from "./wx_api/WxApi";
 
 
 /**
- * @property {boolean} _ENABLE 框架启动
+ * @property {boolean} ENABLE 框架启动
  */
 /**
- * @property {boolean} _DEBUG 调试模式
+ * @property {boolean} DEBUG 调试模式
  */
 /**
- * @property {boolean} _IN_WEB_DEBUG  在web端调试游戏
+ * @property {boolean} IN_WEB_DEBUG  在web端调试游戏
  */
 
 

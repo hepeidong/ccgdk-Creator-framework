@@ -1,5 +1,5 @@
 export function initDebugInfos(): void {
-    if (_DEBUG) {
+    if (DEBUG) {
         let logs = {
             //UILoader
             '100': 'Arguments cannot have a length of 0 in load method!',

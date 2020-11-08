@@ -39,6 +39,10 @@ export default class SpineAnimat extends AnimatBase {
         this._animatList[len - 1].callbacks.push(callback);
     }
 
+    public setSkeletonData(data: sp.SkeletonData) {
+        this._skeleton.skeletonData = data;
+    }
+
     public addAnimatProps(props: ISpineAnimat): void {
         try {
             props.delay = props.delay ? props.delay : 0;

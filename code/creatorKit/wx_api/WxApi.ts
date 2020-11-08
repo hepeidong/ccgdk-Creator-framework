@@ -1,15 +1,4 @@
-type AuthSetting = {
-    "scope.userInfo": boolean|undefined|null,// 请用button获取该信息
-    "scope.userLocation": boolean|undefined|null,
-    "scope.userLocationBackground": boolean|undefined|null,
-    "scope.address": boolean|undefined|null,
-    "scope.invoiceTitle": boolean|undefined|null,
-    "scope.invoice": boolean|undefined|null,
-    "scope.werun": boolean|undefined|null,
-    "scope.record": boolean|undefined|null,
-    "scope.writePhotosAlbum": boolean|undefined|null,
-    "scope.camera": boolean|undefined|null,
-}
+
 
 /**********************************获取微信设置权限 ***********************/
 const authsName = {
@@ -36,19 +25,6 @@ const ScopeMap = {
     record: "scope.record",
     writePhotosAlbum: "scope.writePhotosAlbum",
     camera: "scope.camera"
-}
-
-type Scope = {
-    userInfo: string;
-    userLocation: string;
-    userLocationBackground: string;
-    address: string;
-    invoiceTitle: string;
-    invoice: string;
-    werun: string;
-    record: string;
-    writePhotosAlbum: string;
-    camera: string;
 }
 
 export class WXAuthorize {
@@ -125,21 +101,8 @@ export class WXAuthorize {
                             content: content,
                             confirmText: "确认",
                             cancelText: "取消",
-                            success: function (res) {
-                                //点击“确认”时打开设置页面
-                                if (res.confirm) {
-                                    wx.openSetting({
-                                        success(ret_openSet) {
-                                            that._authSetting = ret_openSet.authSetting;
-                                            SAFE_CALLBACK(that._success);
-                                        },
-                                        fail() {
-                                            SAFE_CALLBACK(that._fail);
-                                        }
-                                    });
-                                } else {
-                                    SAFE_CALLBACK(that._fail);
-                                }
+                            success: function (res: any) {
+                                that.successFn(res);
                             }
                         });
                 }
@@ -151,6 +114,24 @@ export class WXAuthorize {
                 SAFE_CALLBACK(that._fail);
             }
         });
+    }
+
+    private successFn(res: any) {
+        //点击“确认”时打开设置页面
+        let that = this;
+        if (res.confirm) {
+            wx.openSetting({
+                success(ret_openSet) {
+                    that._authSetting = ret_openSet.authSetting;
+                    SAFE_CALLBACK(that._success);
+                },
+                fail() {
+                    SAFE_CALLBACK(that._fail);
+                }
+            });
+        } else {
+            SAFE_CALLBACK(that._fail);
+        }
     }
 
     /**

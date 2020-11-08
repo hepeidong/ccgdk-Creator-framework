@@ -1,4 +1,4 @@
-import DataTable from "../data_manager/DataTable";
+import DataTable from "../../data_manager/DataTable";
 
 /**
  * 引导配置表类

@@ -126,13 +126,17 @@ export default class AdapterContent extends cc.Component {
         if (this.zoom) {
             let scale: number = AdapterCtrl.Instance.getScale(this.node);
             if (this.adapterSize.zoomX && this.adapterSize.zoomY) {
-                this.node.scale = scale;
+                // this.node.scale = scale;
+                this.node.width = this.node.width * scale;
+                this.node.height = this.node.height * scale;
             }
             else if (this.adapterSize.zoomX && !this.adapterSize.zoomY) {
-                this.node.scaleX = AdapterCtrl.Instance.getScaleX(this.node);
+                // this.node.scaleX = AdapterCtrl.Instance.getScaleX(this.node);
+                this.node.width = this.node.width * AdapterCtrl.Instance.getScaleX(this.node);
             }
             else if (this.adapterSize.zoomY && !this.adapterSize.zoomX) {
-                this.node.scaleY = AdapterCtrl.Instance.getScaleY(this.node);
+                // this.node.scaleY = AdapterCtrl.Instance.getScaleY(this.node);
+                this.node.height = this.node.height * AdapterCtrl.Instance.getScaleY(this.node);
             }
         }
     }

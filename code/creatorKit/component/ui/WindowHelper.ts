@@ -1,4 +1,4 @@
-import AdapterCtrl from "./AdapterCtrl";
+import AdapterCtrl from "../adapter/AdapterCtrl";
 
 enum Style {
     NONE,
@@ -127,8 +127,8 @@ class WinContent {
     })
     rightNode: cc.Node = null;
 
-    constructor(self: any = null) {
-        this._self = self;
+    constructor(...args: any) {
+        this._self = args[0];
     }
 }
 
@@ -148,7 +148,7 @@ class WindowNode {
 
 @ccclass
 @executeInEditMode
-@menu('游戏通用组件/视图窗口组件/WindowHelper(弹窗风格特效)')
+@menu('游戏通用组件/UI/WindowHelper(弹窗风格特效)')
 export default class WindowHelper extends cc.Component {
 
     @property({

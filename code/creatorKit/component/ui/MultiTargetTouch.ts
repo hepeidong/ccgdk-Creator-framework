@@ -70,8 +70,8 @@ class BallNode {
 }
 
 @ccclass
-@menu('游戏通用组件/TouchHelper(触摸功能组件)')
-export default class TouchHelper extends cc.Component {
+@menu('游戏通用组件/UI/MultiTargetTouch(多目标触摸相交判定)')
+export default class MultiTargetTouch extends cc.Component {
 
     @property({
         type: TargetArea,
@@ -80,10 +80,12 @@ export default class TouchHelper extends cc.Component {
             if (!this.targetArea) {
                 this.targetArea = new TargetArea();
                 this.targetArea.target = new cc.Node('targetArea');
+                this.targetArea.target.addChild(new cc.Node('content'));
                 this.targetArea.target.parent = this.node;
             }
             else if (!this.targetArea.target) {
                 this.targetArea.target = new cc.Node('targetArea');
+                this.targetArea.target.addChild(new cc.Node('content'));
                 this.targetArea.target.parent = this.node;
             }
             return true;
@@ -98,10 +100,12 @@ export default class TouchHelper extends cc.Component {
             if (!this.originArea) {
                 this.originArea = new OriginArea();
                 this.originArea.origin = new cc.Node('originArea');
+                this.originArea.origin.addChild(new cc.Node('content'));
                 this.originArea.origin.parent = this.node;
             }
             else if (!this.originArea.origin) {
                 this.originArea.origin = new cc.Node('originArea');
+                this.originArea.origin.addChild(new cc.Node('content'));
                 this.originArea.origin.parent = this.node;
             }
             return true;
@@ -122,18 +126,6 @@ export default class TouchHelper extends cc.Component {
     })
     sortWay: SortType = sortType.PUT_IN_ORDER;
 
-    @property({
-        type: cc.Node,
-        tooltip: '目标凹槽列表'
-    })
-    private targetGrooves: cc.Node[] = [];
-
-    @property({
-        type: BallNode,
-        tooltip: '触摸小球列表'
-    })
-    private ballList: BallNode[] = [];
-
     @property(cc.Component.EventHandler)
     mouseEnterEvent: cc.Component.EventHandler = null;
 
@@ -152,6 +144,12 @@ export default class TouchHelper extends cc.Component {
     @property(cc.Component.EventHandler)
     touchCancelEvent: cc.Component.EventHandler = null;
 
+
+    /**目标凹槽列表 */
+    private targetGrooves: cc.Node[] = [];
+
+    /**触摸小球列表 */
+    private ballList: BallNode[] = [];
     /**初始区域凹槽位置标记，0表示没有移走，1表示已经移到目标凹槽上 */
     private origGrFlags: number[] = [];
     /**目标区域凹槽位置标记，0表示没有小球放入，1表示有小球放入 */
@@ -378,10 +376,18 @@ export default class TouchHelper extends cc.Component {
     }
 
     private initBall() {
-        for (let i: number = 0; i < this.ballList.length; ++i) {
+        let originContent: cc.Node = this.originArea.origin.getChildByName('content');
+        for (let i: number = 0; i < originContent.childrenCount; ++i) {
+            this.ballList[i] = new BallNode();
+            this.ballList[i].ball = originContent.children[i];
             this.ballList[i].origGrNum = i + 1;
             this.ballList[i].tarGrNum = 0;
             this._ballSizeList[i] = cc.size(this.ballList[i].ball.width, this.ballList[i].ball.height);
+        }
+
+        let targetContent: cc.Node = this.targetArea.target.getChildByName('content');
+        for (let i: number = 0; i < targetContent.childrenCount; ++i) {
+            this.targetGrooves[i] = targetContent.children[i];
         }
     }
 

@@ -189,24 +189,18 @@ export class Animat {
                 if (!this._frameAnimat) {
                     this._frameAnimat = new FrameAnimat(this._target);
                 }
+                if (props.clip) {
+                    this._frameAnimat.addClip(props.clip);
+                }
+                if (props.url) {
+                    this.animationLoaded(props.url);
+                }
                 this._frameAnimat.addAnimatProps(props);
             }
         } catch (error) {
             this._status = 'rejected';
             this._err = error;
         }
-        return this;
-    }
-
-    /**
-     * 增加剪辑动画
-     * @param clip 剪辑动画 
-     */
-    public addClip(clip: cc.AnimationClip): Animat {
-        if (!this._frameAnimat) {
-            this._frameAnimat = new FrameAnimat(this._target);
-        }
-        this._frameAnimat.addClip(clip);
         return this;
     }
 
@@ -221,6 +215,9 @@ export class Animat {
                 this._animators.push(AnimatType.SPINE);
                 if (!this._spineAnimat) {
                     this._spineAnimat = new SpineAnimat(this._target);
+                }
+                if (props.url) {
+                    this.skeletonLoaded(props.url);
                 }
                 this._spineAnimat.addAnimatProps(props);
             }
@@ -281,5 +278,38 @@ export class Animat {
                 this._spineAnimat.addCallback({ call: resolved, type: type });
             }
         }
+    }
+
+    //加载spine骨骼动画
+    private async skeletonLoaded(url: string) {
+        let asset = await this.awaitLoad(sp.Skeleton, url).catch((e) => {
+            this._status = e;
+            this._err = new Error('spine骨骼动画加载错误！');
+        });
+        if (asset) {
+            this._spineAnimat.setSkeletonData(asset);
+        }
+    }
+
+    //加载clip动画
+    private async animationLoaded(url: string) {
+        let asset = await this.awaitLoad(cc.Animation, url).catch((e) => {
+            this._status = e;
+            this._err = new Error('clip动画加载错误！');
+        });
+        if (asset) {
+            this._frameAnimat.addClip(asset);
+        }
+    }
+
+    private awaitLoad(type: typeof cc.Animation| typeof sp.Skeleton, url: string) {
+        return new Promise((resolve: (val: any) => void, reject: (err: any) => void) => {
+            kit.Loader.setAnimat(this._target, url, type, (asset: any) => {
+                if (!asset) {
+                    reject('rejected');
+                }
+                resolve(asset);
+            });
+        });
     }
 }

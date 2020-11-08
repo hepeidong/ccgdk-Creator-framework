@@ -11,21 +11,6 @@ enum PixelFormat{
      PIXE_AI8 =  16
 }
 
-/**Load函数中的url类型 */
-type UrlOfLoadT = {uuid?: string, url?: string, type?: string};
-/**Button纹理类型 */
-type ButtonResT = {normal: string, pressed: string, hover: string, disabled: string};
-/**progess函数类型 */
-type progressT = (completedCount: number, totalCount: number, item: any) => void;
-/**Load函数加载成功回调 */
-type completed = Function;
-/**LoadRes函数加载成功回调 */
-type completeTOfRes = (error: Error, resource: any) => void;
-/**LoadResArray函数加载成功回调 */
-type completeTOfArray = (error: Error, resource: any[]) => void;
-/**LoadResDir函数加载成功回调 */
-type completeTOfDir = (error: Error, resource: any[], urls: string[]) => void;
-
 /**加载函数参数结构体 */
 interface LoadArgs {
     url: string|string[]|UrlOfLoadT,
@@ -62,7 +47,7 @@ export class Loader {
         return newNode;
     }
 
-    public static setResource(target: cc.Node, compType: any, url: string|ButtonResT, isLock: boolean = false): void {
+    public static setResource(target: cc.Node, compType: typeof cc.Component, url: string|ButtonResT, isLock: boolean = false): void {
         let autoRelease: kit.AutoRelease = target.getComponent(kit.AutoRelease);
         if (!autoRelease) {
             autoRelease = target.addComponent(kit.AutoRelease);
@@ -70,6 +55,13 @@ export class Loader {
         autoRelease.source(url, compType, isLock);
     }
 
+    public static setAnimat(target: cc.Node, url: string, compType: typeof cc.Component, complete: AnimateCompleteT, isLock: boolean = false): void {
+        let autoRelease: kit.AutoRelease = target.getComponent(kit.AutoRelease);
+        if (!autoRelease) {
+            autoRelease = target.addComponent(kit.AutoRelease);
+        }
+        autoRelease.animation(url, compType, complete, isLock);
+    }
 
     public static gc(): void {
         kit.PoolManager.Instance.getCurrentPool().clear();
@@ -250,9 +242,9 @@ export class Loader {
     public static getCacheRes(url: string, type: typeof cc.Asset): any {
         let res: any = cc.loader['_cache'][url];
         if (!res) {
-            let uuid: string = cc.loader._getResUuid(url, type, null);
+            let uuid: string = this.getResUuid(url, type);
             if (uuid) {
-                let reference: any = cc.loader._getReferenceKey(uuid);
+                let reference: any = this.getReferenceKey(uuid);
                 res = cc.loader['_cache'][reference];
             }
         }
@@ -269,9 +261,9 @@ export class Loader {
             return res.id;
         }
         else {
-            let uuid: string = cc.loader._getResUuid(url, type, null);
+            let uuid: string = this.getResUuid(url, type);
             if (uuid) {
-                let reference: any = cc.loader._getReferenceKey(uuid);
+                let reference: any = this.getReferenceKey(uuid);
                 return reference;
             }
         }
@@ -283,6 +275,16 @@ export class Loader {
         if (!this.addResItem(res, isLock)) {
             kit.WarnID(205, url);
         }
+    }
+
+    private static getResUuid(url: string, type: typeof cc.Asset): string {
+        if (cc.loader._getResUuid) {
+            return cc.loader._getResUuid(url, type, null);
+        }
+    }
+
+    private static getReferenceKey(uuid: string): any {
+        return cc.loader['_cache'][uuid].id;
     }
 
     /**记录缓存的资源 */

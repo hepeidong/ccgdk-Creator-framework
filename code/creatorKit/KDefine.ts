@@ -6,7 +6,9 @@ export const DEBUG: boolean = CC_DEBUG;
 export const IN_WEB_DEBUG: boolean = cc.sys.platform !== cc.sys.ANDROID || cc.sys.platform !== cc.sys.MACOS;
 
 export function ASSERT(_Expression1: boolean, _Expression2: string = ''): void {
-    kit.assert(_Expression1, _Expression2);
+    if (DEBUG) {
+        kit.assert(_Expression1, _Expression2);
+    }
 }
 
 export function SAFE_RELEASE(_Obj: kit.Reference): void {

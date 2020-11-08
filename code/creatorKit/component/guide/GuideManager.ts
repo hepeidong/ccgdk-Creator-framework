@@ -1,6 +1,6 @@
 import GuideTarget from "./GuideTarget";
 import { GuideConfig } from "./GuideConfig";
-import FileContainer from "../data_manager/FileContainer";
+import FileContainer from "../../data_manager/FileContainer";
 
 /**
  * name: 引导管理类

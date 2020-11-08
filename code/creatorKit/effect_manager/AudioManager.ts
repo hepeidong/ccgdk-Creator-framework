@@ -30,15 +30,7 @@ export class Audio {
             this._err = new Error('必须指定音频资源的路径！');
         }
         else {
-            let audio: audio_t = {audio: {
-                url: props.url,
-                loop: (props.loop === undefined || props.loop === null) ? false : props.loop,
-                volume: (props.volume === null || props.volume === undefined) ? 1 : props.volume,
-                delay: props.delay ? props.delay : 0
-            }, 
-                callbacks: []
-            };
-            this._audioList.push(audio);
+            this.audioLoaded(props);
         }
         return this;
     }
@@ -47,7 +39,7 @@ export class Audio {
      * @param callType 回调类型
      * @param resolve 执行的回调
      */
-    public then<T extends 'play'|'stop', P = T extends 'play'|'stop' ? play_callback_t : stop_callback_t>(callType: T, resolve: P): Audio {
+    public when<T extends 'play'|'stop', P = T extends 'play'|'stop' ? play_callback_t : stop_callback_t>(callType: T, resolve: P): Audio {
         let len: number = this._audioList.length;
         if (len === 0) {
             this._status = 'rejected';
@@ -59,28 +51,25 @@ export class Audio {
         return this;
     }
 
-    private _rejectCallback: Function;
     /**
      * 抛出异常
      * @param reject 
      */
     public cath(reject: (e: Error) => void): void {
-        this._rejectCallback = reject;
+        if (this._status === 'rejected') {
+            SAFE_CALLBACK(reject, this._err);
+        }
     }
     /**开始播放音频 */
     public play(): Audio {
-        this.promise((resolves: audio_resolved_t[], reject: (val: any) => void) => {
-            try {
-                if (this._status === 'pending') {
-                    this.playAudio(resolves, reject);
-                }
-                else if (this._status === 'rejected') {
-                    reject(this._err);
-                }
-            } catch (error) {
-                reject(error);
+        try {
+            if (this._status === 'pending') {
+                this.playInterval();
             }
-        });
+        } catch (error) {
+            this._status = 'rejected';
+            this._err = error;
+        }
         return this;
     }
 
@@ -91,48 +80,69 @@ export class Audio {
         return this;
     }
 
-    private playAudio(resolves: audio_resolved_t[], reject: Function) {
-        cc.loader.loadRes(this._audioList[this._audioIndex].audio.url, (err, clip: cc.AudioClip) => {
-            if (err) {
-                this._status = 'rejected';
-                SAFE_CALLBACK(reject, err);
-                return;
-            }
-            if (this.audioId) {
-                cc.audioEngine.stop(this.audioId);
-            }
-            let audio: IAudio = this._audioList[this._audioIndex].audio;
-            this.audioId = cc.audioEngine.play(clip, audio.loop, audio.volume);
-            
-            cc.audioEngine.setFinishCallback(this.audioId, () => {
-                for (let e of resolves) {
-                    if (e.type === 'stop') {
-                       SAFE_CALLBACK(e.call, cc.audioEngine.getDuration(this.audioId));
-                    }
+    private async audioLoaded(props: IAudio) {
+        let clip: cc.AudioClip = await this.awaitLoad(props.url).catch((e) => {
+            this._status = e;
+        });
+        if (clip) {
+            let audio: audio_t = {audio: {
+                url: props.url,
+                loop: (props.loop === undefined || props.loop === null) ? false : props.loop,
+                volume: (props.volume === null || props.volume === undefined) ? 1 : props.volume,
+                delay: props.delay ? props.delay : 0,
+            }, 
+                callbacks: [],
+                clip: clip
+            };
+            this._audioList.push(audio);
+        }
+    }
+
+    private awaitLoad(url: string) {
+        return new Promise((resolve: (val: any) => void, reject: (err: any) => void) => {
+            kit.Loader.loadRes(url, (err, clip: cc.AudioClip) => {
+                if (err) {
+                    console.error('音频加载失败');
+                    this._err = err;
+                    reject('rejected');
                 }
-                this._audioIndex++;
-                if (this._audioIndex < this._audioList.length) {
-                    this.playInterval();
+                else {
+                    resolve(clip);
                 }
             });
-            for (let e of resolves) {
-                if (e.type === 'play') {
-                    SAFE_CALLBACK(e.call, cc.audioEngine.getCurrentTime(this.audioId));
-                }
-            }
         });
     }
 
-    private _callback: Function;
-    private _timeoutId: number;
-    private promise(callback: (resolves: audio_resolved_t[], reject: (val: any) => void) => void) {
-        this._callback = callback;
-        this.playInterval();
+    private playAudio(resolves: audio_resolved_t[]) {
+        if (this.audioId) {
+            cc.audioEngine.stop(this.audioId);
+        }
+        let audio: IAudio = this._audioList[this._audioIndex].audio;
+        this.audioId = cc.audioEngine.play(this._audioList[this._audioIndex].clip, audio.loop, audio.volume);
+
+        cc.audioEngine.setFinishCallback(this.audioId, () => {
+            for (let e of resolves) {
+                if (e.type === 'stop') {
+                   SAFE_CALLBACK(e.call, cc.audioEngine.getDuration(this.audioId));
+                }
+            }
+            this._audioIndex++;
+            if (this._audioIndex < this._audioList.length) {
+                this.playInterval();
+            }
+        });
+        for (let e of resolves) {
+            if (e.type === 'play') {
+                SAFE_CALLBACK(e.call, cc.audioEngine.getCurrentTime(this.audioId));
+            }
+        }
     }
+
+    private _timeoutId: number;
     private playInterval() {
         let audio: IAudio = this._audioList[this._audioIndex].audio;
         this._timeoutId = setTimeout(() => {
-            SAFE_CALLBACK(this._callback, this._audioList[this._audioIndex].callbacks, this._rejectCallback);
+            this.playAudio(this._audioList[this._audioIndex].callbacks)
             clearTimeout(this._timeoutId);
         }, audio.delay * 1000);
     }

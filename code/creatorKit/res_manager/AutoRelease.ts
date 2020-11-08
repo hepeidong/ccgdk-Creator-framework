@@ -1,10 +1,5 @@
 
-const {ccclass, property} = cc._decorator;
-
-type ButtonResT = {normal: string, pressed: string, hover: string, disabled: string};
-type ComponentT = cc.Sprite|cc.Button|cc.Mask|cc.PageViewIndicator|cc.EditBox|cc.Label|cc.RichText|cc.ParticleSystem;
-type AnimateCompleteT = (asset: any) => void;
-type AnimateT = sp.SkeletonData;
+const {ccclass} = cc._decorator;
 
 @ccclass
 export class AutoRelease extends cc.Component {
@@ -16,16 +11,14 @@ export class AutoRelease extends cc.Component {
     /**是否锁定资源 */
     private _isLock: boolean;
 
-    onLoad() {
-
-    }
+    // onLoad() {}
 
     public recordPrefabRes(url: string) {
         this._prefabRes = url;
         SAFE_RETAIN(kit.PoolManager.Instance.getCurrentPool().getObject(this._prefabRes) as kit.Resource);
     }
 
-    public source(url: string|ButtonResT, compType: typeof cc.Component, isLock: boolean = false) {
+    public source(url: string|ButtonResT, compType: typeof cc.Component, isLock: boolean) {
         this._isLock = isLock;
         if (!compType) {
             kit.ErrorID(109);
@@ -36,18 +29,18 @@ export class AutoRelease extends cc.Component {
         this.parseSource(comp, compType, url);
     }
 
-    public animation(url: string, compType: typeof cc.Component, complete: AnimateCompleteT, isLock: boolean = false) {
+    public animation(url: string, compType: typeof cc.Component, complete: AnimateCompleteT, isLock: boolean) {
         this._isLock = isLock;
         let comp: any = this.node.getComponent(compType);
         this.parseAnimate(comp, url, complete);
     }
 
-    public setResUrl(url: string, comp: ComponentT) {
+    public setResUrl(url: string, comp: SourceT) {
         if (url === '' || !url) return;
         this.retain(url, comp);
     }
 
-    private parseAnimate(comp: ComponentT, url: string, complete: AnimateCompleteT) {
+    private parseAnimate(comp: SourceT, url: string, complete: AnimateCompleteT) {
         if (comp && comp.uuid) {
             this.release(this._resMap.get(comp.uuid));
         }
@@ -56,24 +49,24 @@ export class AutoRelease extends cc.Component {
         }
     }
 
-    private loadAnimat(comp: ComponentT, url: string, type: typeof cc.Asset, complete: AnimateCompleteT) {
+    private loadAnimat(comp: SourceT, url: string, type: typeof cc.Asset, complete: AnimateCompleteT) {
         let key: string = kit.Loader.makeKey(url, type);
-        let animate: AnimateT = kit.PoolManager.Instance.getCurrentPool().getAnimateData(key);
+        let animate: AnimatT = kit.PoolManager.Instance.getCurrentPool().getAnimateData(key);
         if (animate) {
             this.setResUrl(key, comp);
-            complete && complete(animate);
+            SAFE_CALLBACK(complete, animate);
         }
         else {
-            kit.Loader.loadRes(url, type, (err: Error, asset: any) => {
+            kit.Loader.loadRes(url, type, (_err: Error, asset: any) => {
                 let key: string = kit.Loader.makeKey(url, type);
                 this.setResUrl(key, comp);
                 kit.PoolManager.Instance.getCurrentPool().addAnimateData(key, asset);
-                complete && complete(asset);
+                SAFE_CALLBACK(complete, asset);
             }, this._isLock);
         }
     }
 
-    private parseSource(comp: ComponentT, compType: any, url: string|ButtonResT): void {
+    private parseSource(comp: SourceT, compType: any, url: string|ButtonResT): void {
         if (comp instanceof cc.Sprite || comp instanceof cc.Mask || comp instanceof cc.PageViewIndicator) {
             this.setSpriteFrame(compType, url as string, 'spriteFrame');
         }
@@ -104,7 +97,7 @@ export class AutoRelease extends cc.Component {
         if (!url) {
             return;
         }
-        let comp: ComponentT = this.node.getComponent(compType);
+        let comp: SourceT = this.node.getComponent(compType);
         if (!comp) {
             throw kit.ErrorID(106);
         }
@@ -211,7 +204,7 @@ export class AutoRelease extends cc.Component {
         this._resMap.delete(key);
     }
 
-    private retain(url: string, comp: ComponentT) {
+    private retain(url: string, comp: SourceT) {
         if (!this._resMap.has(comp.uuid)) {
             this._resMap.set(comp.uuid, url);
             SAFE_RETAIN(kit.PoolManager.Instance.getCurrentPool().getObject(url) as kit.Resource);
