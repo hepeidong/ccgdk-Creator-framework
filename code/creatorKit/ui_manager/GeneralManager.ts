@@ -12,13 +12,13 @@ export default class GeneralManager extends LayerManager {
         super(canDel, Array);
     }
 
-    AddView(view: Controller) {
+    addView(view: Controller) {
         const list: Array<Controller> = this._list as Array<Controller>;
         list.push(view);
         this.addToCenterWindow(view.node);
     }
 
-    DelView(cleanup: boolean): boolean {
+    delView(cleanup: boolean): boolean {
         const list: Array<Controller> = this._list as Array<Controller>;
         if (list.length > 0) {
             const view: Controller = list.pop();

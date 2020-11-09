@@ -18,7 +18,7 @@ export class GuideConfig extends DataTable {
         super();
     }
 
-    public Init(data: any) {
+    public init(data: any) {
         this.guideId = data.guideId;
         this.guideType = data.guideType;
         this.target = data.target;

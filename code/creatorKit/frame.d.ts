@@ -488,13 +488,13 @@ declare namespace kit {
         abstract exitView(cleanup?: boolean): void;
         /***************控制器生命周期函数***************/
         /**试图加载完调用 */
-        abstract onViewLoaded(): void;
+        protected onViewLoaded(): void {}
         /**试图显示后调用 */
-        abstract onViewDidAppear(): void;
+        protected onViewDidAppear(): void {}
         /**试图隐藏后调用 */
-        abstract onViewDidHide(): void;
+        protected onViewDidHide(): void {}
         /**试图销毁后调用 */
-        abstract onViewDidDisappear(): void;
+        protected onViewDidDisappear(): void {}
 
         protected loaded(): void;
         /**
@@ -779,6 +779,74 @@ declare namespace kit {
          */
         loadCSVTable(url: string, progressfn?: (completedCount: number, totalCount: number) => void, completefn?: (error: Error) => void): void;
     }
+
+
+    ///////////////////////////////////通用组件///////////////////////////
+    /**
+     * 多分辨率适配组件
+     */
+    export class AdapterHelper extends cc.Component {
+        /**启用自动适配 */
+        autoAdapter: boolean;
+    }
+    export module AdapterContent {
+        /**适配的内容偏移类型 */
+        export enum OffsetType {
+            NONE,
+            TOP,
+            RIGHT,
+            DOWN,
+            LEFT,
+            UPPER_RIGHT,
+            LOWER_RIGHT,
+            LOWER_LEFT,
+            UPPER_LEFT
+        }
+    }
+    export class AdapterZoom {
+        /**根据适配后缩放该节点的X轴 */
+        zoomX: boolean;
+        /**根据适配后缩放该节点的Y轴 */
+        zoomY: boolean
+    }
+    /**
+     * 内容适配组件
+     */
+    export class AdapterContent extends cc.Component {
+        /**适配刘海屏 */
+        adapterBang: boolean;
+        /**设置节点的适配偏移 */
+        adapterOffset: AdapterContent.OffsetType;
+        /**该节点会根据适配后进行缩放背景节点 */
+        zoom: boolean;
+        /**适配该节点的大小 */
+        adapterSize: AdapterZoom;
+    }
+    /**
+     * banner广告组件
+     */
+    export class BannerAd extends cc.Component {
+        /**广告位权限ID */
+        adUnitId: string;
+        /**隐藏广告位 */
+        hide(): void;
+    }
+    /**
+     * 适配广告组件
+     */
+    export class VideoAd extends cc.Component {
+        adUnitId: string;
+    }
+    export class WindowHelper extends cc.Component {
+        /**弹起窗口 */
+        popup(): void;
+        /**关闭窗口 */
+        close(): void;
+        /**弹起窗口时执行的回调 */
+        setStartListener(listaner: Function): void;
+        /**弹起窗口后执行的回调 */
+        setCompleteListaner(listaner: Function): void;
+    }
 }
 
 declare namespace utils {
@@ -898,7 +966,7 @@ declare namespace utils {
          * @param tm 时间戳
          * @param format 自定义时间格式，如果传入格式为格式为YYYY-MM-DDTHH:MM:SS的具体时间，将会返回YYYY-MM-DD HH:MM:SS，
          * @example 
-         * DateUtil.dateFormat('2020-05-20T23:00:00'); //2020-05-20 23:00:00
+         * DateUtil.dateFormat('%s-%s-%s %s:%s:%s'); //2020-05-20 23:00:00
          * DateUtil.dateFormat('[%s/%s/%s %s:%s:%s]'); //[2020/05/20 23:00:00]
          */
         static dateFormat(tm: number, format: string): string;

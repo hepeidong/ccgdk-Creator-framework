@@ -11,10 +11,10 @@ export class WindowView {
     private _topWindow: cc.Node;        //顶层窗口
 
     constructor() {
-        this.Init();
+        this.init();
     }
 
-    private Init(): boolean {
+    private init(): boolean {
         this. _rootWindow = new cc.Node();          //根视图
         this. _centerWindow = new cc.Node();      //中心窗口
         this. _topWindow = new cc.Node();        //顶层窗口

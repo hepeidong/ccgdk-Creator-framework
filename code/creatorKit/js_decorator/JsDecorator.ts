@@ -20,6 +20,7 @@ function loadView() {
                     let newNode: cc.Node = kit.Loader.instanitate(this.prefabUrl, asset);
                     this._node = newNode;
                     this.InitProperty && this.InitProperty();
+                    this.onViewLoaded();
                     this.loaded();
                 });
             }
@@ -49,7 +50,7 @@ export function KClass(param?: any) {
     }
 }
 
-/**控制器依赖的资源路劲集 */
+/**控制器依赖的图集资源路劲集 */
 export function Denpends(urls: string[]) {
     return function (target: Function) {
         target.prototype.urls = urls;

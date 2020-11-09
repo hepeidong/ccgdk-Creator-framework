@@ -78,6 +78,10 @@ export default class AdapterContent extends cc.Component {
 
     // LIFE-CYCLE CALLBACKS:
 
+    public static get OffsetType(): typeof Offset {
+        return Offset;
+    }
+
     // onLoad () {}
 
     start () {

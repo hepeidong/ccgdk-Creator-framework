@@ -7,6 +7,8 @@ export class Audio {
     private _status: string = 'pending';
     private _err: Error;
     private _audioIndex: number = 0;
+    private _audioCount: number = 0;
+    private _canPlay: boolean = false;
     private _audioList: audio_t[] = [];
     private audioId: number = 0;
     constructor() {
@@ -30,6 +32,7 @@ export class Audio {
             this._err = new Error('必须指定音频资源的路径！');
         }
         else {
+            this._audioCount++;
             this.audioLoaded(props);
         }
         return this;
@@ -62,13 +65,9 @@ export class Audio {
     }
     /**开始播放音频 */
     public play(): Audio {
-        try {
-            if (this._status === 'pending') {
-                this.playInterval();
-            }
-        } catch (error) {
-            this._status = 'rejected';
-            this._err = error;
+        this._canPlay = true;
+        if (this._audioList.length === this._audioCount) {
+            this.tryPlay();
         }
         return this;
     }
@@ -78,6 +77,17 @@ export class Audio {
             cc.audioEngine.stop(this.audioId);
         }
         return this;
+    }
+
+    private tryPlay(): void {
+        try {
+            if (this._status === 'pending') {
+                this.playInterval();
+            }
+        } catch (error) {
+            this._status = 'rejected';
+            this._err = error;
+        }
     }
 
     private async audioLoaded(props: IAudio) {
@@ -95,6 +105,13 @@ export class Audio {
                 clip: clip
             };
             this._audioList.push(audio);
+            if (this._audioList.length === this._audioCount && this._canPlay) {
+                this.tryPlay();
+            }
+        }
+        else {
+            this._status = 'rejected';
+            this._err = new Error('无法加载音频！');
         }
     }
 
@@ -102,7 +119,7 @@ export class Audio {
         return new Promise((resolve: (val: any) => void, reject: (err: any) => void) => {
             kit.Loader.loadRes(url, (err, clip: cc.AudioClip) => {
                 if (err) {
-                    console.error('音频加载失败');
+                    kit.error('音频加载失败');
                     this._err = err;
                     reject('rejected');
                 }

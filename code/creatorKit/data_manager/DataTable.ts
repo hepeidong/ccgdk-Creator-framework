@@ -2,5 +2,5 @@ export default abstract class DataTable {
     constructor() {
 
     }
-    abstract Init(data: any): void;
+    abstract init(data: any): void;
 }

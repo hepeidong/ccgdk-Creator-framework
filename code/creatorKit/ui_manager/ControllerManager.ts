@@ -33,7 +33,7 @@ export default class ControllerManager {
     private _managers: LayerManager[];
     constructor() {
         this._managers = [];
-        this.Init();
+        this.init();
     }
 
     private static _ins: ControllerManager = null;
@@ -43,32 +43,32 @@ export default class ControllerManager {
 
     public static get Type(): ManagerType { return this._type; }
 
-    public SetVisible(ctrlIndex: number, visible: boolean): void {
-        this._managers[ctrlIndex].SetVisible(visible);
+    public setVisible(ctrlIndex: number, visible: boolean): void {
+        this._managers[ctrlIndex].setVisible(visible);
     }
 
-    public AddView(view: Controller): void {
+    public addView(view: Controller): void {
         if (view) {
-            const manager: LayerManager = this._managers[view.GetCtrlIndex()];
+            const manager: LayerManager = this._managers[view.getCtrlIndex()];
             if (!manager) {
                 return;
             }
-            manager.AddView(view);
+            manager.addView(view);
         }
     }
 
-    public DelView(ctrlIndex: number, cleanup: boolean = false): boolean {
+    public delView(ctrlIndex: number, cleanup: boolean = false): boolean {
         const manager: LayerManager = this._managers[ctrlIndex];
         if (!manager) {
             return false;
         }
         if (manager.CanDel && manager.GetCount() > 0) {
-            return manager.DelView(cleanup);
+            return manager.delView(cleanup);
         }
         return false;
     }
 
-    public GetOpenCtrlCount(): number {
+    public getOpenCtrlCount(): number {
         let count: number = 0;
         for (let ele of this._managers) {
             if (ele.CanDel) {
@@ -86,7 +86,7 @@ export default class ControllerManager {
         }
     }
 
-    private Init() {
+    private init() {
         this._managers[Type.ROOT] = new RootManager(true);
         this._managers[Type.GENERAL] = new GeneralManager(true);
         this._managers[Type.ACTIVITY] = new ActivityManager(true);

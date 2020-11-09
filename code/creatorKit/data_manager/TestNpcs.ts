@@ -19,7 +19,7 @@ export default class TestNpcs extends DataTable {
         super();
     }
 
-    Init(data: any): void {
+    init(data: any): void {
         this.ID = data.ID;
         this.Name = data.Name;
         this.MapInstanceName = data.MapInstanceName;

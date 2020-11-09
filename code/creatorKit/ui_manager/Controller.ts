@@ -22,25 +22,25 @@ export abstract class Controller {
         this._loadedView = false;
     }
 
-    public OpenView() {
+    public openView() {
         this.loadView();
     }
 
-    public CloseView() {
-        ControllerManager.Instance.DelView(this._ctrlIndex);
+    public closeView() {
+        ControllerManager.Instance.delView(this._ctrlIndex);
     }
 
     protected loadView(): void {}
 
     public get node(): cc.Node { return this._node; }
 
-    protected SetCtrlIndex(index: number): void {
+    protected setCtrlIndex(index: number): void {
         this._ctrlIndex = index;
     }
 
-    public GetCtrlIndex(): number { return this._ctrlIndex; }
+    public getCtrlIndex(): number { return this._ctrlIndex; }
 
-    protected AddClickEvent(target: cc.Node, caller: Controller, handler: Function, ...args: any[]): void {
+    protected addClickEvent(target: cc.Node, caller: Controller, handler: Function, ...args: any[]): void {
         kit.TargetListener.listener(target, caller)
         .onStart(function() {})
         .onEnd(function(e: cc.Event.EventTouch) {
@@ -54,13 +54,13 @@ export abstract class Controller {
 
     /***************控制器生命周期函数***************/
     /**试图加载完调用 */
-    abstract onViewLoaded(): void;
+    protected onViewLoaded(): void {}
     /**试图显示后调用 */
-    abstract onViewDidAppear(): void;
+    protected onViewDidAppear(): void {}
     /**试图隐藏后调用 */
-    abstract onViewDidHide(): void;
+    protected onViewDidHide(): void {}
     /**试图销毁后调用 */
-    abstract onViewDidDisappear(): void;
+    protected onViewDidDisappear(): void {}
 
     protected getSpriteFrame(fileName: string): cc.SpriteFrame {
         if (this._assetArray && this._assetArray.length > 0) {
@@ -101,9 +101,15 @@ export abstract class Controller {
     }
 
     private loaded(): void {
-        ControllerManager.Instance.AddView(this);
+        ControllerManager.Instance.addView(this);
         this._loadedView = true;
-        this.onViewLoaded();
+        let windHelper: kit.WindowHelper = this._node.getComponent(kit.WindowHelper);
+        if (windHelper) {
+            windHelper.setStartListener(() => this.onViewDidAppear());
+        }
+        else {
+            this.onViewDidAppear();
+        }
     }
 }
 

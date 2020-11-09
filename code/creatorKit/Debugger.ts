@@ -3,12 +3,12 @@
 export function initDebugSetting(logTag: string): void {
     
     if (DEBUG) {
-        kit.log = console.log.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
-        kit.warn = console.warn.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
-        kit.error = console.error.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
-        kit.info = console.info.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
-        kit.debug = console.debug.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
-        kit.assert = console.assert.bind(console, timeFormat(), `${logTag ? `[${logTag}]` : ''}`);
+        kit.log = console.log.bind(console, utils.DateUtil.dateFormat('%s-%s-%s %s:%s:%s'), `${logTag ? `[${logTag}]` : ''}`);
+        kit.warn = console.warn.bind(console, utils.DateUtil.dateFormat('%s-%s-%s %s:%s:%s'), `${logTag ? `[${logTag}]` : ''}`);
+        kit.error = console.error.bind(console, utils.DateUtil.dateFormat('%s-%s-%s %s:%s:%s'), `${logTag ? `[${logTag}]` : ''}`);
+        kit.info = console.info.bind(console, utils.DateUtil.dateFormat('%s-%s-%s %s:%s:%s'), `${logTag ? `[${logTag}]` : ''}`);
+        kit.debug = console.debug.bind(console, utils.DateUtil.dateFormat('%s-%s-%s %s:%s:%s'), `${logTag ? `[${logTag}]` : ''}`);
+        kit.assert = console.assert.bind(console, utils.DateUtil.dateFormat('%s-%s-%s %s:%s:%s'), `${logTag ? `[${logTag}]` : ''}`);
 
         kit.LogID = genLogFunc(kit.log, 'log');
         kit.WarnID = genLogFunc(kit.warn, 'Warning');
@@ -33,34 +33,4 @@ function genLogFunc(func: Function, type: string): Function {
             }
         }
     }
-}
-
-function timeFormat() {
-    var now: Date= new Date();
-    const days: string = [
-        now.getFullYear().toString(),
-        (now.getMonth() + 1).toString(),
-        now.getDate().toString()
-    ].join('-');
-    const parse = (timeNum: number, len: number) => {
-        const str: string = String(timeNum);
-        const strLen: number = len - str.length;
-        if (strLen < 0) {
-            return str;
-        } 
-        else {
-            let tempStr: string = '';
-            for (let i: number = 0; i < strLen; ++i) {
-                tempStr += '0';
-            }
-            return `${tempStr}${str}`;
-        }
-    }
-    const times: string = [
-        parse(now.getHours(), 2),
-        parse(now.getMinutes(), 2),
-        parse(now.getSeconds(), 2),
-        parse(now.getMilliseconds(), 3)
-    ].join(':');
-    return `[${days} ${times}]`;
 }

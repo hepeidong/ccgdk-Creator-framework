@@ -284,7 +284,7 @@ export class Loader {
     }
 
     private static getReferenceKey(uuid: string): any {
-        return cc.loader['_cache'][uuid].id;
+        return cc.loader._getReferenceKey(uuid).id;
     }
 
     /**记录缓存的资源 */

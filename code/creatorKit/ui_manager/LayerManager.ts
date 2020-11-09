@@ -25,7 +25,7 @@ export abstract class LayerManager {
         }
     }
 
-    public SetVisible(visible: boolean) {
+    public setVisible(visible: boolean) {
         for (let i: number = 0; i < this._list.length; ++i) {
             if (visible) {
                 if (this._list[i] instanceof Controller) {
@@ -42,9 +42,9 @@ export abstract class LayerManager {
         return this._canDel;
     }
 
-    abstract AddView(view: Controller): void;
+    abstract addView(view: Controller): void;
 
-    abstract DelView(cleanup: boolean): boolean;
+    abstract delView(cleanup: boolean): boolean;
 
     public HasView(view: Controller): boolean {
         for (let i: number = 0; i < this._list.length; ++i) {

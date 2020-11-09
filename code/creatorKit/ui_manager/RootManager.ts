@@ -12,7 +12,7 @@ export default class RootManager extends LayerManager {
         super(canDel, Array);
     }
 
-    AddView(view: Controller) {
+    addView(view: Controller) {
         const list: Array<Controller> = this._list as Array<Controller>;
         if (list.length > 0) {
             this.RemoveView(list.shift());
@@ -22,7 +22,7 @@ export default class RootManager extends LayerManager {
     }
 
     //根视图不能主动删除
-    DelView(_cleanup: boolean): boolean {
+    delView(_cleanup: boolean): boolean {
         return false;
     }
 }

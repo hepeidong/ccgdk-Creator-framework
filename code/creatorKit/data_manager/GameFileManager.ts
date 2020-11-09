@@ -16,7 +16,7 @@ export class GameFileManager {
         this._csvTables.push(tableInfo);
     }
 
-    private Init(tableMap: Map<string, string[]>) {
+    private init(tableMap: Map<string, string[]>) {
         for (let ele of this._csvTables) {
             this.SetGameTable(ele.name, ele.type, tableMap);
         }
@@ -43,7 +43,7 @@ export class GameFileManager {
                 const urlSplit: string[] = urls[i].split('/');
                 tableMap.set(urlSplit[urlSplit.length - 1], resource[i].text.split('\n'));
             }
-            this.Init(tableMap);
+            this.init(tableMap);
         });
     }
 
@@ -65,7 +65,7 @@ export class GameFileManager {
             }
             let fileData = this.GetTableObj(TableType);
             let id: any = result[dataIndex][keys[0]];
-            fileData.Init(result[dataIndex++]);
+            fileData.init(result[dataIndex++]);
             fileContainer.add(id, fileData);
         }
         this._fileMap.set(TableType, fileContainer);
