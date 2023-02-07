@@ -253,25 +253,67 @@ export default class CCStringUtil {
     }
 
     /**
-     * 字符串判空
+     * 是否为空，空格也会被识别为有效字符
      * @param str 需要判空的字符串
-     * @param blank 为true时，空格字符算有效字符，反之，空格字符不算有效字符
      */
-    public static isEmpty(str: string, blank: boolean = true): boolean {
-        if (blank) {
+    public static isEmpty(str: string): boolean {
+        if (typeof str === "string") {
             return str.length > 0 ? false : true;
         }
-        else if (str.indexOf(' ') === -1) {
-            return str.length > 0 ? false : true;
-        }
-        else if (str.indexOf(' ') === -1) {
-            let i: number = 0;
-            let p: string = ' ';
-            while (p === ' ' && i < str.length) p = str[i++];
-            return p !== ' ' ? false : true;
-        }
+        throw new Error("参数不可以传入‘" + typeof str + "’类型！");
     }
 
+    /**
+     * 是否为真空值，空格会被判定为空值
+     * @param str 
+     * @returns 
+     */
+    public static isBlank(str: string) {
+        if (typeof str === "string") {
+            if (str.length > 0) {
+                let i: number = 0;
+                let p: string = ' ';
+                while (p === ' ' && i < str.length) p = str[i++];
+                return p !== ' ' ? false : true;
+            }
+            return true;
+        }
+        throw new Error("参数不可以传入‘" + typeof str + "’类型！");
+    }
+
+    /**
+     * 是否有一个字符串是空字符串，空格也会被识别为有效字符
+     * @param str 要判定的字符串
+     * @returns 
+     */
+    public static isAnyEmpty(...str: any[]) {
+        for (const s of str) {
+            if (this.isEmpty(s)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 是否有一个字符为空字符串，空格会被判定为空值
+     * @param str 
+     * @returns 
+     */
+    public static isAnyBlank(...str: any[]) {
+        for (const s of str) {
+            if (this.isBlank(s)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 获取随机字符串
+     * @param len 字符串长度
+     * @returns 
+     */
     public static randomString(len: number): string {
         let words: string = 'abcdefghijklmnopqrstuvwxyz';
         let str: string = '';

@@ -6,7 +6,6 @@ import { Mediator } from "../puremvc/patterns/mediator/Mediator";
 import { Register } from "../Register/Register";
 import { AssetFactory } from "../res_manager/AssetFactory";
 import { Utils } from "../utils/GameUtils";
-import { UIManager } from "./UIManager";
 import { WindowManager } from "./WindowManager";
 import { Assert } from "../exceptions/Assert";
 
