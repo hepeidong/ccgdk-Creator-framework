@@ -1,6 +1,8 @@
-import { Debug } from "../Debugger";
-import { EventSystem, UI, App } from "../cck";
+import { App } from ".";
+import { EventSystem } from "../cck";
+import { Debug } from "../cck/Debugger";
 import { Assert } from "../exceptions/Assert";
+import { UI } from "../ui_manager";
 
 export class SceneManager implements ISceneManager {
     private _hasTouchEffect: boolean;

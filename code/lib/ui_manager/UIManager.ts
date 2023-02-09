@@ -1,5 +1,5 @@
 import { App, UI } from "../cck";
-import { Utils } from "../utils/GameUtils";
+import { Utils } from "../utils";
 import { TouchEffect } from "./TouchEffect";
 
 

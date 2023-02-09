@@ -1,5 +1,5 @@
-import { Debug } from "../Debugger";
-import { Utils } from "./GameUtils";
+import { Debug } from "../cck/Debugger";
+import { Utils } from ".";
 
 
 export default class CCObjectUtil {

@@ -1,5 +1,5 @@
-import { Debug } from "../../Debugger";
-import { App } from "../cck_app";
+import { Debug } from "../../cck/Debugger";
+import { App } from "..";
 
 const {ccclass, menu, property, executionOrder} = cc._decorator;
 

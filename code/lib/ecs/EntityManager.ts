@@ -16,7 +16,7 @@ import { UUID } from "./UUID";
 import { EntityAlreadyDestroyedException } from "./exceptions/EntityAlreadyDestroyedException";
 import { ECS_DEBUG } from "./ECSDef";
 import { ArchetypeChunk } from "./ArchetypeChunk";
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { Tools } from "../cck";
 
 /**

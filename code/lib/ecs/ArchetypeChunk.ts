@@ -1,4 +1,4 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { EventSystem, Tools } from "../cck";
 import { ECS_DEBUG } from "./ECSDef";
 import { entityIndexOf, removeElement } from "./ecs_utils";

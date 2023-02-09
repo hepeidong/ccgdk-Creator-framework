@@ -6,11 +6,10 @@ type Constructor = {new (...args: any[]): {}};
 type cck_static<T, U> = {
     new (): T;
 } & U;
-type cck_dictionary<T> = { [P in keyof T]: T[P]; }
-type ggk_readonly_dictionary<T> = Readonly<cck_dictionary<T>>;
+type ggk_readonly_dictionary<T> = Readonly<Partial<T>>;
 type cck_base_type<K, ConditionT, T1, T2> = K extends ConditionT ? T1 : T2;
 type cck_key_base_type<K, T1, T2> = K extends T1 ? string : K extends T2 ? number : never;
-type cck_map_base_type<T, K  extends number | string> = { [n in K]: T; }
+type cck_map_base_type<T, K  extends number | string> = Record<K, T>;
 
 type cck_vm_handler_opts<DataType> = { [P in keyof DataType]: (data:  DataType[P], key: P) => void }
 type cck_vm_class<DataType> = cck_static<any, {prototype: cck_vm_handler_opts<DataType>}>;
@@ -29,16 +28,16 @@ interface ANode {
     nextArc: ANode;
 }
 
-type Edge_t = ANode;
+type cck_alGraph_edge_type = ANode;
 
-type value_t = string;
+type cck_alGraph_value_type = string;
 
 interface VNode {
-    data: value_t;
-    firstArc: Edge_t;
+    data: cck_alGraph_value_type;
+    firstArc: cck_alGraph_edge_type;
 }
 
-type Vertex_t = VNode;
+type cck_alGraph_vertex_type = VNode;
 
 /***************************************接口类型定义************************/
 /**监听基础类型 */
@@ -679,7 +678,7 @@ interface IEntity {
     toString(): string;
 }
 
-type _Entity = Readonly<IEntity>;
+type cck_ecs_entity = Readonly<IEntity>;
 
 interface IMatcher<T extends IEntity> {
 }
@@ -1152,15 +1151,15 @@ interface ILoader {
 
 
 /**************************************音频，动画等特效播放管理类型定义********************************/
-type audio_t = { audio: IAudioBGM | IAudioEffect; clip: cc.AudioClip; played: boolean; bgm: boolean; audioID: number; callbacks: audio_resolved_t[] };
-type play_callback_t = (currentTime: number) => void;
-type stop_callback_t = (duration: number) => void;
-type audio_resolved_t = { type: string; call: any }
+type cck_audio_type = { audio: IAudioBGM | IAudioEffect; clip: cc.AudioClip; played: boolean; bgm: boolean; audioID: number; callbacks: cck_audio_saudio_resolved_type[] };
+type cck_audio_play_callback_type = (currentTime: number) => void;
+type cck_audio_stop_callback_type = (duration: number) => void;
+type cck_audio_saudio_resolved_type = { type: string; call: any }
 
-type resolved_t = { call: Function; type: string; };
-type frameAnimat_t = { props: IFrameAnimat, callbacks: resolved_t[] };
-type spineAnimat_t = { props: ISpineAnimat, callbacks: resolved_t[] };
-type dragonBonesAnimat_t = { props: IDragonBonesAnimat, callbacks: resolved_t[] }
+type cck_animat_resolved_type = { call: Function; type: string; };
+type cck_animat_frameAnimat_type = { props: IFrameAnimat, callbacks: cck_animat_resolved_type[] };
+type cck_animat_spineAnimat_type = { props: ISpineAnimat, callbacks: cck_animat_resolved_type[] };
+type cck_animat_dragonBonesAnimat_type = { props: IDragonBonesAnimat, callbacks: cck_animat_resolved_type[] }
 
 /**************************************************************************************/
 
@@ -1181,9 +1180,9 @@ type AuthSetting = {
 }
 
 /***************************************/
-type bitLblImage_t = { spacing: number; sf: cc.SpriteFrame; }
+type cck_bitLblImage_type = { spacing: number; sf: cc.SpriteFrame; }
 
-type RedDot_t = { parent: number[]; }
+type cck_redDot_type = { parent: number[]; }
 
 /**弹幕数据类型 */
 type barrageData_t = { content: string; color: string; }
@@ -1192,21 +1191,4 @@ type barrageListenerParam_t = { carrier: cc.Node, content: string, color: cc.Col
 type barrageListener_t = (param: barrageListenerParam_t) => void;
 
 /**时间类型 */
-type dateCompare_t = { year: number; month: number; date: number; hours: number; }
-
-/******************Toast类型************************/
-type ToastStyle = {
-    font?: cc.Font
-    fontSize?: number;
-    fontColor?: cc.Color;
-    fontOutlineColor?: cc.Color;
-    fontOutlineSize?: number;
-    styleBg?: {
-        imag: cc.SpriteFrame;
-        color?: cc.Color;
-        size: {
-            width: number;
-            height: number;
-        }
-    };
-}
+type cck_utils_date_compare_type = { year: number; month: number; date: number; hours: number; }

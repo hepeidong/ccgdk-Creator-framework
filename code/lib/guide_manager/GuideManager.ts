@@ -1,7 +1,7 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { EventSystem, Guide } from "../cck";
 import { UIManager } from "../ui_manager/UIManager";
-import { Utils } from "../utils/GameUtils";
+import { Utils } from "../utils";
 import { GuideTarget } from "./component/GuideTarget";
 import { GuideNormalEvent } from "./GuideEnum";
 import { GuideSearch } from "./GuideSearch";

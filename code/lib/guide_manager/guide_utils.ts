@@ -1,4 +1,4 @@
-import { Guide } from "./cck_guide";
+import { Guide } from ".";
 
 export function createSprite(name: string) {
     let newNode: cc.Node = new cc.Node(name);

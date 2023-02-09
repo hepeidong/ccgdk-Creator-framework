@@ -1,7 +1,7 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { Assert } from "../exceptions/Assert";
 import GuideHelper from "../guide_manager/component/GuideHelper";
-import { UI } from "./cck_ui";
+import { UI } from ".";
 import { WindowBase } from "./WindowBase";
 import { WindowManager } from "./WindowManager";
 

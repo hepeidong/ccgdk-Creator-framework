@@ -1,4 +1,4 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { EventSystem } from "../cck";
 import { Assert } from "../exceptions/Assert";
 

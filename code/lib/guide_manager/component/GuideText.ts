@@ -1,5 +1,5 @@
-import { Debug } from "../../Debugger";
-import { Guide } from "../cck_guide";
+import { Debug } from "../../cck/Debugger";
+import { Guide } from "..";
 import { createTip, createText, createSprite, restoreParent } from "../guide_utils";
 
 const {

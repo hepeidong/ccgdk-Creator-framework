@@ -1,4 +1,4 @@
-import { Utils } from "./GameUtils";
+import { Utils } from ".";
 
 export default class CCMathUtil {
 

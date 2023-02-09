@@ -1,7 +1,7 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { EventSystem } from "../cck";
-import { Proxy } from "../puremvc/patterns/proxy/Proxy";
-import { Utils } from "../utils/GameUtils";
+import { Proxy } from "../puremvc";
+import { Utils } from "../utils";
 import { CCSocket } from "./Socket";
 import { SAFE_CALLBACK_CALLER } from "../Define";
 

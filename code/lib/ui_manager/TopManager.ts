@@ -1,4 +1,4 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { LayerManager } from "./LayerManager";
 import { WindowLayer } from "./WindowLayer";
 

@@ -3,7 +3,7 @@ import GuideDialogue from "./GuideDialogue";
 import GuideText from "./GuideText";
 import { GuideNormalEvent } from "../GuideEnum";
 import { getNextGuideId } from "../guide_utils";
-import { Debug } from "../../Debugger";
+import { Debug } from "../../cck/Debugger";
 import { UI, Guide, EventSystem } from "../../cck";
 import AdapterWidget from "../../app/adapter_manager/component/AdapterWidget";
 

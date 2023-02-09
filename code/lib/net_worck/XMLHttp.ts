@@ -1,7 +1,7 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { SAFE_CALLBACK } from "../Define";
 import { Assert } from "../exceptions/Assert";
-import { Utils } from "../utils/GameUtils";
+import { Utils } from "../utils";
 
 
 const errMsg = {

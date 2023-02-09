@@ -1,5 +1,5 @@
 import { SHOW_DATE } from "../Define";
-import { Utils } from "./GameUtils";
+import { Utils } from ".";
 
 const SIMGLE: string[] = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
 const UNITS: string[] = ['十', '百', '千', '万', '十万', '百万', '千万', '亿', '十亿', '百亿', '千亿', '万亿'];

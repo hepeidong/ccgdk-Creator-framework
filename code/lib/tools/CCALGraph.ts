@@ -6,10 +6,10 @@
  * 4.无向网
  * ***************************************************************/
 
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { Assert } from "../exceptions/Assert";
 
-type AdjList = Vertex_t[];
+type AdjList = cck_alGraph_vertex_type[];
 
 enum GraphType {
     /**有向图 */
@@ -51,7 +51,7 @@ export class CCALGraph {
     }
 
     /**通过顶点数据，找到顶点在顶点表中的序号,序号从0开始，如果没有这个顶点，返回-1 */
-    public locateVertex(vt: Vertex_t): number {
+    public locateVertex(vt: cck_alGraph_vertex_type): number {
         let ver_num: number = this._adjList.indexOf(vt);
         if (ver_num > -1) {
             return ver_num;
@@ -60,8 +60,8 @@ export class CCALGraph {
     }
 
     /**通过序号，找到顶点数据 */
-    public getVertex(num: number): Vertex_t {
-        let vt: Vertex_t = this._adjList[num];
+    public getVertex(num: number): cck_alGraph_vertex_type {
+        let vt: cck_alGraph_vertex_type = this._adjList[num];
         if (vt) {
             return vt;
         }
@@ -69,7 +69,7 @@ export class CCALGraph {
     }
 
     /**通过序号，设置顶点 */
-    public setVertex(n: number, vt: Vertex_t): boolean {
+    public setVertex(n: number, vt: cck_alGraph_vertex_type): boolean {
         if (!vt) {
             return false;
         }
@@ -80,7 +80,7 @@ export class CCALGraph {
     }
 
     /**插入一个顶点 */
-    public insertVertex(vt: Vertex_t): boolean {
+    public insertVertex(vt: cck_alGraph_vertex_type): boolean {
         if (this._adjList.indexOf(vt) === -1) {
             vt.firstArc = null;
             this._adjList[this._vertex_num] = vt;
@@ -106,7 +106,7 @@ export class CCALGraph {
     }
 
     /**删除一个顶点 */
-    public deleteVertex(vt: Vertex_t): boolean {
+    public deleteVertex(vt: cck_alGraph_vertex_type): boolean {
         if (!Assert.instance.handle(Assert.Type.DeleteVertexException, vt, typeof vt)) {
             return false;
         }
@@ -115,17 +115,17 @@ export class CCALGraph {
             Debug.error('邻接表中不存在这个顶点');
             return false;
         }
-        let p: Edge_t = vt.firstArc;
+        let p: cck_alGraph_edge_type = vt.firstArc;
         if (this._graph_t === GraphType.UDG) {
             while (p) {
-                let adjVexP: Vertex_t = this._adjList[p.adjvex];
-                let adjP: Edge_t = adjVexP.firstArc;
+                let adjVexP: cck_alGraph_vertex_type = this._adjList[p.adjvex];
+                let adjP: cck_alGraph_edge_type = adjVexP.firstArc;
                 if (adjP) {
                     while (adjP.nextArc && adjP.nextArc.adjvex !== adjVex) {
                         adjP = adjP.nextArc;
                     }
                     if (adjP.nextArc) {
-                        let q: Edge_t = adjP.nextArc;
+                        let q: cck_alGraph_edge_type = adjP.nextArc;
                         adjP.nextArc = q.nextArc;
                         q = null;
                         this._edge_num--;
@@ -193,7 +193,7 @@ export class CCALGraph {
             visited[i] = 0;
         }
         visited[v] = 1;
-        let p: Edge_t = this._adjList[v].firstArc;
+        let p: cck_alGraph_edge_type = this._adjList[v].firstArc;
         while (p) {
             if (visited[p.adjvex] === 0) {
                 visited[p.adjvex] = 1;
@@ -247,7 +247,7 @@ export class CCALGraph {
     }
 
     private addEdge(staVex: number, adjVex: number, weight: number = 1): boolean {
-        let edge: Edge_t;
+        let edge: cck_alGraph_edge_type;
         let n: number = -1;
         if (!this._adjList[staVex]) {
             n = staVex;
@@ -262,15 +262,15 @@ export class CCALGraph {
             Debug.error('邻接表中不存在编号为%d这个顶点', n);
             return false;
         }
-        let vex: Vertex_t = this._adjList[staVex];
-        let p: Edge_t = vex.firstArc;
+        let vex: cck_alGraph_vertex_type = this._adjList[staVex];
+        let p: cck_alGraph_edge_type = vex.firstArc;
         if (!p) {
             this._edge_num++;
             vex.firstArc = edge;
             return true;
         }
         else {
-            let head: Edge_t = null;//便于链表操作
+            let head: cck_alGraph_edge_type = null;//便于链表操作
             while (p && p.adjvex > adjVex) {
                 head = p;
                 p = p.nextArc;
@@ -305,8 +305,8 @@ export class CCALGraph {
             Debug.error('邻接表中不存在编号为%d这个顶点', n);
             return false;
         }
-        let vex: Vertex_t = this._adjList[staVex];
-        let p: Edge_t = vex.firstArc;
+        let vex: cck_alGraph_vertex_type = this._adjList[staVex];
+        let p: cck_alGraph_edge_type = vex.firstArc;
         if (!p) {
             Debug.error('这两个顶点之间不存在边，无法删除！');
             return false;
@@ -326,7 +326,7 @@ export class CCALGraph {
             }
             else {
                 this._edge_num--;
-                let q: Edge_t = p.nextArc;
+                let q: cck_alGraph_edge_type = p.nextArc;
                 p.nextArc = q.nextArc;
             }
         }

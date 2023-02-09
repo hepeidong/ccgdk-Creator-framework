@@ -1,4 +1,4 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { SAFE_CALLBACK } from "../Define";
 import { App, Res } from "../cck";
 

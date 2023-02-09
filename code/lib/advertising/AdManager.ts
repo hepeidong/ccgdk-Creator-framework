@@ -1,7 +1,7 @@
-import { Debug } from "../Debugger";
+import { App } from "../app";
+import { Debug } from "../cck/Debugger";
 import { SAFE_CALLBACK } from "../Define";
-import { App } from "../cck";
-import { Utils } from "../utils/GameUtils";
+import { Utils } from "../utils";
 
 const errMsg = {
     1000: '后端接口调用失败',

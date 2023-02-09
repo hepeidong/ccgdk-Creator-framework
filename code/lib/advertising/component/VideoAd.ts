@@ -1,6 +1,6 @@
+import { App } from "../../app";
 import { EventSystem } from "../../event_manager/EventSystem";
-import { App } from "../../cck";
-import { Utils } from "../../utils/GameUtils";
+import { Utils } from "../../utils";
 import { AdManager } from "../AdManager";
 
 const { ccclass, property, menu, disallowMultiple } = cc._decorator;

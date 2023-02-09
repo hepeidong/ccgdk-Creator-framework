@@ -1,10 +1,12 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { SAFE_CALLBACK } from "../Define";
-import { Res, UI, App } from "../cck";
-import { Mediator } from "../puremvc/patterns/mediator/Mediator";
+import { Mediator } from "../puremvc";
 import { Register } from "../Register/Register";
-import { Utils } from "../utils/GameUtils";
+import { Utils } from "../utils";
 import { Assert } from "../exceptions/Assert";
+import { App } from ".";
+import { Res } from "../cck";
+import { UI } from "../ui_manager";
 
 /**
  * author: HePeiDong

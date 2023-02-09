@@ -1,4 +1,4 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 
 /**循环队列 */
 export class CCCircularQueue<T>  {

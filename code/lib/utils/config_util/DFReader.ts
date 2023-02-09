@@ -1,7 +1,7 @@
-import { Debug } from "../../Debugger";
+import { Debug } from "../../cck/Debugger";
 import { SAFE_CALLBACK } from "../../Define";
 import { Res } from "../../cck";
-import { Utils } from "../GameUtils";
+import { Utils } from "..";
 import { FileContainer } from "./FileContainer";
 
 

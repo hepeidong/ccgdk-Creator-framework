@@ -1,4 +1,4 @@
-import { Debug } from "../../Debugger";
+import { Debug } from "../../cck/Debugger";
 
 /**
  * name: 多分辨率适配

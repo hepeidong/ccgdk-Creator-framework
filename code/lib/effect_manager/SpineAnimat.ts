@@ -7,7 +7,7 @@ import AnimatBase from "./AnimatBase";
 export default class SpineAnimat extends AnimatBase {
     private _skeleton: sp.Skeleton;
     /**动画队列 */
-    private _animatList: Tools.CircularQueue<spineAnimat_t>;
+    private _animatList: Tools.CircularQueue<cck_animat_spineAnimat_type>;
     private timeoutId: number = 0;
     private static isStop: boolean = false;
     constructor(target: cc.Node, bundle: string) {
@@ -42,7 +42,7 @@ export default class SpineAnimat extends AnimatBase {
         return this._skeleton;
     }
 
-    public addCallback(callback: resolved_t) {
+    public addCallback(callback: cck_animat_resolved_type) {
         let len: number = this._animatList.length;
         this._animatList[len - 1].callbacks.push(callback);
     }
@@ -125,7 +125,7 @@ export default class SpineAnimat extends AnimatBase {
 
     private registerEvent(): void {
         this._skeleton.setStartListener((evt: any) => {
-            let callbacks: resolved_t[] = this._animatList[this.index].callbacks;
+            let callbacks: cck_animat_resolved_type[] = this._animatList[this.index].callbacks;
             for (let e of callbacks) {
                 if (e.type === 'play') {
                     SAFE_CALLBACK(e.call, evt);
@@ -134,7 +134,7 @@ export default class SpineAnimat extends AnimatBase {
         });
 
         this._skeleton.setCompleteListener((evt: any) => {
-            let animat: spineAnimat_t = this._animatList[this.index];
+            let animat: cck_animat_spineAnimat_type = this._animatList[this.index];
             for (let e of animat.callbacks) {
                 if (e.type === 'stop') {
                     SAFE_CALLBACK(e.call, evt);

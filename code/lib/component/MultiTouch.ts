@@ -1,6 +1,6 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { SAFE_CALLBACK } from "../Define";
-import { Utils } from "../utils/GameUtils";
+import { Utils } from "../utils";
 
 /**
  * author: 何沛东

@@ -2,8 +2,8 @@ import { BianryProtocol } from "./BianryProtocol";
 import { JsonProtocol } from "./JsonProtocol";
 import { GameSocket } from "./GameSocket";
 import { SocketProxy } from "./SocketProxy";
-import { Utils } from "../utils/GameUtils";
-import { Debug } from "../Debugger";
+import { Utils } from "../utils";
+import { Debug } from "../cck/Debugger";
 import { EventSystem } from "../cck";
 import { Assert } from "../exceptions/Assert";
 

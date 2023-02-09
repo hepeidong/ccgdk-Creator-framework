@@ -1,6 +1,6 @@
 import { SystemDoesNotHaveNameException } from "./exceptions/SystemDoesNotHaveNameException";
 import { ECS_DEBUG } from "./ECSDef";
-import { Utils } from "../utils/GameUtils";
+import { Utils } from "../utils";
 import { setParentType } from "../app/Decorator";
 
 /**

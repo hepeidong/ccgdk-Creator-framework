@@ -1,4 +1,4 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { EventSystem, Guide } from "../cck";
 import { GuideTarget } from "./component/GuideTarget";
 import { GuideNormalEvent } from "./GuideEnum";

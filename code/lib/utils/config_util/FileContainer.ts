@@ -1,5 +1,5 @@
 import { SAFE_CALLBACK } from "../../Define";
-import { Utils } from "../GameUtils";
+import { Utils } from "..";
 
 
 export class FileContainer<T> implements IContainer<T> {

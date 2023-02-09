@@ -1,8 +1,9 @@
 import { EventSystem } from "../event_manager/EventSystem";
-import { Res, App } from "../cck";
-import { Facade } from "../puremvc/patterns/facade/Facade";
+import { Facade } from "../puremvc";
 import { SceneManager } from "./SceneManager";
 import { setParentType } from "./Decorator";
+import { App } from ".";
+import { Res } from "../cck";
 
 
 /**

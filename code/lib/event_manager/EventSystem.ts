@@ -1,4 +1,4 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { CCObserver } from "./CCObserver";
 import { EventListeners, CCHandler } from "./EventListeners";
 import { ObserverSystem } from "./ObserverSystem";

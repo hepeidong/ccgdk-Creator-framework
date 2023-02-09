@@ -1,4 +1,4 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { Tools } from "../cck";
 import DialoglManager from "./DialoglManager";
 import { WindowLayer } from "./WindowLayer";

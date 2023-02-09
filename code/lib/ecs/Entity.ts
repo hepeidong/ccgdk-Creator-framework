@@ -4,8 +4,8 @@ import { EntityAlreadyReleasedException } from "./exceptions/EntityAlreadyReleas
 import { EntityIsNotEnabledException } from "./exceptions/EntityIsNotEnabledException";
 import { ECS_DEBUG } from "./ECSDef";
 import { ComponentTypes } from "./ComponentTypes";
-import { Utils } from "../utils/GameUtils";
-import { Debug } from "../Debugger";
+import { Utils } from "../utils";
+import { Debug } from "../cck/Debugger";
 import { EventSystem } from "../cck";
 
 

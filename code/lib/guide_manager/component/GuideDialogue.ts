@@ -1,4 +1,4 @@
-import { Guide } from "../cck_guide";
+import { Guide } from "..";
 import { createSprite, createText, createTip } from "../guide_utils";
 
 

@@ -1,4 +1,4 @@
-import { Guide } from "../cck_guide";
+import { Guide } from "..";
 import WidgetID from "../WidgetID";
 
 export class GuideTarget implements IGuideTarget {

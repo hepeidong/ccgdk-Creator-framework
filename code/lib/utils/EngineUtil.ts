@@ -1,6 +1,6 @@
 import { SAFE_CALLBACK } from "../Define";
 import { App } from "../cck";
-import { Utils } from "./GameUtils";
+import { Utils } from ".";
 
 
 export default class CCEngineUtil {

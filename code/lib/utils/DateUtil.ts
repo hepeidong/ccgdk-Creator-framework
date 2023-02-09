@@ -1,4 +1,4 @@
-import { Utils } from "./GameUtils";
+import { Utils } from ".";
 
 interface DateFormatArgs {
     date: string;   //时间字符，格式为xxxx-xx-xxTxx:xx:xx
@@ -61,12 +61,12 @@ export default class CCDateUtil {
      * @param date1 
      * @param date2 
      */
-    public static compareDate(time1: number, time2: number, compare: (a: dateCompare_t, b: dateCompare_t) => boolean) {
+    public static compareDate(time1: number, time2: number, compare: (a: cck_utils_date_compare_type, b: cck_utils_date_compare_type) => boolean) {
         let date1: Date = new Date(time1);
         let date2: Date = new Date(time2);
         
-        let a: dateCompare_t = {year: date1.getFullYear(), month: date1.getMonth() + 1, date: date1.getDate(), hours: date1.getHours()};
-        let b: dateCompare_t = {year: date1.getFullYear(), month: date2.getMonth() + 1, date: date2.getDate(), hours: date2.getHours()};
+        let a: cck_utils_date_compare_type = {year: date1.getFullYear(), month: date1.getMonth() + 1, date: date1.getDate(), hours: date1.getHours()};
+        let b: cck_utils_date_compare_type = {year: date1.getFullYear(), month: date2.getMonth() + 1, date: date2.getDate(), hours: date2.getHours()};
         return compare(a, b);
     }
 

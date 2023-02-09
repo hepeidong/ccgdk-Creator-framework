@@ -6,7 +6,7 @@ import AnimatBase from "./AnimatBase";
 export default class FrameAnimat extends AnimatBase {
     private _animator: cc.Animation;
     /**动画队列 */
-    private _animatList: Tools.CircularQueue<frameAnimat_t>;
+    private _animatList: Tools.CircularQueue<cck_animat_frameAnimat_type>;
     private static isStop: boolean = false;
     constructor(target: cc.Node, bundle: string) {
         super(() => {
@@ -40,7 +40,7 @@ export default class FrameAnimat extends AnimatBase {
         return this._animator;
     }
 
-    public addCallback(callback: resolved_t): void {
+    public addCallback(callback: cck_animat_resolved_type): void {
         let len: number = this._animatList.length;
         this._animatList[len - 1].callbacks.push(callback);
     }
@@ -150,7 +150,7 @@ export default class FrameAnimat extends AnimatBase {
         this._animator.off('stop');
         this._animator.on('play', (evt: cc.Event.EventCustom) => {
             if (this.index >= this._animatList.length) return;
-            let callbacks: resolved_t[] = this._animatList[this.index].callbacks;
+            let callbacks: cck_animat_resolved_type[] = this._animatList[this.index].callbacks;
             for (let e of callbacks) {
                 if (e.type === 'play') {
                     SAFE_CALLBACK(e.call, evt);
@@ -159,7 +159,7 @@ export default class FrameAnimat extends AnimatBase {
         }, this);
         this._animator.on('stop', (evt: cc.Event.EventCustom) => {
             if (this.index >= this._animatList.length) return;
-            let callbacks: resolved_t[] = this._animatList[this.index].callbacks;
+            let callbacks: cck_animat_resolved_type[] = this._animatList[this.index].callbacks;
             for (let e of callbacks) {
                 if (e.type === 'stop') {
                     SAFE_CALLBACK(e.call, evt);

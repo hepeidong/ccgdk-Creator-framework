@@ -1,12 +1,12 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { SAFE_CALLBACK } from "../Define";
 import { DBLoad } from "../res_manager/LoadAnimation";
-import { Utils } from "../utils/GameUtils";
+import { Utils } from "../utils";
 import AnimatBase from "./AnimatBase";
 
 export default class DragonBonesAnimat extends AnimatBase {
     private _selfDB: dragonBones.ArmatureDisplay;
-    private _animatList: dragonBonesAnimat_t[];
+    private _animatList: cck_animat_dragonBonesAnimat_type[];
     private _timeoutID: number = 0;
 
     private static isStop: boolean = false;
@@ -42,7 +42,7 @@ export default class DragonBonesAnimat extends AnimatBase {
         return this._selfDB;
     }
 
-    public addCallback(callback: resolved_t): void {
+    public addCallback(callback: cck_animat_resolved_type): void {
         let len: number = this._animatList.length;
         this._animatList[len - 1].callbacks.push(callback);
     }
@@ -164,9 +164,9 @@ export default class DragonBonesAnimat extends AnimatBase {
         this._selfDB.off(dragonBones.EventObject.COMPLETE);
         this._selfDB.off(dragonBones.EventObject.LOOP_COMPLETE);
         this._selfDB.on(dragonBones.EventObject.START, (evt: any) => {
-            let animat: spineAnimat_t = this._animatList[this.index];
+            let animat: cck_animat_spineAnimat_type = this._animatList[this.index];
             if (animat) {
-                let callbacks: resolved_t[] = animat.callbacks;
+                let callbacks: cck_animat_resolved_type[] = animat.callbacks;
                 for (let e of callbacks) {
                     if (e.type === 'play') {
                         SAFE_CALLBACK(e.call, evt);
@@ -176,9 +176,9 @@ export default class DragonBonesAnimat extends AnimatBase {
             
         }, this);
         this._selfDB.on(dragonBones.EventObject.COMPLETE, (evt: any) => {
-            let animat: spineAnimat_t = this._animatList[this.index];
+            let animat: cck_animat_spineAnimat_type = this._animatList[this.index];
             if (animat) {
-                let callbacks: resolved_t[] = animat.callbacks;
+                let callbacks: cck_animat_resolved_type[] = animat.callbacks;
                 for (let e of callbacks) {
                     if (e.type === 'stop') {
                         SAFE_CALLBACK(e.call, evt);
@@ -195,9 +195,9 @@ export default class DragonBonesAnimat extends AnimatBase {
         }, this);
 
         this._selfDB.on(dragonBones.EventObject.LOOP_COMPLETE, (evt: any) => {
-            let animat: spineAnimat_t = this._animatList[this.index];
+            let animat: cck_animat_spineAnimat_type = this._animatList[this.index];
             if (animat) {
-                let callbacks: resolved_t[] = animat.callbacks;
+                let callbacks: cck_animat_resolved_type[] = animat.callbacks;
                 for (let e of callbacks) {
                     if (e.type === 'complate') {
                         SAFE_CALLBACK(e.call, evt);

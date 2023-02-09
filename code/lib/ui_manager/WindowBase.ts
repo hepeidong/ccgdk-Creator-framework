@@ -1,11 +1,11 @@
 import AdapterWidget from "../app/adapter_manager/component/AdapterWidget";
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { SAFE_CALLBACK } from "../Define";
 import { App, UI } from "../cck";
-import { Mediator } from "../puremvc/patterns/mediator/Mediator";
+import { Mediator } from "../puremvc";
 import { Register } from "../Register/Register";
 import { AssetFactory } from "../res_manager/AssetFactory";
-import { Utils } from "../utils/GameUtils";
+import { Utils } from "../utils";
 import { WindowManager } from "./WindowManager";
 import { Assert } from "../exceptions/Assert";
 

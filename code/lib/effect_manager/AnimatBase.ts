@@ -12,7 +12,7 @@ export default abstract class AnimatBase {
         cc.director.on(cc.Director.EVENT_BEFORE_UPDATE, callback, this);
     }
 
-    abstract addCallback(callback: resolved_t): void;
+    abstract addCallback(callback: cck_animat_resolved_type): void;
     abstract addAnimatProps(props: any): void;
     /**开始播放 */
     abstract play(): AnimatBase;

@@ -1,7 +1,7 @@
 import { App } from "../cck";
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { Assert } from "../exceptions/Assert";
-import { Utils } from "../utils/GameUtils";
+import { Utils } from "../utils";
 import { XMLHttp } from "./XMLHttp";
 
 

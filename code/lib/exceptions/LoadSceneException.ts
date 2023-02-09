@@ -1,5 +1,5 @@
 import { App } from "../cck";
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { Exception } from "./Exception";
 
 const {cckclass} = App.decorator;

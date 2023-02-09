@@ -1,6 +1,6 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { SAFE_CALLBACK, SAFE_CALLBACK_CALLER } from "../Define";
-import { Proxy } from "../puremvc/patterns/proxy/Proxy";
+import { Proxy } from "../puremvc";
 import CCHttp from "./Http";
 
 

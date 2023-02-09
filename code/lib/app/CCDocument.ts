@@ -1,4 +1,4 @@
-import { Proxy } from "../puremvc/patterns/proxy/Proxy";
+import { Proxy } from "../puremvc";
 
 type StorageData = {value: any}
 

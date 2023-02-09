@@ -1,4 +1,4 @@
-import { Debug } from "../../Debugger";
+import { Debug } from "../../cck/Debugger";
 import {AdManager} from "../AdManager";
 
 const { ccclass, property, menu, disallowMultiple } = cc._decorator;

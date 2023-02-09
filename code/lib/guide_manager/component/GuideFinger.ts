@@ -1,9 +1,9 @@
 import { createSprite, createText, restoreParent } from "../guide_utils";
 import { GuideNormalEvent } from "../GuideEnum";
-import { Utils } from "../../utils/GameUtils";
+import { Utils } from "../../utils";
 import { EventSystem } from "../../event_manager/EventSystem";
 import { GuideTarget } from "./GuideTarget";
-import { Guide } from "../cck_guide";
+import { Guide } from "..";
 import { UI, App } from "../../cck";
 
 

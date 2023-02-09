@@ -1,5 +1,5 @@
 import { EventSystem } from "../event_manager/EventSystem";
-import { Utils } from "../utils/GameUtils";
+import { Utils } from "../utils";
 
 enum PageEvent {
     PAGE_INIT = 'page_init',

@@ -1,5 +1,5 @@
 import { SAFE_CALLBACK } from "../Define";
-import { Utils } from "../utils/GameUtils";
+import { Utils } from "../utils";
 import LabelRemove from "./LabelRemove";
 
 const defaultFonSize: number = 30;
@@ -330,7 +330,7 @@ export default class BitmapLabel extends cc.Component {
     private cutImage(str: string) {
         if (!this._texture) return;
 
-        let imageList: bitLblImage_t[] = [];
+        let imageList: cck_bitLblImage_type[] = [];
         for (let i: number = 0; i < str.length; ++i) {
             let e = str[i];
             let newSF: cc.SpriteFrame = new cc.SpriteFrame(this._texture, cc.rect(0, 0, this._texture.width, this._texture.height));
@@ -391,7 +391,7 @@ export default class BitmapLabel extends cc.Component {
     }
 
     private showLabel() {
-        let imageList: bitLblImage_t[] = this.cutImage(this.string);
+        let imageList: cck_bitLblImage_type[] = this.cutImage(this.string);
         this.removeChild();
         this._currLabel = this.string;
         for (let i: number = 0; i < imageList.length; ++i) {

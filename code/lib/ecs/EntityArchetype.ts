@@ -1,6 +1,6 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { EventSystem } from "../cck";
-import { Utils } from "../utils/GameUtils";
+import { Utils } from "../utils";
 import { ECS_DEBUG } from "./ECSDef";
 import { entityIndexOf, removeElement } from "./ecs_utils";
 import { ArchetypeAlreadyReleasedException } from "./exceptions/ArchetypeAlreadyReleasedException";

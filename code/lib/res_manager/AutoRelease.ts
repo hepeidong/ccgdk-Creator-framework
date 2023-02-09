@@ -1,4 +1,4 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { Assert } from "../exceptions/Assert";
 
 const {ccclass} = cc._decorator;

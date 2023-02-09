@@ -1,5 +1,5 @@
-import { Debug } from "../Debugger";
-import { Utils } from "../utils/GameUtils";
+import { Debug } from "../cck/Debugger";
+import { Utils } from "../utils";
 import { Notify } from "./Notify";
 
 export class GameSubject<T> implements IGameSubject<T> {

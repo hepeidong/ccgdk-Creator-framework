@@ -1,4 +1,4 @@
-import { Utils } from "../utils/GameUtils";
+import { Utils } from "../utils";
 
 export class GDKObject {
     protected _classname: string;

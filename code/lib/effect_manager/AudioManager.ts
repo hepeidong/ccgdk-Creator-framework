@@ -1,4 +1,4 @@
-import { Debug } from "../Debugger";
+import { Debug } from "../cck/Debugger";
 import { SAFE_CALLBACK } from "../Define";
 import { Res } from "../cck";
 import { Assert } from "../exceptions/Assert";
@@ -18,7 +18,7 @@ export class Audio {
     private _order: boolean;
     private _bundle: string;
     private _audioList: string[];
-    private static _audioPool: Map<string, audio_t> = new Map();
+    private static _audioPool: Map<string, cck_audio_type> = new Map();
  
     constructor(bundle: string) {
         this._bundle = bundle;
@@ -38,7 +38,7 @@ export class Audio {
         cc.audioEngine.stopAll();
     }
     public set volume(v: number) {
-        let audioPro: audio_t = Audio._audioPool.get(this._audioList[this._audioIndex]);
+        let audioPro: cck_audio_type = Audio._audioPool.get(this._audioList[this._audioIndex]);
         if (audioPro && audioPro.audioID > -1) {
             cc.audioEngine.setVolume(audioPro.audioID, v);
         }
@@ -53,7 +53,7 @@ export class Audio {
             this._err = new Error('不能同时获取多个音频的音量!');
         }
         else {
-            let audioPro: audio_t = Audio._audioPool.get(this._audioList[this._audioIndex]);
+            let audioPro: cck_audio_type = Audio._audioPool.get(this._audioList[this._audioIndex]);
             if (audioPro && audioPro.audioID > -1) {
                 return cc.audioEngine.getVolume(audioPro.audioID);
             }
@@ -65,7 +65,7 @@ export class Audio {
     }
 
     public set loop(l: boolean) {
-        let audioPro: audio_t = Audio._audioPool.get(this._audioList[this._audioIndex]);
+        let audioPro: cck_audio_type = Audio._audioPool.get(this._audioList[this._audioIndex]);
         if (audioPro && audioPro.audioID > -1) {
             cc.audioEngine.setLoop(audioPro.audioID, l);
         }
@@ -80,7 +80,7 @@ export class Audio {
             this._err = new Error('不能同时获取多个音频的循环状态!');
         }
         else {
-            let audioPro: audio_t = Audio._audioPool.get(this._audioList[this._audioIndex]);
+            let audioPro: cck_audio_type = Audio._audioPool.get(this._audioList[this._audioIndex]);
             if (audioPro && audioPro.audioID > -1) {
                 return cc.audioEngine.isLoop(audioPro.audioID);
             }
@@ -147,7 +147,7 @@ export class Audio {
      * @param callType 回调类型
      * @param resolve 执行的回调
      */
-    public when<T extends 'play'|'stop', P = T extends 'play'|'stop' ? play_callback_t : stop_callback_t>(callType: T, resolve: P): Audio {
+    public when<T extends 'play'|'stop', P = T extends 'play'|'stop' ? cck_audio_play_callback_type : cck_audio_stop_callback_type>(callType: T, resolve: P): Audio {
         let len: number = this._audioList.length;
         if (len === 0) {
             this._status = 'rejected';
@@ -180,7 +180,7 @@ export class Audio {
 
     public pause(): Audio {
         for (let i: number = 0; i < this._audioList.length; ++i) {
-            let audioPro: audio_t = Audio._audioPool.get(this._audioList[i]);
+            let audioPro: cck_audio_type = Audio._audioPool.get(this._audioList[i]);
             if (audioPro && audioPro.audioID > -1) {
                 cc.audioEngine.pause(audioPro.audioID);
             }
@@ -193,7 +193,7 @@ export class Audio {
 
     public resume(): Audio {
         for (let i: number = 0; i < this._audioList.length; ++i) {
-            let audioPro: audio_t = Audio._audioPool.get(this._audioList[i]);
+            let audioPro: cck_audio_type = Audio._audioPool.get(this._audioList[i]);
             if (audioPro && audioPro.audioID > -1) {
                 cc.audioEngine.resume(audioPro.audioID);
             }
@@ -214,7 +214,7 @@ export class Audio {
 
     private stopAudio() {
         for (let i: number = 0; i < this._audioList.length; ++i) {
-            let audioPro: audio_t = Audio._audioPool.get(this._audioList[i]);
+            let audioPro: cck_audio_type = Audio._audioPool.get(this._audioList[i]);
             
             if (audioPro && audioPro.audioID > -1) {
                 cc.audioEngine.stop(audioPro.audioID);
@@ -314,7 +314,7 @@ export class Audio {
     private playAudio() {
         for (let i: number = 0; i < this._audioList.length; ++i) {
             let key: string = this._audioList[i];
-            let audioPro: audio_t = Audio._audioPool.get(key);
+            let audioPro: cck_audio_type = Audio._audioPool.get(key);
             let audioID: number;
             if (audioPro.bgm) {
                 if ((audioPro.audio as IAudioBGM).superpose) {
@@ -341,7 +341,7 @@ export class Audio {
         }
     }
     //非顺序播放模式下,每个音频结束的回调
-    private onFinishCallback(audioPro: audio_t, audioID: number) {
+    private onFinishCallback(audioPro: cck_audio_type, audioID: number) {
         for (let e of audioPro.callbacks) {
             if (e.type === 'stop') {
                SAFE_CALLBACK(e.call, cc.audioEngine.getDuration(audioID));
@@ -350,7 +350,7 @@ export class Audio {
         cc.audioEngine.stop(audioID);
     }
     //顺序播放模式下每个音频结束的回调
-    private onFinishCallbackInOrder(audioPro: audio_t, audioID: number) {
+    private onFinishCallbackInOrder(audioPro: cck_audio_type, audioID: number) {
         for (let e of audioPro.callbacks) {
             if (e.type === 'stop') {
                SAFE_CALLBACK(e.call, cc.audioEngine.getDuration(audioID));
@@ -366,9 +366,9 @@ export class Audio {
         cc.audioEngine.stop(audioID);
     }
     /**按顺序播放音频 */
-    private playAudioInOrder(resolves: audio_resolved_t[]) {
+    private playAudioInOrder(resolves: cck_audio_saudio_resolved_type[]) {
         let key: string = this._audioList[this._audioIndex];
-        let audioPro: audio_t = Audio._audioPool.get(key);
+        let audioPro: cck_audio_type = Audio._audioPool.get(key);
         let audioID: number;
         if (audioPro.bgm) {
             if ((audioPro.audio as IAudioBGM).superpose) {
@@ -397,15 +397,15 @@ export class Audio {
     private _timeoutId: number;
     private playInterval() {
         let key: string = this._audioList[this._audioIndex];
-        let audioPro: audio_t = Audio._audioPool.get(key);
+        let audioPro: cck_audio_type = Audio._audioPool.get(key);
         this._timeoutId = setTimeout(() => {
             this.playAudioInOrder(Audio._audioPool.get(this._audioList[this._audioIndex]).callbacks);
             clearTimeout(this._timeoutId);
         }, audioPro.audio.delay * 1000);
     }
 
-    private bgmProps(props: IAudioBGM): audio_t {
-        let audioPro: audio_t = {
+    private bgmProps(props: IAudioBGM): cck_audio_type {
+        let audioPro: cck_audio_type = {
             audio: {
                 url: props.url,
                 loop: (props.loop === undefined || props.loop === null) ? false : props.loop,
@@ -422,8 +422,8 @@ export class Audio {
         return audioPro;
     }
 
-    private effectProps(props: IAudioEffect): audio_t {
-        let audioPro: audio_t = {
+    private effectProps(props: IAudioEffect): cck_audio_type {
+        let audioPro: cck_audio_type = {
             audio: {
                 url: props.url,
                 loop: (props.loop === undefined || props.loop === null) ? false : props.loop,
