@@ -12,6 +12,18 @@ type Scope = {
     writePhotosAlbum: string;
     camera: string;
 }
+type AuthSetting = {
+    "scope.userInfo": boolean | undefined | null,// 请用button获取该信息
+    "scope.userLocation": boolean | undefined | null,
+    "scope.userLocationBackground": boolean | undefined | null,
+    "scope.address": boolean | undefined | null,
+    "scope.invoiceTitle": boolean | undefined | null,
+    "scope.invoice": boolean | undefined | null,
+    "scope.werun": boolean | undefined | null,
+    "scope.record": boolean | undefined | null,
+    "scope.writePhotosAlbum": boolean | undefined | null,
+    "scope.camera": boolean | undefined | null,
+}
 interface LoadSubpackageTask {
     onProgressUpdate(callback: (res: {progress: number; totalBytesWritten: number; totalBytesExpectedToWrite: number}) => void);
 }
