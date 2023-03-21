@@ -55,7 +55,7 @@ export class EntityManager<T extends IEntity> implements IEntityManager<T> {
         entity.setName(name);
         entity.setID(UUID.randomUUID());
         entity.setEnabled(true);
-        entity.removeAllComponent();
+        entity.removeAllComponentData();
 
         this._entitys[entity.ID] = entity;
         entity.onComponentAdded.add(this._cacheUpdateGroupByComponentAdded);

@@ -678,13 +678,18 @@ export interface IEntity {
     destroy(): void;
     clear(): void;
     setGroupId(id: string): void;
-    addComponent(componentId: number): void;
-    getComponent(component: number): IComponent;
+    addComponentData(componentId: number): void;
+    getComponentData(component: number): IComponent;
     getComponentIndices(): number[];
-    removeComponent(component: number): void;
-    removeAllComponent(): void;
-    hasComponent(index: number): boolean;
+    removeComponentData(component: number): void;
+    removeAllComponentData(): void;
+    hasComponentData(index: number): boolean;
     toString(): string;
+}
+
+export interface IPrimaryEntity extends IEntity {
+    template: {prefab: Node|Prefab;
+        parent: Node;}
 }
 
 export type cck_ecs_entity = Readonly<IEntity>;

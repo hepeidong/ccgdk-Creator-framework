@@ -28,6 +28,7 @@ export class SimulationSystemGroup extends SystemGroup {
     }
 }
 
+@cckclass('PresentationSystemGroup')
 export class PresentationSystemGroup extends SystemGroup {
     constructor() {
         super();

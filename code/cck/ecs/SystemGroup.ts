@@ -42,19 +42,19 @@ export class SystemGroup extends System<IEntity> implements ISystemGroup {
     public destroySystem() {
         if (typeof arguments[0] === 'string') {
             const arg = arguments[0];
-            return this.removeSubSys((sys) => {
+            return this.removeSubSystem((sys) => {
                 return sys.name === arg;
             });
         }
         else {
             const arg = arguments[0];
-            return this.removeSubSys((sys) => {
+            return this.removeSubSystem((sys) => {
                 return sys instanceof arg;
             });
         }
     }
 
-    private removeSubSys(juage: (sys: ISystem<IEntity>) => boolean) {
+    private removeSubSystem(juage: (sys: ISystem<IEntity>) => boolean) {
         for (let i: number = 0, len = this._subSystems.length; i < len; ++i) {
             if (juage(this._subSystems[i])) {
                 this._subSystems.splice(i, 1);
@@ -122,20 +122,20 @@ export class SystemGroup extends System<IEntity> implements ISystemGroup {
     }
 
     /**
-     * 回溯排序各系统的更新顺序 ，注意值排序设置了updateBefore和updateAfter特性的系统，
+     * 回溯排序各系统的更新顺序 ，注意只排序设置了updateBefore和updateAfter特性的系统，
      * 其余各系统的更新位置将是不确定的
      * */
     private backtrackingSort(array: any[]) {
         for (let i: number = 0, len = this._subSystems.length; i < len; ++i) {
-            let system = this._subSystems[i];
+            const system = this._subSystems[i];
             if (asUpdateBefore(system) && !asUpdateAfter(system)) {
-                let tempIndex: number = this.traversalType(array, asUpdateBefore(system));
+                const tempIndex: number = this.traversalType(array, asUpdateBefore(system));
                 if (tempIndex < array.length && tempIndex > -1) {
                     this.inserts(array, tempIndex, system);
                     //当前位置元素已经整理完，要及时把当前位置元素从数组中去除，
                     //为了执行效率，直接把最末尾的元素替换当前位置元素，改变数组
                     //长度和i的大小
-                    let result = removeElement(this._subSystems, i, len);
+                    const result = removeElement(this._subSystems, i, len);
                     i = result.i;
                     len = result.len;
                 }
@@ -144,7 +144,7 @@ export class SystemGroup extends System<IEntity> implements ISystemGroup {
                 }
             }
             else if (!asUpdateBefore(system) && asUpdateAfter(system)) {
-                let tempIndex: number = this.traversalType(array, asUpdateAfter(system));
+                const tempIndex: number = this.traversalType(array, asUpdateAfter(system));
                 if (tempIndex < array.length && tempIndex > -1) {
                     if (tempIndex === array.length - 1) {
                         array[tempIndex + 1] = system;
@@ -152,7 +152,7 @@ export class SystemGroup extends System<IEntity> implements ISystemGroup {
                     else {
                         this.inserts(array, tempIndex + 1, system);
                     }
-                    let result = removeElement(this._subSystems, i, len);
+                    const result = removeElement(this._subSystems, i, len);
                     i = result.i;
                     len = result.len;
                 }

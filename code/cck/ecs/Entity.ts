@@ -63,7 +63,7 @@ export class Entity implements IEntity {
             let k: string = this._componentNum[i];
             if (!this[k]) {
                 Object.defineProperty(this, k, {get: () => {
-                    return this.getComponent(i);
+                    return this.getComponentData(i);
                 }});
             }
         }
@@ -104,7 +104,7 @@ export class Entity implements IEntity {
         this._groupId = id;
     }
 
-    public addComponent(type: number) {
+    public addComponentData(type: number) {
         if (!this._enabled) {
             throw new Error(new EntityIsNotEnabledException(this.toString() + " Cannot add component!").toString());
         }
@@ -123,7 +123,7 @@ export class Entity implements IEntity {
         }
     }
 
-    public getComponent(type: number): IComponent {
+    public getComponentData(type: number): IComponent {
         const component = this._componentTypes.getComponent(type);
         if (!component) {
             const index: number = type;
@@ -141,7 +141,7 @@ export class Entity implements IEntity {
         return this._componentTypes.types;
     }
 
-    public removeComponent(type: number) {
+    public removeComponentData(type: number) {
         if (!this._enabled) {
             throw new Error(new EntityIsNotEnabledException(this.toString() + " Cannot remove component!").toString());
         }
@@ -162,11 +162,11 @@ export class Entity implements IEntity {
         }
     }
 
-    public removeAllComponent() {
+    public removeAllComponentData() {
         this._componentTypes.removeAllComponent();
     }
 
-    public hasComponent(type: number): boolean {
+    public hasComponentData(type: number): boolean {
         return this._componentTypes.hasComponent(type);
     }
 

@@ -5,6 +5,12 @@ import { UUID } from "../utils";
 import { getSystemClassNames } from "../decorator/Decorator";
 import { Constructor, IEntity, IEntityManager, ISystem } from "../lib.cck";
 import { js } from "cc";
+import { BeginInitializationEntityCommandBufferSystem } from "./BeginInitializationEntityCommandBufferSystem";
+import { BeginSimulationEntityCommandBufferSystem } from "./BeginSimulationEntityCommandBufferSystem";
+import { BeginPresentationEntityCommandBufferSystem } from "./BeginPresentationEntityCommandBufferSystem";
+import { EndInitializationEntityCommandBufferSystem } from "./EndInitializationEntityCommandBufferSystem";
+import { EndSimulationEntityCommandBufferSystem } from "./EndSimulationEntityCommandBufferSystem";
+import { EndPresentationEntityCommandBufferSystem } from "./EndPresentationEntityCommandBufferSystem";
 
 /**
  * ECS中的默认世界
@@ -131,14 +137,18 @@ export class World {
             system.setID(UUID.randomUUID());
             system.setPool(this._entityManager);
             system.create();
+            //首先给基础的三个根系统组增加Begin的EntityCommandBufferSystem系统
             if (system instanceof InitializationSystemGroup) {
                 this._initializationSystem = system;
+                this._initializationSystem.addSystemToUpdateList(new BeginInitializationEntityCommandBufferSystem());
             }
             else if (system instanceof SimulationSystemGroup) {
                 this._simulationSystem = system;
+                this._simulationSystem.addSystemToUpdateList(new BeginSimulationEntityCommandBufferSystem());
             }
             else if (system instanceof PresentationSystemGroup) {
                 this._presentationSystem = system;
+                this._presentationSystem.addSystemToUpdateList(new BeginPresentationEntityCommandBufferSystem());
             }
             else {
                 //把其他非根系统组的各子系统加入到根系统组里
@@ -150,7 +160,9 @@ export class World {
         //增加子系统，遍历三个根系统组，检查其中的子系统是否为系统组（姑且称为子系统组），并且是subSystems里面子系统的系统组
         //如果是，则把子系统加入到对应的子系统组
         this.addSystemToGroup(subSystems);
-
+        this._initializationSystem.addSystemToUpdateList(new EndInitializationEntityCommandBufferSystem());
+        this._simulationSystem.addSystemToUpdateList(new EndSimulationEntityCommandBufferSystem());
+        this._presentationSystem.addSystemToUpdateList(new EndPresentationEntityCommandBufferSystem());
         this._systems.concat(
             this._initializationSystem.subSystems, 
             this._simulationSystem.subSystems, 
