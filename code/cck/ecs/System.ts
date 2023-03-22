@@ -2,12 +2,12 @@ import { SystemDoesNotHaveNameException } from "./exceptions/SystemDoesNotHaveNa
 import { ECS_DEBUG } from "./ECSDef";
 import { utils } from "../utils";
 import { setParentType } from "../decorator/Decorator";
-import { IEntity, IEntityManager, ISystem } from "../lib.cck";
+import { IBaseEntity, IEntityManager, ISystem } from "../lib.cck";
 
 /**
  * 系统类
  */
-export abstract class System<T extends IEntity> implements ISystem<T> {
+export abstract class System<T extends IBaseEntity> implements ISystem<T> {
     private static createIndexes: number = 0;
 
     private _ID: string;
@@ -18,11 +18,12 @@ export abstract class System<T extends IEntity> implements ISystem<T> {
     protected _enabled: boolean;
     
     constructor() {
-        this._ID          = '';
+        this._ID          = "";
         this._enabled     = true;
         this._createIndex = System.createIndexes++;
         if (utils.isUndefined(this._name)) {
-            this._name = this['__classname__'];
+            this._name = this["__classname__"];
+            if (!this._name) this._name = this["__cid__"];
             if (utils.isUndefined(this._name) || utils.isNull(this._name) || this._name.length === 0) {
                 throw new Error(new SystemDoesNotHaveNameException(this._createIndex, this.toString()).toString());
             }
@@ -32,7 +33,7 @@ export abstract class System<T extends IEntity> implements ISystem<T> {
     public get ID(): string { return this._ID; }
     public get name(): string { return this._name; }
     public set enabled(val: boolean) { 
-        if (typeof val === 'boolean') {
+        if (typeof val === "boolean") {
             this._enabled = val; 
             if (!val) {
                 this.onDisable();

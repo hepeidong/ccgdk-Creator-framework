@@ -1,12 +1,12 @@
-import { IEntity, IEntityArchetype, IEntityManager, IMatcher } from "../lib.cck";
+import { IBaseEntity, IEntityArchetype, IEntityManager, IMatcher } from "../lib.cck";
 import { removeElement } from "./ecs-utils";
 import { MatchingMethodHasBeenSelectedException } from "./exceptions/MatchingMethodHasBeenSelectedException";
 import { World } from "./World";
 
-/**-1（不符合任何匹配类型），0（符合all匹配类型），1（符合any匹配类型），2（符合none匹配类型） */
-type MatcherType = -1|0|1|2;
+/**-1（不符合任何匹配类型），0（继续完成匹配），1（符合all匹配类型），2（符合any匹配类型），3（符合none匹配类型） */
+type MatcherType = -1|0|1|2|3;
 
-export class Matcher<T extends IEntity> implements IMatcher<T> {
+export class Matcher<T extends IBaseEntity> implements IMatcher<T> {
     private _currType: MatcherType;
     private _cacheEntities: T[];
     private _manager: IEntityManager<T>;
@@ -17,19 +17,28 @@ export class Matcher<T extends IEntity> implements IMatcher<T> {
         manager.onArchetypeChunkChange.add(this.onArchetypeChunkChange.bind(this));
     }
 
-    public static forEach<T extends IEntity>(callback: (entity: T) => void) {
+    /**遍历所有实体 */
+    public static forEach<T extends IBaseEntity>(callback: (entity: T) => void) {
         const entities = World.instance.entityManager.getEntities();
         entities.forEach(callback);
     }
 
+    /**
+     *  必须包含指定的组件中所有的组件类型
+     * @param args 
+     * @returns 
+     */
     public withAll(...args: number[]) {
         if (this._currType > -1) {
             throw new Error(new MatchingMethodHasBeenSelectedException('withAll').toString());
         }
         if (!this._cacheEntities) {
             this._currType = 0;
-            this.mergeEntity(args, (group, type) => {
-                if (group.types.indexOf(type) === -1) {
+            this.mergeEntity(args, (group, type, index) => {
+                if (group.types.indexOf(type) > -1) {
+                    if (args.length === index + 1) {
+                        return 1;
+                    }
                     return 0;
                 }
                 return -1
@@ -38,6 +47,11 @@ export class Matcher<T extends IEntity> implements IMatcher<T> {
         return this;
     }
 
+    /**
+     * 必须包含指定的组件中至少一个组件类型
+     * @param args 
+     * @returns 
+     */
     public withAny(...args: number[]) {
         if (this._currType > -1) {
             throw new Error(new MatchingMethodHasBeenSelectedException('withAny').toString());
@@ -45,15 +59,20 @@ export class Matcher<T extends IEntity> implements IMatcher<T> {
         if (!this._cacheEntities) {
             this._currType = 1;
             this.mergeEntity(args, (group, type) => {
-                if (group.types.indexOf(type) >= 0) {
-                    return 1;
+                if (group.types.indexOf(type) > -1) {
+                    return 2;
                 }
-                return -1;
+                return 0;
             });
         }
         return this;
     }
 
+    /**
+     * 不能包含指定的组件中任意一个组件类型
+     * @param args 
+     * @returns 
+     */
     public withNone(...args: number[]) {
         if (this._currType > -1) {
             throw new Error(new MatchingMethodHasBeenSelectedException('withNone').toString());
@@ -61,8 +80,11 @@ export class Matcher<T extends IEntity> implements IMatcher<T> {
         if (!this._cacheEntities) {
             this._currType = 2;
             this.mergeEntity(args, (group, type, index) => {
-                if (group.types.indexOf(type) === -1 && args.length === index + 1) {
-                    return 2;
+                if (group.types.indexOf(type) === -1) {
+                    if (args.length === index + 1) {
+                        return 3;
+                    }
+                    return 0;
                 }
                 return -1;
             });
@@ -70,6 +92,7 @@ export class Matcher<T extends IEntity> implements IMatcher<T> {
         return this;
     }
 
+    /**遍历匹配的实体 */
     public forEach(callback: (entity: T) => void) {
         if (this._cacheEntities) {
             this._cacheEntities.forEach(callback);
@@ -100,11 +123,11 @@ export class Matcher<T extends IEntity> implements IMatcher<T> {
         let flag: number = -1;
         for (let i: number = 0, len = types.length; i < len; ++i) {
             flag = conditionfn(group, types[i], i);
-            if (flag > -1) {
+            if (flag !== 0) {
                 break;
             }
         }
-        if (flag > -1) {
+        if (flag > 0) {
             this._cacheEntities.concat(group.getEntities());
             group.onEntityAdded.add(this.onEntityAdded.bind(this));
             group.onEntityRemoved.add(this.onEntityRemove.bind(this));

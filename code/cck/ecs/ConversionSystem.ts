@@ -1,5 +1,5 @@
-import { Node, Prefab } from "cc"
-import { IPrimaryEntity } from "../lib.cck";
+import { Node, Prefab, instantiate, js } from "cc"
+import { IConversionSystem, IEntity, IPrimaryEntity } from "../lib.cck";
 import { World } from "./World";
 
 type PrefabType = {
@@ -7,7 +7,7 @@ type PrefabType = {
     parent: Node;
 }
 
-export class ConversionSystem {
+export class ConversionSystem implements IConversionSystem {
     private _map: Map<string, PrefabType>;
     constructor() {
         this._map = new Map();
@@ -40,6 +40,15 @@ export class ConversionSystem {
         else {
             throw new Error("'" + key + "'预制体没有预先设置，无法创建初级实体！");
         }
+    }
+
+    public getEntity(entity: IPrimaryEntity) {
+        const name = entity.template.prefab.name;
+        const newEntity = World.instance.entityManager.createEntity(name) as IEntity;
+        const newNode = instantiate(entity.template.prefab);
+        js.mixin(newEntity, newNode);
+        entity.template.parent.addChild(newEntity);
+        return newEntity;
     }
 
     private to(name: string, parent: Node) {

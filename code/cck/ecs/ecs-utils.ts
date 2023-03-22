@@ -1,4 +1,4 @@
-import { IEntity } from "../lib.cck";
+import { IBaseEntity } from "../lib.cck";
 
 export function has(obj: any, key: string) {
     return key in obj;
@@ -17,7 +17,7 @@ export function removeElement(array: any[], i: number, len?: number) {
     return {i, len};
 }
 
-export function entityIndexOf(array: IEntity[], member: IEntity) {
+export function entityIndexOf(array: IBaseEntity[], member: IBaseEntity) {
     for (let i: number = 0, len = array.length; i < len; ++i) {
         if (array[i].ID === member.ID) {
             return i;

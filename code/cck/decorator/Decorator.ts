@@ -1,6 +1,6 @@
 import { js } from "cc";
 import { EDITOR } from "cc/env";
-import { Constructor, IEntity, ISystem, ISystemGroup } from "../lib.cck";
+import { Constructor, IBaseEntity, IConvertToEntity, ISystem, ISystemGroup } from "../lib.cck";
 import { STARTUP } from "../Define";
 
 
@@ -254,7 +254,7 @@ function updateInGroup<T extends ISystemGroup>(target: {new (): T}) {
  * 在指定的系统之前更新
  * @param target 
  */
-function updateBefore<T extends ISystem<IEntity>>(target: {new (): T}) {
+function updateBefore<T extends ISystem<IBaseEntity>>(target: {new (): T}) {
     if (EDITOR) {
         return function () {}
     }
@@ -267,7 +267,7 @@ function updateBefore<T extends ISystem<IEntity>>(target: {new (): T}) {
  * 在指定的系统之后更新
  * @param target 
  */
-function updateAfter<T extends ISystem<IEntity>>(target: {new (): T}) {
+function updateAfter<T extends ISystem<IBaseEntity>>(target: {new (): T}) {
     if (EDITOR) {
         return function () {}
     }
@@ -275,6 +275,18 @@ function updateAfter<T extends ISystem<IEntity>>(target: {new (): T}) {
         setUpdateAfter(target, constructor);
     }
 }
+
+const _classRefList = [];
+function convertToEntity(target: Function extends IConvertToEntity ? Function : Function) {
+    if (!EDITOR) {
+        _classRefList.push(target.prototype);
+    }
+    
+}
+
+export function getClassRefList() { return _classRefList; }
+
+export const list = _classRefList;
 
 export const decorator = {
     startScene,
@@ -287,5 +299,6 @@ export const decorator = {
     bundle,
     updateInGroup,
     updateBefore,
-    updateAfter
+    updateAfter,
+    convertToEntity
 }

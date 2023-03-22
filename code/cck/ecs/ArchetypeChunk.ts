@@ -3,11 +3,11 @@ import { ECS_DEBUG } from "./ECSDef";
 import { entityIndexOf, removeElement } from "./ecs-utils";
 import { EntityArchetype } from "./EntityArchetype";
 import { UUID } from "../utils";
-import { ArchetypeChunkChange, IArchetypeChunk, IArchetypeChunkChange, IEntitiesGroup, IEntity, IEntityArchetype, IEntityManager } from "../lib.cck";
+import { ArchetypeChunkChange, IArchetypeChunk, IArchetypeChunkChange, IEntitiesGroup, IBaseEntity, IEntityArchetype, IEntityManager } from "../lib.cck";
 import { tools } from "../tools";
 import { EventSystem } from "../event/EventSystem";
 
-export class ArchetypeChunk<T extends IEntity> implements IArchetypeChunk<T> {
+export class ArchetypeChunk<T extends IBaseEntity> implements IArchetypeChunk<T> {
     private _cacheEntities: T[];               //所有实体的缓存
     private _entitiesGroup: IEntitiesGroup<T>; //存放所有正在引用的组
     private _reusableArchetype: tools.ObjectPool<IEntityArchetype<T>>; //组对象池

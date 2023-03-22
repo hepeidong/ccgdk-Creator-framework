@@ -662,20 +662,20 @@ export interface IComponent {}
 
 export interface IComponentMap { [n: number]: IComponent; }
 
-export interface IEntity {
+export interface IBaseEntity {
     readonly enabled: boolean;
     readonly ID: string;
     readonly name: string;
     readonly types: number[];
     readonly groupId: string;
-    readonly onComponentAdded: IEntityChange<EntityChange, IEntityManager<IEntity>>;
-    readonly onComponentRemoved: IEntityChange<EntityChange, IEntityManager<IEntity>>;
-    readonly onEntityReleased: IEntityReleased<EntityReleased, IEntityManager<IEntity>>;
-    readonly onEntityDestroyed: IEntityReleased<EntityReleased, IEntityManager<IEntity>>;
+    readonly onComponentAdded: IEntityChange<EntityChange, IEntityManager<IBaseEntity>>;
+    readonly onComponentRemoved: IEntityChange<EntityChange, IEntityManager<IBaseEntity>>;
+    readonly onEntityReleased: IEntityReleased<EntityReleased, IEntityManager<IBaseEntity>>;
+    readonly onEntityDestroyed: IEntityReleased<EntityReleased, IEntityManager<IBaseEntity>>;
     setEnabled(enabled: boolean): void;
     setID(id: string): void;
     setName(name: string): void;
-    destroy(): void;
+    destroyEntity(): void;
     clear(): void;
     setGroupId(id: string): void;
     addComponentData(componentId: number): void;
@@ -687,17 +687,20 @@ export interface IEntity {
     toString(): string;
 }
 
-export interface IPrimaryEntity extends IEntity {
+export type IEntity = IBaseEntity & Node;
+
+export interface IPrimaryEntity extends IBaseEntity {
     template: {prefab: Node|Prefab;
         parent: Node;}
 }
+ 
 
-export type cck_ecs_entity = Readonly<IEntity>;
+export type cck_ecs_entity = Readonly<IBaseEntity>;
 
-export interface IMatcher<T extends IEntity> {
+export interface IMatcher<T extends IBaseEntity> {
 }
 
-export interface IEntityManager<T extends IEntity> {
+export interface IEntityManager<T extends IBaseEntity> {
     readonly onArchetypeChunkChange: IArchetypeChunkChange<ArchetypeChunkChange, IArchetypeChunk<T>>;
     createEntity(name: string): T;
     destroyEntity(entity: T): void;
@@ -706,7 +709,7 @@ export interface IEntityManager<T extends IEntity> {
     getGroups(): IEntitiesGroup<T>;
 }
 
-export interface ISystem<T extends IEntity = any> {
+export interface ISystem<T extends IBaseEntity = any> {
     readonly ID: string;
     readonly name: string;
     enabled: boolean;
@@ -725,7 +728,7 @@ export interface ISystem<T extends IEntity = any> {
 
 export interface ISystemGroup extends ISystem {}
 
-export interface IEntities { [n: string]: IEntity; }
+export interface IEntities { [n: string]: IBaseEntity; }
 
 export interface IHandler {
     /**handler唯一的id */
@@ -746,7 +749,7 @@ export interface IHandler {
 
 export interface IHandlers { [n: number]: IHandler[]; }
 
-export interface IArchetypeChunk<T extends IEntity> {
+export interface IArchetypeChunk<T extends IBaseEntity> {
     readonly archetypes: IEntitiesGroup<T>;
     createArchetype(manager: IEntityManager<T>, types: number[]): IEntityArchetype<T>;
     getEntities(): T[];
@@ -754,7 +757,7 @@ export interface IArchetypeChunk<T extends IEntity> {
     updateEntity(entity: T, type: number): boolean;
 }
 
-export interface IEntityArchetype<T extends IEntity> {
+export interface IEntityArchetype<T extends IBaseEntity> {
     readonly chunkCapacity: number;
     readonly typesCount: number;
     readonly version: string;
@@ -776,36 +779,47 @@ export interface IEntityArchetype<T extends IEntity> {
     toString(): string;
 }
 
-export interface IEntitiesGroup<T extends IEntity> { [n: string]: Readonly<IEntityArchetype<T>>; }
+export interface IConversionSystem {
+    add(prefab: Node|Prefab): {to: (parent: Node) => void};
+    getPrimaryEntity(prefab: Node|Prefab): IPrimaryEntity;
+    getEntity(entity: IPrimaryEntity): IEntity;
+}
 
-export interface EntityReleased extends IListener { (entity: IEntity): void; }
+export interface IConvertToEntity {
+    declareReference(conversionSystem: IConversionSystem): void;
+    convert(conversionSystem: IConversionSystem): void;
+}
+
+export interface IEntitiesGroup<T extends IBaseEntity> { [n: string]: Readonly<IEntityArchetype<T>>; }
+
+export interface EntityReleased extends IListener { (entity: IBaseEntity): void; }
 export interface IEntityReleased<T, E> extends ISignal<T, E> {
-    dispatch(entity: IEntity): void;
+    dispatch(entity: IBaseEntity): void;
 }
 
-export interface EntityChange extends IListener { (entity: IEntity, componentIndex: number): void; }
+export interface EntityChange extends IListener { (entity: IBaseEntity, componentIndex: number): void; }
 export interface IEntityChange<T, E> extends ISignal<T, E> {
-    dispatch(entity: IEntity, componentIndex: number): void;
+    dispatch(entity: IBaseEntity, componentIndex: number): void;
 }
 
-export interface EntityChangeInGroup extends IListener { (entity: IEntity): void; }
+export interface EntityChangeInGroup extends IListener { (entity: IBaseEntity): void; }
 export interface IEntityChangeInGroup<T, E> extends ISignal<T, E> {
-    dispatch(entity: IEntity): void;
+    dispatch(entity: IBaseEntity): void;
 }
 
-export interface GroupChange extends IListener { (entity: IEntityArchetype<IEntity>): void; }
+export interface GroupChange extends IListener { (entity: IEntityArchetype<IBaseEntity>): void; }
 export interface IGroupChange<T, E> extends ISignal<T, E> {
-    dispatch(group: IEntityArchetype<IEntity>): void;
+    dispatch(group: IEntityArchetype<IBaseEntity>): void;
 }
 
-export interface ArchetypeChunkChange extends IListener { (archetype: IEntityArchetype<IEntity>): void; }
+export interface ArchetypeChunkChange extends IListener { (archetype: IEntityArchetype<IBaseEntity>): void; }
 export interface IArchetypeChunkChange<T, E> extends ISignal<T, E> {
-    dispatch(archetype: IEntityArchetype<IEntity>): void;
+    dispatch(archetype: IEntityArchetype<IBaseEntity>): void;
 }
 
-export interface MatcherInit extends IListener { (entities: IEntity[]): void;}
+export interface MatcherInit extends IListener { (entities: IBaseEntity[]): void;}
 export interface IMatcherInit<T, E> extends ISignal<T, E> {
-    dispatch(entities: IEntity[]): void;
+    dispatch(entities: IBaseEntity[]): void;
 }
 
 /*********************************************************************************************/

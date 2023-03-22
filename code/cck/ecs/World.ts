@@ -2,9 +2,9 @@ import { InitializationSystemGroup, PresentationSystemGroup, SimulationSystemGro
 import { EntityManager } from "./EntityManager";
 import { asUpdateInGroup, removeElement } from "./ecs-utils";
 import { UUID } from "../utils";
-import { getSystemClassNames } from "../decorator/Decorator";
-import { Constructor, IEntity, IEntityManager, ISystem } from "../lib.cck";
-import { js } from "cc";
+import { getClassRefList, getSystemClassNames } from "../decorator/Decorator";
+import { Constructor, IBaseEntity, IEntityManager, ISystem } from "../lib.cck";
+import { director, ISchedulable, js, Scheduler } from "cc";
 import { BeginInitializationEntityCommandBufferSystem } from "./BeginInitializationEntityCommandBufferSystem";
 import { BeginSimulationEntityCommandBufferSystem } from "./BeginSimulationEntityCommandBufferSystem";
 import { BeginPresentationEntityCommandBufferSystem } from "./BeginPresentationEntityCommandBufferSystem";
@@ -15,17 +15,23 @@ import { EndPresentationEntityCommandBufferSystem } from "./EndPresentationEntit
 /**
  * ECS中的默认世界
  */
-export class World {
+export class World implements ISchedulable {
     private static _ins: World = null;
     protected _classNames: string[];
-    private _entityManager: IEntityManager<IEntity>;
+    private _id: string;
+    private _uuid: string;
+    private _entityManager: IEntityManager<IBaseEntity>;
     private _initializationSystem: InitializationSystemGroup;
     private _simulationSystem: SimulationSystemGroup;
     private _presentationSystem: PresentationSystemGroup;
-    private _systems: ISystem<IEntity>[];
+    private _systems: ISystem<IBaseEntity>[];
+    private _convertMap: Map<string, any>;
     constructor() {
+        this._id = "DefaultWorld";
+        this._uuid = UUID.randomUUID();
         this._classNames = [];
         this._systems    = [];
+        this._convertMap = new Map();
     }
 
     public static get instance() {
@@ -35,10 +41,12 @@ export class World {
         return this._ins;
     }
 
-    public get entityManager(): Readonly<IEntityManager<IEntity>> { return this._entityManager; }
-    public get systems(): Readonly<ISystem<IEntity>[]> { return this._systems; }
+    public get id() { return this._id; }
+    public get uuid() { return this._uuid; }
+    public get entityManager(): Readonly<IEntityManager<IBaseEntity>> { return this._entityManager; }
+    public get systems(): Readonly<ISystem<IBaseEntity>[]> { return this._systems; }
 
-    public getSystem<T extends ISystem<IEntity>>(type: {new (): T}): T;
+    public getSystem<T extends ISystem<IBaseEntity>>(type: {new (): T}): T;
     public getSystem(className: string): any;
     public getSystem() {
         if (typeof arguments[0] === 'string') {
@@ -63,7 +71,7 @@ export class World {
      * World.instance.destroySystem(MyTestSystem);
      * World.instance.destroySystem('MyTestSystem');
      */
-    public destroySystem<T extends ISystem<IEntity>>(type: {new (): T}): void;
+    public destroySystem<T extends ISystem<IBaseEntity>>(type: {new (): T}): void;
     public destroySystem(className: string): void;
     public destroySystem() {
         const arg = arguments[0];
@@ -78,7 +86,7 @@ export class World {
         }
     }
 
-    private receiveSys(juage: (sys: ISystem<IEntity>) => boolean) {
+    private receiveSys(juage: (sys: ISystem<IBaseEntity>) => boolean) {
         for (const system of this._systems) {
             if (juage(system)) {
                 return system;
@@ -98,7 +106,7 @@ export class World {
         });
     }
 
-    private removeSys(juage: (sys: ISystem<IEntity>) => boolean) {
+    private removeSys(juage: (sys: ISystem<IBaseEntity>) => boolean) {
         for (let i = 0, len = this._systems.length; i < len; ++i) {
             if (juage(this._systems[i])) {
                 const result = this._systems.splice(i, 1);
@@ -125,15 +133,49 @@ export class World {
      * 定系统更新顺序，则无法保障系统的更新顺序是按照您所希望的顺序进行更新。
      */
     public initializetion(componentNum: {}, totalComponent: number) {
+        const scheduler: Scheduler = director.getScheduler();
+        Scheduler.enableForTarget(this);
+        scheduler.scheduleUpdate(this, -1, false);
         this._entityManager = new EntityManager(componentNum, totalComponent);
         if (this._classNames.length === 0) {
             this._classNames = getSystemClassNames();
         }
-    
-        const subSystems: ISystem<IEntity>[] = [];
+        //初始化系统会把系统按照设定进行排序，以使update的时候，系统按照设定的顺序刷新
+        this.initSystem();
+        //缓存转换对象
+        const list = getClassRefList();
+        for (const ref of list) {
+            let name = ref["__classname__"];
+            if (!name) name = ref["__cid__"];
+            if (!this._convertMap.has(name)) {
+                this._convertMap.set(name, ref);
+            }
+        }
+    }
+
+    public declareReference(thisArg: any) {
+        let name = thisArg["__classname__"];
+        if (!name) name = thisArg["__cid__"];
+        if (this._convertMap.has(name)) {
+            const obj = this._convertMap.get(name);
+            obj.convert.declareReference(thisArg);
+        }
+    }
+
+    public convert(thisArg: any) {
+        let name = thisArg["__classname__"];
+        if (!name) name = thisArg["__cid__"];
+        if (this._convertMap.has(name)) {
+            const obj = this._convertMap.get(name);
+            obj.convert.apply(thisArg);
+        }
+    }
+
+    private initSystem() {
+        const subSystems: ISystem<IBaseEntity>[] = [];
         for (const cls of this._classNames) {
             const classRef = js.getClassByName(cls) as Constructor;
-            const system = new classRef() as ISystem<IEntity>;
+            const system = new classRef() as ISystem<IBaseEntity>;
             system.setID(UUID.randomUUID());
             system.setPool(this._entityManager);
             system.create();
@@ -169,7 +211,7 @@ export class World {
             this._presentationSystem.subSystems);
     }
 
-    private addSubSystemToRootGroup(system: ISystem<IEntity>, subSystems: ISystem<IEntity>[]) {
+    private addSubSystemToRootGroup(system: ISystem<IBaseEntity>, subSystems: ISystem<IBaseEntity>[]) {
         const type = asUpdateInGroup(system);
         if (typeof type === 'undefined') {
             this._simulationSystem.addSystemToUpdateList(system);
@@ -199,7 +241,7 @@ export class World {
         }
     }
 
-    private addSystemToGroup(subSystems: ISystem<IEntity>[]) {
+    private addSystemToGroup(subSystems: ISystem<IBaseEntity>[]) {
         for (let i: number = 0, len = subSystems.length; i < len; ++i) {
             const system = subSystems[i];
             let flag: boolean = false;

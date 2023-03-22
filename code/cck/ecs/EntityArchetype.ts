@@ -3,10 +3,10 @@ import { utils } from "../utils";
 import { ECS_DEBUG } from "./ECSDef";
 import { entityIndexOf, removeElement } from "./ecs-utils";
 import { ArchetypeAlreadyReleasedException } from "./exceptions/ArchetypeAlreadyReleasedException";
-import { EntityChangeInGroup, GroupChange, IArchetypeChunk, IEntity, IEntityArchetype, IEntityChangeInGroup, IEntityManager, IGroupChange } from "../lib.cck";
+import { EntityChangeInGroup, GroupChange, IArchetypeChunk, IBaseEntity, IEntityArchetype, IEntityChangeInGroup, IEntityManager, IGroupChange } from "../lib.cck";
 import { EventSystem } from "../event/EventSystem";
 
-export class EntityArchetype<T extends IEntity> implements IEntityArchetype<T> {
+export class EntityArchetype<T extends IBaseEntity> implements IEntityArchetype<T> {
     private _valid: boolean;
     private _name: string;                 //组名
     private _version: string;              //组id, 该组的唯一标示, 与系统id一致
@@ -117,7 +117,7 @@ export class EntityArchetype<T extends IEntity> implements IEntityArchetype<T> {
         if (entity.types.length === this.typesCount) {
             let flag: boolean = true;
             for (let c of this._types) {
-                if (!entity.hasComponent(c)) {
+                if (!entity.hasComponentData(c)) {
                     flag = false;
                     break;
                 }

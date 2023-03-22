@@ -6,14 +6,14 @@ import { ECS_DEBUG } from "./ECSDef";
 import { ComponentTypes } from "./ComponentTypes";
 import { utils } from "../utils";
 import { Debug } from "../Debugger";
-import { EntityChange, EntityReleased, IComponent, IEntity, IEntityChange, IEntityManager, IEntityReleased } from "../lib.cck";
+import { EntityChange, EntityReleased, IComponent, IBaseEntity, IEntityChange, IEntityManager, IEntityReleased } from "../lib.cck";
 import { EventSystem } from "../event/EventSystem";
 
 
 /**
  * 实体类
  */
-export class Entity implements IEntity {
+export class Entity implements IBaseEntity {
     private _ID: string;                      //实体ID， 实体的唯一标识
     private _name: string;                    //实体名
     private _totalComponent: number;          //组件的最大个数，一般是项目当前所有组件的数量
@@ -21,11 +21,11 @@ export class Entity implements IEntity {
     private _groupId: string;              //实体被引用的所有组ID，其数量跟引用计数ref相等
     private _componentTypes: ComponentTypes;  //组件类型
     private _componentNum: {};                //所有的组件枚举
-    private _onComponentAdded: IEntityChange<EntityChange, IEntityManager<IEntity>>;       //增加组件时的事件回调
-    private _onComponentRemoved: IEntityChange<EntityChange, IEntityManager<IEntity>>;     //移除组件时的事件回调
-    private _onEntityReleased: IEntityReleased<EntityReleased, IEntityManager<IEntity>>;   //释放实体时的事件回调
-    private _onEntityDestroyed: IEntityReleased<EntityReleased, IEntityManager<IEntity>>;  //销毁组件时的事件回调
-    constructor(context: IEntityManager<IEntity>, componentNum: {}, totalComponent: number) {
+    private _onComponentAdded: IEntityChange<EntityChange, IEntityManager<IBaseEntity>>;       //增加组件时的事件回调
+    private _onComponentRemoved: IEntityChange<EntityChange, IEntityManager<IBaseEntity>>;     //移除组件时的事件回调
+    private _onEntityReleased: IEntityReleased<EntityReleased, IEntityManager<IBaseEntity>>;   //释放实体时的事件回调
+    private _onEntityDestroyed: IEntityReleased<EntityReleased, IEntityManager<IBaseEntity>>;  //销毁组件时的事件回调
+    constructor(context: IEntityManager<IBaseEntity>, componentNum: {}, totalComponent: number) {
         this._ID       = '';
         this._enabled  = true;
         this._groupId = '';
@@ -50,13 +50,13 @@ export class Entity implements IEntity {
     /**该实体所处的所有组的所有组id */
     public get groupId(): string { return this._groupId; }
     /**组件增加后执行的回调 */
-    public get onComponentAdded(): IEntityChange<EntityChange, IEntityManager<IEntity>> { return this._onComponentAdded; }
+    public get onComponentAdded(): IEntityChange<EntityChange, IEntityManager<IBaseEntity>> { return this._onComponentAdded; }
     /**组件删除后执行的回调 */
-    public get onComponentRemoved(): IEntityChange<EntityChange, IEntityManager<IEntity>> { return this._onComponentRemoved; }
+    public get onComponentRemoved(): IEntityChange<EntityChange, IEntityManager<IBaseEntity>> { return this._onComponentRemoved; }
     /**该实体释放时的回调 */
-    public get onEntityReleased(): IEntityReleased<EntityReleased, IEntityManager<IEntity>> { return this._onEntityReleased; }
+    public get onEntityReleased(): IEntityReleased<EntityReleased, IEntityManager<IBaseEntity>> { return this._onEntityReleased; }
     /**该实体销毁时的回调 */
-    public get onEntityDestroyed(): IEntityReleased<EntityReleased, IEntityManager<IEntity>> { return this._onEntityDestroyed; }
+    public get onEntityDestroyed(): IEntityReleased<EntityReleased, IEntityManager<IBaseEntity>> { return this._onEntityDestroyed; }
 
     private initialize() {
         for (let i: number = 0; i < this._totalComponent; ++i) {
@@ -81,7 +81,7 @@ export class Entity implements IEntity {
         this._enabled = enabled;
     }
 
-    public destroy() {
+    public destroyEntity() {
         if (!this._enabled) {
             throw new Error(new EntityAlreadyReleasedException(this.toString()).toString());
         }

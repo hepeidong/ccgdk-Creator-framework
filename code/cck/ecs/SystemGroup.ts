@@ -1,17 +1,17 @@
 import { System } from "./System";
 import { SystemUpdateSequenceSettingException } from "./exceptions/SystemUpdateSequenceSettingException";
 import { asUpdateAfter, asUpdateBefore, asUpdateInGroup, removeElement } from "./ecs-utils";
-import { IEntity, ISystem, ISystemGroup } from "../lib.cck";
+import { IBaseEntity, ISystem, ISystemGroup } from "../lib.cck";
 
-export class SystemGroup extends System<IEntity> implements ISystemGroup {
-    private _subSystems: ISystem<IEntity>[];
+export class SystemGroup extends System<IBaseEntity> implements ISystemGroup {
+    private _subSystems: ISystem<IBaseEntity>[];
     constructor() {
         super();
         this._subSystems = [];
     }
 
     public get subSystems() {
-        const total:ISystem<IEntity>[] = [];
+        const total:ISystem<IBaseEntity>[] = [];
         for (const system of this._subSystems) {
             if (system instanceof SystemGroup) {
                 total.concat(system.subSystems);
@@ -37,7 +37,7 @@ export class SystemGroup extends System<IEntity> implements ISystemGroup {
         }
     }
 
-    public destroySystem<T extends ISystem<IEntity>>(type: {new (): T}): boolean;
+    public destroySystem<T extends ISystem<IBaseEntity>>(type: {new (): T}): boolean;
     public destroySystem(className: string): boolean;
     public destroySystem() {
         if (typeof arguments[0] === 'string') {
@@ -54,7 +54,7 @@ export class SystemGroup extends System<IEntity> implements ISystemGroup {
         }
     }
 
-    private removeSubSystem(juage: (sys: ISystem<IEntity>) => boolean) {
+    private removeSubSystem(juage: (sys: ISystem<IBaseEntity>) => boolean) {
         for (let i: number = 0, len = this._subSystems.length; i < len; ++i) {
             if (juage(this._subSystems[i])) {
                 this._subSystems.splice(i, 1);
@@ -85,11 +85,11 @@ export class SystemGroup extends System<IEntity> implements ISystemGroup {
         }
     }
 
-    public addSystemToUpdateList(system: ISystem<IEntity>) {
+    public addSystemToUpdateList(system: ISystem<IBaseEntity>) {
         this._subSystems.push(system);
     }
 
-    public addSubSystemToGroup(subSys: ISystem<IEntity>) {
+    public addSubSystemToGroup(subSys: ISystem<IBaseEntity>) {
         for (const sys of this._subSystems) {
             if (sys instanceof asUpdateInGroup(subSys)) {
                 (sys as SystemGroup).addSystemToUpdateList(subSys);
@@ -103,7 +103,7 @@ export class SystemGroup extends System<IEntity> implements ISystemGroup {
     }
 
     public sortSystemUpdateList() {
-        const tempList: ISystem<IEntity>[] = [];
+        const tempList: ISystem<IBaseEntity>[] = [];
         //把没有被开发者规定更新顺序的系统率先整理到tempList
         for (let i: number = 0, len = this._subSystems.length; i < len; ++i) {
             let system = this._subSystems[i];
