@@ -5,7 +5,7 @@ import { Proxy } from "../puremvc";
 import { CCHttp } from "./Http";
 
 
-export class CCHttpMessage<T, PT = any> extends Proxy<T> implements IHttpMessage {
+export class CCHttpMessage<T extends IHttpResponse, PT = any> extends Proxy<T> implements IHttpMessage {
     private _param: PT;
     private _http: CCHttp;
     private _resolve: (data?: T) => void;
@@ -77,7 +77,7 @@ export class CCHttpMessage<T, PT = any> extends Proxy<T> implements IHttpMessage
 
     //发起请求
     private async request() {
-        let response: IHttpResponse<T>;
+        let response: T;
         let param: any = this.append();
         Debug.info(`MSG ${this.getProxyName()} param:`, param);
         if (this.METHOD && this.METHOD.length > 0) {
@@ -96,16 +96,16 @@ export class CCHttpMessage<T, PT = any> extends Proxy<T> implements IHttpMessage
     }
 
     //数据解析
-    private dataPars(response: IHttpResponse<T>) {
+    private dataPars(response: T) {
         if (typeof response === 'string') {
             response = JSON.parse(response);
         }
         // Debug.info(`MSG ${this.METHOD} 原始数据`, response);
-        if (response.code === 200) {
+        if (response.code === 0) {
             Debug.info('MSG', this.METHOD, this.getProxyName());
-            this.setData(response.data);
-            SAFE_CALLBACK_CALLER(this.onMessage, this, response.data);
-            SAFE_CALLBACK(this._resolve, response.data);
+            this.setData(response);
+            SAFE_CALLBACK_CALLER(this.onMessage, this, response);
+            SAFE_CALLBACK(this._resolve, response);
         }
         else if (response) {
             SAFE_CALLBACK_CALLER(this.onError, this, response.code, response.msg);

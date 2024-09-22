@@ -276,17 +276,14 @@ function updateAfter<T extends ISystem<IBaseEntity>>(target: {new (): T}) {
     }
 }
 
-const _classRefList = [];
+let _classRefList = [];
 function convertToEntity(target: Function extends IConvertToEntity ? Function : Function) {
     if (!EDITOR) {
         _classRefList.push(target.prototype);
     }
-    
 }
 
 export function getClassRefList() { return _classRefList; }
-
-export const list = _classRefList;
 
 export const decorator = {
     startScene,

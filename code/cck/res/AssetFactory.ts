@@ -2,21 +2,25 @@ import { Debug } from "../Debugger";
 import { SAFE_CALLBACK } from "../Define";
 import { ILoader } from "../lib.cck";
 import { Asset, Node, Prefab, resources, Sprite, SpriteAtlas, SpriteFrame } from "cc";
-import { app } from "../app";
 import { Res } from "./Res";
+import { AssetRegister } from "./AssetRegister";
+import { PREVIEW } from "cc/env";
 
 const RESOURCES = resources.name;
+
 
 /**
  * 游戏资源工厂，用于管理每个模块加载的资源，例如每个UI界面，场景的资源
  * 这些资源将会被资源管理模块管理起来，这个类不应该自己在外部调用
  */
 export abstract class AssetFactory {
-    protected _urls: string[];
     
     protected _loader: ILoader;
     protected _finish: number;
+    protected _prefabProgress: number;
+    protected _assetsProgress: number;
     protected _total: number;
+    protected _assetRegister: AssetRegister;
     protected _onProgress: (progress: number) => void;
 
     private _loadedRes: boolean;           //资源是否加载了
@@ -29,17 +33,22 @@ export abstract class AssetFactory {
     constructor(bundle: string) {
         this._bundle = bundle;
         this._finish = 0;
+        this._prefabProgress = 0;
+        this._assetsProgress = 0;
         //最大进度的初始值之所以要为2，是因为所有页面加载，都必须有加载资源包和预制体这两步，
         //其次才是是否有其他资源要加载，即 this._urls 是否不为空
-        this._total = 2;  
-        this._assets = new Map();
+        this._total      = 2;  
+        this._loadedRes  = false;
+        this._loadedView = false;
+        this._assets     = new Map();
+        this._assetRegister = new AssetRegister();
     }
 
     public static create(bundle: string): AssetFactory {
         if (typeof bundle !== 'string') {
             bundle = RESOURCES;
         }
-        if (app.game.platform === app.Platform.PREVIEW) {
+        if (PREVIEW) {
             return new Preview(bundle);
         }
         else {
@@ -49,8 +58,9 @@ export abstract class AssetFactory {
 
     public get loadedRes() { return this._loadedRes; }
     public get loadedView() { return this._loadedView; }
+    public get assetRegister() { return this._assetRegister; }
 
-    protected abstract loadAsset(): Promise<void>;
+    protected abstract loadAsset(): Promise<any>;
 
     /**已经完成了视图的加载，包括依赖资源和视图预制体资源 */
     public isComplete() {
@@ -65,19 +75,12 @@ export abstract class AssetFactory {
         this._assetPath = path;
     }
 
-    /**
-     * 设置依赖资源路径
-     * @param urls 
-     */
-    public setAssetUrls(urls: string[]) {
-        this._urls = this.getUrls(urls);
-    }
-
     public reset() {
         this._loadedRes = false;
         this._loadedView = false;
         this._finish = 0;
         this._total = 2;
+        this._assetRegister.reset();
     }
 
     /**
@@ -148,49 +151,77 @@ export abstract class AssetFactory {
      */
     public loadView(onProgress?: (progress: number) => void) {
         this._onProgress = onProgress;
-        this._total += this._urls.length;
-
         return new Promise<Prefab>((resolve) => {
             this.createLoader().then(loader => {
-                this._finish++;
-                SAFE_CALLBACK(this._onProgress, this._finish / this._total);
                 this._loader = loader;
-
+                this._assetRegister.setLoader(loader);
                 //加载该视图的预制体资源
-                if (!this._loadedView) {
-                    this.loadPrefab().then(asset => {
-                        this._prefabAsset = asset;
-                        this._loadedView = true;
-                        this.loadViewComplete(resolve);
-                    }).catch(err => {
-                        Debug.error('加载页面错误', err);
-                    });
-                }
-                else {
-                    this.loadViewComplete(resolve);
-                }
+                // if (!this._loadedView) {
+                //     this.loadPrefab().then(asset => {
+                //         this._prefabAsset = asset;
+                //         this._loadedView = true;
+                //         this.loadViewComplete(resolve);
+                //     }).catch(err => {
+                //         Debug.error('加载页面错误', err);
+                //     });
+                // }
+                // else {
+                //     this.loadViewComplete(resolve);
+                // }
     
                 //加载视图引用依赖的资源
-                if (!this._loadedRes && this._urls.length > 0) {
-                    this.loadAsset().then(() => {
-                        this._loadedRes = true;
-                        this.loadViewComplete(resolve);
-                    }).catch(err => {
-                        Debug.error('资源加载错误', err);
-                    });
-                }
-                else {
-                    this._loadedRes = true;
-                    this.loadViewComplete(resolve);
-                }
+                // if (!this._loadedRes) {
+                //     this.loadAsset().then(() => {
+                //         this._loadedRes = true;
+                //         this.loadViewComplete(resolve);
+                //     }).catch(err => {
+                //         Debug.error('资源加载错误', err);
+                //     });
+                // }
+                // else {
+                //     this.loadViewComplete(resolve);
+                // }
+
+                this.loadingRes(resolve);
             }).catch(err => {
                 Debug.error('加载资源包错误', err);
             });
         });
     }
 
+    private loadingView(resolve: Function) {
+        //加载该视图的预制体资源
+        if (!this._loadedView) {
+            this.loadPrefab().then(asset => {
+                this._prefabAsset = asset;
+                this._loadedView = true;
+                this.loadViewComplete(resolve);
+            }).catch(err => {
+                Debug.error('加载页面错误', err);
+            });
+        }
+        else {
+            this.loadViewComplete(resolve);
+        }
+    }
+
+    private loadingRes(resolve: Function) {
+        //加载视图引用依赖的资源
+        if (!this._loadedRes) {
+            this.loadAsset().then(() => {
+                this._loadedRes = true;
+                this.loadingView(resolve);
+            }).catch(err => {
+                Debug.error('资源加载错误', err);
+            });
+        }
+        else {
+            this.loadingView(resolve);
+        }
+    }
+
     private loadViewComplete(resolve: Function) {
-        if (this._loadedView && this._loadedRes) {
+        if (this.isComplete()) {
             this._finish = this._total;
             SAFE_CALLBACK(this._onProgress, this._finish / this._total);
             resolve(this._prefabAsset);
@@ -221,9 +252,9 @@ export abstract class AssetFactory {
                 resolve(prefab);
             }
             else {
-                const currentFinish = this._finish;
                 this._loader.load<Prefab>(this._assetPath, Prefab, (finish, total) => {
-                    this._finish = currentFinish + (total > 0 ? finish / total : 0);
+                    this._prefabProgress = total > 0 ? finish / total : 0;
+                    this._finish = this._prefabProgress + this._assetsProgress;
                     this._onProgress?.(this._finish / this._total);
                 }, (err, asset) => {
                     if (err) {
@@ -235,11 +266,6 @@ export abstract class AssetFactory {
             }
         });
         
-    }
-
-    protected getUrls(urls: string[]): string[] { 
-        this._urls = urls;
-        return urls; 
     }
 
     protected addAssets(assets: Asset | Asset[]) {
@@ -266,45 +292,37 @@ export abstract class AssetFactory {
 }
 
 /**预览平台下的游戏资源 */
-class Preview extends AssetFactory {
+class Preview extends AssetFactory { 
 
     public loadAsset() {
-        const promiseArr: Promise<void>[] = [];
-        for (let url of this._urls) {
-            const p = this.loadAssetSync(url).then(assets => {
-                this._finish++;
+        const dirPaths = this.getUrls(this._assetRegister.filePaths);
+        this._assetRegister.dirPaths = this._assetRegister.dirPaths.concat(dirPaths);
+        return new Promise<void>((resolve, reject) => {
+            this._assetRegister.loadAssets(progress => {
+                this._assetsProgress = progress;
+                this._finish = this._prefabProgress + this._assetsProgress;
                 SAFE_CALLBACK(this._onProgress, this._finish / this._total);
+            }).then(assets => {
                 this.addAssets(assets);
+                resolve();
+            }).catch(err => {
+                reject(err);
             });
-            promiseArr.push(p);
-        }
-        return Promise.call(promiseArr) as Promise<void>;
+        });
     }
 
-    protected getUrls(urls: string[]) {
-        this._urls = [];
+    private getUrls(urls: string[]) {
+        const result = [];
         for (let i: number = 0; i < urls.length; ++i) {
-            let temp: string[] = urls[i].split('/');
+            const temp: string[] = urls[i].split('/');
             temp.pop();
             const url = temp.join('/');
-            if (this._urls.indexOf(url) === -1) {
-                this._urls.push(url);
+            if (result.indexOf(url) === -1) {
+                result.push(url);
             }
         }
 
-        return this._urls;
-    }
-
-    private loadAssetSync(path: string) {
-        return new Promise<Asset[]>((resolve, reject) => {
-            this._loader.loadDir(path, (err, asset) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve(asset);
-            });
-        });
+        return result;
     }
 }
 
@@ -312,19 +330,16 @@ class Preview extends AssetFactory {
 class Build extends AssetFactory {
 
     public loadAsset() {
-        const currFinish = this._finish;
-        const len = this._urls.length;
         return new Promise<void>((resolve, reject) => {
-            this._loader.load(this._urls, (finish: number, total: number) => {
-                this._finish = currFinish + (total > 0 ? len * finish / total : 0);
+            this._assetRegister.loadAssets(progress => {
+                this._assetsProgress = progress;
+                this._finish = this._prefabProgress + this._assetsProgress;
                 SAFE_CALLBACK(this._onProgress, this._finish / this._total);
-            }, (err, assets) => {
-                if (err) {
-                    reject(err);
-                    return;
-                } 
+            }).then(assets => {
                 this.addAssets(assets);
                 resolve();
+            }).catch(err => {
+                reject(err);
             });
         });
         

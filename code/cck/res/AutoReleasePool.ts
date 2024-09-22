@@ -2,7 +2,7 @@ import { Debug } from "../Debugger";
 import { IListener } from "../lib.cck";
 import { Assert } from "../exceptions/Assert";
 import { Asset } from "cc";
-import { EventSystem } from "../event/EventSystem";
+import { EventSystem } from "../event";
 
 export class AutoReleasePool {
     private _name: string;
@@ -10,7 +10,7 @@ export class AutoReleasePool {
     constructor(name: string = null) {
         this._name = name;
         this._managedAssetMap = new Map();
-        Assert.instance.handle(Assert.Type.CreateObjectException, this._managedAssetMap, "managedObjectMap");
+        Assert.handle(Assert.Type.CreateObjectException, this._managedAssetMap, "managedObjectMap");
         PoolManager.instance.push(this);
         PoolManager.instance.onClear.add(() => {
             this.clear();
@@ -24,8 +24,8 @@ export class AutoReleasePool {
      */
     public add(asset: Asset): void {
         asset.addRef();
-        if (!this._managedAssetMap.has(asset['_uuid'])) {
-            this._managedAssetMap.set(asset['_uuid'], asset);
+        if (!this._managedAssetMap.has(asset.uuid)) {
+            this._managedAssetMap.set(asset.uuid, asset);
         }
     }
 
@@ -34,11 +34,11 @@ export class AutoReleasePool {
     }
 
     public has(asset: Asset): boolean {
-        return this._managedAssetMap.has(asset['_uuid']);
+        return this._managedAssetMap.has(asset.uuid);
     }
 
     public delete(asset: Asset): boolean {
-        const key = asset['_uuid'];
+        const key = asset.uuid;
         if (this._managedAssetMap.has(key)) {
             const asset = this._managedAssetMap.get(key);
             const flag = asset.refCount <= 1;

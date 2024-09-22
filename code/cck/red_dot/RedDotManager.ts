@@ -37,7 +37,7 @@ export class RedDotManager {
         }
         else {
             let redDotNode: RedDotNode = this.getChildById(redDotId);
-            if (Assert.instance.handle(Assert.Type.FindRedDotException, redDotNode, redDotId)) {
+            if (Assert.handle(Assert.Type.FindRedDotException, redDotNode, redDotId)) {
                 redDotNode.node = node;
                 redDotNode.setContext(target);
                 redDotNode.onChange.add(listener);
@@ -77,7 +77,7 @@ export class RedDotManager {
         }
         else {
             let child: RedDotNode = this.getChildById(redDotId);
-            if (Assert.instance.handle(Assert.Type.FindRedDotException, child, redDotId)) {
+            if (Assert.handle(Assert.Type.FindRedDotException, child, redDotId)) {
                 child.status = status;
                 this.resetParentStatus(child);
             }
@@ -125,7 +125,7 @@ export class RedDotManager {
     private addChildRedDot(parentId: string, childId: string) {
         if (typeof childId === "string") {
             const parent = this._redDotMap[parentId];
-            if (Assert.instance.handle(Assert.Type.RedDotAlreadyExistsException, !parent.containChild(childId), childId)) {
+            if (Assert.handle(Assert.Type.RedDotAlreadyExistsException, !parent.containChild(childId), childId)) {
                 this.addChild(parent, childId);
             }
         }

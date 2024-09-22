@@ -1,5 +1,11 @@
-import { EntityCommandBufferSystem } from "./EntityCommandBufferSystem";
+import { EndEntityCommandBufferSystem } from "./EndEntityCommandBufferSystem";
 
-export class EndInitializationEntityCommandBufferSystem extends EntityCommandBufferSystem {
 
+export class EndInitializationEntityCommandBufferSystem extends EndEntityCommandBufferSystem {
+
+    protected init() {}
+
+    protected onUpdate(dt: number): void {
+        this.applyJobHandler();
+    }
 }

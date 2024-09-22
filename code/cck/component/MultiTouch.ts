@@ -164,7 +164,6 @@ export  class MultiTouch extends Component {
     private origGrFlags: number[] = [];
     /**目标区域凹槽位置标记，0表示没有小球放入，1表示有小球放入 */
     private tarGrFlags: number[] = [];
-    private _targetRect: Rect;
     private _oldPosition: Vec3;
     private _ballCount: number = 0;
     private _ballOriginList: Vec3[] = [];
@@ -176,14 +175,6 @@ export  class MultiTouch extends Component {
     // LIFE-CYCLE CALLBACKS:
 
     onLoad() {
-        let sp: Sprite = this.targetArea.target.getComponent(Sprite);
-        if (sp) {
-            this._targetRect = sp.spriteFrame.getRect();
-        }
-        else {
-            this._targetRect = new Rect(0, 0, 0, 0);
-        }
-
         this.initBall();
         this.initArray(this.origGrFlags, this.originArea.originCount);
         this.initArray(this.tarGrFlags, this.targetArea.grooveCount);
@@ -479,10 +470,10 @@ export  class MultiTouch extends Component {
             let position = utils.EngineUtil.convertPosition(ball, parent);
             let dis: number;
             if (targetList[i].position) {
-                dis = utils.MathUtil.distance(v3(position.x, position.y), targetList[i].position);
+                dis = utils.MathUtil.Vector2D.distance(v3(position.x, position.y), targetList[i].position);
             }
             else {
-                dis = utils.MathUtil.distance(v3(position.x, position.y), targetList[i]);
+                dis = utils.MathUtil.Vector2D.distance(v3(position.x, position.y), targetList[i]);
             }
             min = {dis: dis, index: i};
             if (min.dis > dis && callback(i)) {
@@ -643,7 +634,7 @@ export  class MultiTouch extends Component {
             const ball = this.ballList[data.content.i].ball;
             const parentUI = ball.parent.getComponent(UITransform);
             ball.position = parentUI.convertToNodeSpaceAR(v3(data.content.x, data.content.y));
-            this.ballList[data.content.i].intersect = utils.EngineUtil.inersectJudge(this.targetArea.target, ball, this._targetRect);
+            this.ballList[data.content.i].intersect = utils.EngineUtil.inersectJudge(ball, this.targetArea.target);
             this.ballList[data.content.i].removed = this.removedJudge(ball, data.content.i);
         }
         if (this.touchMoveEvent) {

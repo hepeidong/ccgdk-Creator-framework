@@ -25,7 +25,7 @@ export class NativeSocket extends GameSocket {
     public link(url: string, callback: Function) {
         this._url = url;
         this._socket = new WebSocket(url) as WebSocket;
-        if (Assert.instance.handle(Assert.Type.CreateObjectException, this._socket, "原生webSocket")) {
+        if (Assert.handle(Assert.Type.CreateObjectException, this._socket, "原生webSocket")) {
             SAFE_CALLBACK(callback);
             this._readyState = this._socket.readyState;
             Debug.info(this.toString(), '发起连接');

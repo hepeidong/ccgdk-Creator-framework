@@ -10,26 +10,26 @@
  */
 
 import { decorator } from "../decorator/Decorator";
-import { SystemGroup } from "./SystemGroup";
+import { CCSystemGroup } from "./SystemGroup";
 
 const {cckclass} = decorator;
 
 @cckclass('InitializationSystemGroup')
-export class InitializationSystemGroup extends SystemGroup {
+export class InitializationSystemGroup extends CCSystemGroup {
     constructor() {
         super();
     }
 }
 
 @cckclass('SimulationSystemGroup')
-export class SimulationSystemGroup extends SystemGroup {
+export class SimulationSystemGroup extends CCSystemGroup {
     constructor() {
         super();
     }
 }
 
 @cckclass('PresentationSystemGroup')
-export class PresentationSystemGroup extends SystemGroup {
+export class PresentationSystemGroup extends CCSystemGroup {
     constructor() {
         super();
     }

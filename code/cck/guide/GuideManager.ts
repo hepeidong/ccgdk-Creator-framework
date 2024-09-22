@@ -6,7 +6,7 @@ import { EventType, GuideNormalEvent, Scope } from "./GuideEnum";
 import { GuideSearch } from "./GuideSearch";
 import { Component, director, Node, sys, UITransform, Vec3 } from "cc";
 import { IContainer, IGuideConfig, IGuideView } from "../lib.cck";
-import { EventSystem } from "../event/EventSystem";
+import { EventSystem } from "../event";
 
 
 

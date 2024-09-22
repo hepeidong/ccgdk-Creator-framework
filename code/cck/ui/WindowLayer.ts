@@ -1,6 +1,6 @@
-import { Node, Size, size, UITransform } from "cc";
+import { Layers, Node, Size, size, UITransform } from "cc";
 import { IWindowBase } from "../lib.cck";
-import { MIN_PRIORITY } from "../Define";
+import { MAX_PRIORITY } from "../Define";
 import { app } from "../app";
 import { setPriority } from "../util";
 
@@ -29,9 +29,9 @@ export class WindowLayer {
         ui.height = size.height;
     }
 
-    public init(canvas: Node): boolean {
-        this._centerZIndex = MIN_PRIORITY;
-        this._topZIndex = MIN_PRIORITY;
+    public init(canvas: Node, layer: Layers.Enum): boolean {
+        this._centerZIndex = 0;
+        this._topZIndex = 0;
         //适配后的节点层大小
         const canvasUI = canvas.getComponent(UITransform);
         let canvasSize = size(canvasUI.width, canvasUI.height);
@@ -39,17 +39,20 @@ export class WindowLayer {
         canvasSize.height += app.adapterManager.height * 2;
 
         this._rootLayer = new Node('rootLayer');          //根视图
+        this._rootLayer.layer = layer;
         setPriority(this._rootLayer, 0);
         canvas.addChild(this._rootLayer);
         this.setContentSize(this._rootLayer, canvasSize);
 
         this._centerLayer = new Node('centerLayer');      //中心层
-        setPriority(this._centerLayer, 1);
+        this._centerLayer.layer = layer;
+        setPriority(this._centerLayer, MAX_PRIORITY / 2);
         canvas.addChild(this._centerLayer);
         this.setContentSize(this._centerLayer, canvasSize);
 
         this._topLayer = new Node('topLayer');            //顶层
-        setPriority(this._topLayer, 2);
+        this._topLayer.layer = layer;
+        setPriority(this._topLayer, MAX_PRIORITY);
         canvas.addChild(this._topLayer);
         this.setContentSize(this._topLayer, canvasSize);
         return true;
@@ -75,8 +78,8 @@ export class WindowLayer {
     public addCenterWindow(view: IWindowBase, hasMask: boolean = false): boolean {
         if (!this._centerLayer.getChildByName(view.node.name)) {
             hasMask && app.game.sceneManager.addViewMaskTo(this._centerLayer, view, this._centerZIndex++);
-            this._centerLayer.addChild(view.node);
             setPriority(view.node, this._centerZIndex);
+            this._centerLayer.addChild(view.node);
             return true;
         }
         return false;
@@ -90,8 +93,8 @@ export class WindowLayer {
     public addTopWindow(view: IWindowBase, hasMask: boolean = false): boolean {
         if (!this._topLayer.getChildByName(view.node.name)) {
             hasMask && app.game.sceneManager.addViewMaskTo(this._topLayer, view, this._topZIndex++);
-            this._topLayer.addChild(view.node);
             setPriority(view.node, this._topZIndex);
+            this._topLayer.addChild(view.node);
             return true;
         }
         return false;

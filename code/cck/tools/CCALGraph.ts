@@ -47,7 +47,7 @@ export class CCALGraph {
      */
     public static create(type: GraphType = GraphType.UDG): CCALGraph {
         let alGraph: CCALGraph = new CCALGraph(type);
-        Assert.instance.handle(Assert.Type.CreateObjectException, alGraph, "ALGraph");
+        Assert.handle(Assert.Type.CreateObjectException, alGraph, "ALGraph");
         return alGraph;
     }
 
@@ -93,7 +93,7 @@ export class CCALGraph {
 
     /**插入一条边 */
     public insertEdge(staVex: number, adjVex: number, weight: number = 1): boolean {
-        if (Assert.instance.handle(Assert.Type.InsertEdgeException, staVex !== adjVex, `{${staVex}, ${adjVex}}`)) {
+        if (Assert.handle(Assert.Type.InsertEdgeException, staVex !== adjVex, `{${staVex}, ${adjVex}}`)) {
             if (this._graph_t === GraphType.DG) {
                 //有向图的边指向其中一个顶点
                 return this.addEdge(staVex, adjVex, weight);
@@ -108,7 +108,7 @@ export class CCALGraph {
 
     /**删除一个顶点 */
     public deleteVertex(vt: cck_alGraph_vertex_type): boolean {
-        if (!Assert.instance.handle(Assert.Type.DeleteVertexException, vt, typeof vt)) {
+        if (!Assert.handle(Assert.Type.DeleteVertexException, vt, typeof vt)) {
             return false;
         }
         let adjVex: number = this._adjList.indexOf(vt);
@@ -161,7 +161,7 @@ export class CCALGraph {
 
     /**删除一条边 */
     public deleteEdge(staVex: number, adjVex: number): boolean {
-        if (Assert.instance.handle(Assert.Type.DeleteEdgeException, staVex !== adjVex, `{${staVex}, ${adjVex}}`)) {
+        if (Assert.handle(Assert.Type.DeleteEdgeException, staVex !== adjVex, `{${staVex}, ${adjVex}}`)) {
             if (this._graph_t === GraphType.UDG) {
                 return this.moveEdge(staVex, adjVex) && this.moveEdge(adjVex, staVex);
             }

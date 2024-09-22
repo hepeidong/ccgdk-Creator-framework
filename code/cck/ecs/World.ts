@@ -3,20 +3,22 @@ import { EntityManager } from "./EntityManager";
 import { asUpdateInGroup, removeElement } from "./ecs-utils";
 import { UUID } from "../utils";
 import { getClassRefList, getSystemClassNames } from "../decorator/Decorator";
-import { Constructor, IBaseEntity, IEntityManager, ISystem } from "../lib.cck";
-import { director, ISchedulable, js, Scheduler } from "cc";
+import { Constructor, IBaseEntity, IEntityManager, ISystem, IWorld } from "../lib.cck";
+import { Director, director, ISchedulable, js, Scheduler } from "cc";
 import { BeginInitializationEntityCommandBufferSystem } from "./BeginInitializationEntityCommandBufferSystem";
 import { BeginSimulationEntityCommandBufferSystem } from "./BeginSimulationEntityCommandBufferSystem";
 import { BeginPresentationEntityCommandBufferSystem } from "./BeginPresentationEntityCommandBufferSystem";
 import { EndInitializationEntityCommandBufferSystem } from "./EndInitializationEntityCommandBufferSystem";
 import { EndSimulationEntityCommandBufferSystem } from "./EndSimulationEntityCommandBufferSystem";
 import { EndPresentationEntityCommandBufferSystem } from "./EndPresentationEntityCommandBufferSystem";
+import { Matcher } from "./Matcher";
+import { ConversionSystem } from "./ConversionSystem";
+import { DataPool } from "./ComponentTypes";
 
 /**
  * ECS中的默认世界
  */
-export class World implements ISchedulable {
-    private static _ins: World = null;
+export class CCWorld implements ISchedulable, IWorld {
     protected _classNames: string[];
     private _id: string;
     private _uuid: string;
@@ -26,19 +28,14 @@ export class World implements ISchedulable {
     private _presentationSystem: PresentationSystemGroup;
     private _systems: ISystem<IBaseEntity>[];
     private _convertMap: Map<string, any>;
-    constructor() {
-        this._id = "DefaultWorld";
+    private _conversionSystem: ConversionSystem;
+    protected constructor(id: string) {
+        this._id = id;
         this._uuid = UUID.randomUUID();
         this._classNames = [];
         this._systems    = [];
         this._convertMap = new Map();
-    }
-
-    public static get instance() {
-        if (!this._ins) {
-            this._ins = new World();
-        }
-        return this._ins;
+        this._conversionSystem = new ConversionSystem(this);
     }
 
     public get id() { return this._id; }
@@ -46,7 +43,7 @@ export class World implements ISchedulable {
     public get entityManager(): Readonly<IEntityManager<IBaseEntity>> { return this._entityManager; }
     public get systems(): Readonly<ISystem<IBaseEntity>[]> { return this._systems; }
 
-    public getSystem<T extends ISystem<IBaseEntity>>(type: {new (): T}): T;
+    public getSystem<T extends ISystem<IBaseEntity>>(type: {new (...args: any[]): T}): T;
     public getSystem(className: string): any;
     public getSystem() {
         if (typeof arguments[0] === 'string') {
@@ -68,8 +65,8 @@ export class World implements ISchedulable {
      * @param typeOrClassName 要销毁的系统类或者系统的类名
      * 
      * @example
-     * World.instance.destroySystem(MyTestSystem);
-     * World.instance.destroySystem('MyTestSystem');
+     * CCWorld.instance.destroySystem(MyTestSystem);
+     * CCWorld.instance.destroySystem('MyTestSystem');
      */
     public destroySystem<T extends ISystem<IBaseEntity>>(type: {new (): T}): void;
     public destroySystem(className: string): void;
@@ -115,15 +112,28 @@ export class World implements ISchedulable {
         }
     }
 
-    public start() {
-        this._initializationSystem.start();
-        this._simulationSystem.start();
-        this._presentationSystem.start();
+    private createdSystem() {
+        this._initializationSystem.create();
+        this._simulationSystem.create();
+        this._presentationSystem.create();
     }
 
-    public update(dt?: number) {
+    private beforeUpdate(dt: number) {
         this._initializationSystem.update(dt);
+        if (!this._simulationSystem.startRan) {
+            this._simulationSystem.start();
+        }
+    }
+
+    /**世界刷新函数，不能外部调用 */
+    update(dt: number) {
         this._simulationSystem.update(dt);
+        if (!this._presentationSystem.startRan) {
+            this._presentationSystem.start();
+        }
+    }
+
+    private afterUpdate(dt: number) {
         this._presentationSystem.update(dt);
     }
 
@@ -133,15 +143,84 @@ export class World implements ISchedulable {
      * 定系统更新顺序，则无法保障系统的更新顺序是按照您所希望的顺序进行更新。
      */
     public initializetion(componentNum: {}, totalComponent: number) {
-        const scheduler: Scheduler = director.getScheduler();
-        Scheduler.enableForTarget(this);
-        scheduler.scheduleUpdate(this, -1, false);
+        Matcher.initPriority();
         this._entityManager = new EntityManager(componentNum, totalComponent);
         if (this._classNames.length === 0) {
             this._classNames = getSystemClassNames();
         }
         //初始化系统会把系统按照设定进行排序，以使update的时候，系统按照设定的顺序刷新
         this.initSystem();
+        this.createdSystem();
+        //缓存转换对象
+        this.cacheConvertObject();
+        //绑定update定时器
+        const scheduler: Scheduler = director.getScheduler();
+        Scheduler.enableForTarget(this);
+        scheduler.scheduleUpdate(this, -1, false);
+        director.on(Director.EVENT_BEFORE_UPDATE, this.beforeUpdate, this);
+        director.on(Director.EVENT_AFTER_UPDATE, this.afterUpdate, this);
+        this._initializationSystem.start();
+    }
+
+    public destroyWorld() {
+        const scheduler: Scheduler = director.getScheduler();
+        scheduler.unscheduleUpdate(this);
+        director.off(Director.EVENT_BEFORE_UPDATE, this.beforeUpdate, this);
+        director.off(Director.EVENT_AFTER_UPDATE, this.afterUpdate, this);
+        DataPool.destroy();
+    }
+
+    /**
+     * 声明预制体，对需要转换为实体的预制体进行预先声明
+     * @param thisArg 
+     */
+    public declareReference(thisArg: any) {
+        let name = thisArg["__classname__"];
+        if (!name) name = thisArg["__cid__"];
+        if (this._convertMap.has(name)) {
+            thisArg.declareReference(this._conversionSystem);
+        }
+    }
+
+    /**
+     * 把已经预先声明的预制体转换为实体
+     * @param thisArg 
+     */
+    public convert(thisArg: any) {
+        let name = thisArg["__classname__"];
+        if (!name) name = thisArg["__cid__"];
+        if (this._convertMap.has(name)) {
+            thisArg.convert(this._conversionSystem);
+        }
+    }
+
+    public getBeginCommandBuffer(type: CCWorld.CommandBuffer) {
+        switch(type) {
+            case CCWorld.CommandBuffer.InitializationCommandBuffer:
+                return this.getSystem(BeginInitializationEntityCommandBufferSystem);
+
+            case CCWorld.CommandBuffer.PresentationCommandBuffer:
+                return this.getSystem(BeginPresentationEntityCommandBufferSystem);
+
+            case CCWorld.CommandBuffer.SimulationCommandBuffer:
+                return this.getSystem(BeginSimulationEntityCommandBufferSystem);
+        }
+    }
+
+    public getEndCommandBuffer(type: CCWorld.CommandBuffer) {
+        switch(type) {
+            case CCWorld.CommandBuffer.InitializationCommandBuffer:
+                return this.getSystem(EndInitializationEntityCommandBufferSystem);
+
+            case CCWorld.CommandBuffer.PresentationCommandBuffer:
+                return this.getSystem(EndPresentationEntityCommandBufferSystem);
+
+            case CCWorld.CommandBuffer.SimulationCommandBuffer:
+                return this.getSystem(EndSimulationEntityCommandBufferSystem);
+        }
+    }
+
+    private cacheConvertObject() {
         //缓存转换对象
         const list = getClassRefList();
         for (const ref of list) {
@@ -152,45 +231,32 @@ export class World implements ISchedulable {
             }
         }
     }
-
-    public declareReference(thisArg: any) {
-        let name = thisArg["__classname__"];
-        if (!name) name = thisArg["__cid__"];
-        if (this._convertMap.has(name)) {
-            const obj = this._convertMap.get(name);
-            obj.convert.declareReference(thisArg);
-        }
-    }
-
-    public convert(thisArg: any) {
-        let name = thisArg["__classname__"];
-        if (!name) name = thisArg["__cid__"];
-        if (this._convertMap.has(name)) {
-            const obj = this._convertMap.get(name);
-            obj.convert.apply(thisArg);
-        }
-    }
-
+   
     private initSystem() {
         const subSystems: ISystem<IBaseEntity>[] = [];
+        const endInitializationEntityCommandBufferSystem = new EndInitializationEntityCommandBufferSystem();
+        const endSimulationEntityCommandBufferSystem = new EndSimulationEntityCommandBufferSystem();
+        const endPresentationEntityCommandBufferSystem = new EndPresentationEntityCommandBufferSystem();
         for (const cls of this._classNames) {
             const classRef = js.getClassByName(cls) as Constructor;
             const system = new classRef() as ISystem<IBaseEntity>;
-            system.setID(UUID.randomUUID());
             system.setPool(this._entityManager);
-            system.create();
+            system.setMatcher(new Matcher(this._entityManager, system));
             //首先给基础的三个根系统组增加Begin的EntityCommandBufferSystem系统
             if (system instanceof InitializationSystemGroup) {
                 this._initializationSystem = system;
-                this._initializationSystem.addSystemToUpdateList(new BeginInitializationEntityCommandBufferSystem());
+                this._initializationSystem.setEndEntityCommandBufferSystem(endInitializationEntityCommandBufferSystem);
+                this._initializationSystem.addSystemToUpdateList(new BeginInitializationEntityCommandBufferSystem(this._conversionSystem));
             }
             else if (system instanceof SimulationSystemGroup) {
                 this._simulationSystem = system;
-                this._simulationSystem.addSystemToUpdateList(new BeginSimulationEntityCommandBufferSystem());
+                this._simulationSystem.setEndEntityCommandBufferSystem(endSimulationEntityCommandBufferSystem);
+                this._simulationSystem.addSystemToUpdateList(new BeginSimulationEntityCommandBufferSystem(this._conversionSystem));
             }
             else if (system instanceof PresentationSystemGroup) {
                 this._presentationSystem = system;
-                this._presentationSystem.addSystemToUpdateList(new BeginPresentationEntityCommandBufferSystem());
+                this._presentationSystem.setEndEntityCommandBufferSystem(endPresentationEntityCommandBufferSystem);
+                this._presentationSystem.addSystemToUpdateList(new BeginPresentationEntityCommandBufferSystem(this._conversionSystem));
             }
             else {
                 //把其他非根系统组的各子系统加入到根系统组里
@@ -202,10 +268,10 @@ export class World implements ISchedulable {
         //增加子系统，遍历三个根系统组，检查其中的子系统是否为系统组（姑且称为子系统组），并且是subSystems里面子系统的系统组
         //如果是，则把子系统加入到对应的子系统组
         this.addSystemToGroup(subSystems);
-        this._initializationSystem.addSystemToUpdateList(new EndInitializationEntityCommandBufferSystem());
-        this._simulationSystem.addSystemToUpdateList(new EndSimulationEntityCommandBufferSystem());
-        this._presentationSystem.addSystemToUpdateList(new EndPresentationEntityCommandBufferSystem());
-        this._systems.concat(
+        this._initializationSystem.addSystemToUpdateList(endInitializationEntityCommandBufferSystem);
+        this._simulationSystem.addSystemToUpdateList(endSimulationEntityCommandBufferSystem);
+        this._presentationSystem.addSystemToUpdateList(endPresentationEntityCommandBufferSystem);
+        this._systems = this._systems.concat(
             this._initializationSystem.subSystems, 
             this._simulationSystem.subSystems, 
             this._presentationSystem.subSystems);
@@ -267,5 +333,13 @@ export class World implements ISchedulable {
                 len = result.len;
             }
         }
+    }
+}
+
+export namespace CCWorld {
+    export enum CommandBuffer {
+        InitializationCommandBuffer,
+        PresentationCommandBuffer,
+        SimulationCommandBuffer
     }
 }

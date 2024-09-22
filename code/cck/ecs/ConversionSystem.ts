@@ -1,6 +1,7 @@
-import { Node, Prefab, instantiate, js } from "cc"
-import { IConversionSystem, IEntity, IPrimaryEntity } from "../lib.cck";
-import { World } from "./World";
+import { Node, Prefab, instantiate } from "cc"
+import { IConversionSystem, IEntity, IPrimaryEntity, IWorld } from "../lib.cck";
+import { CCWorld } from "./World";
+
 
 type PrefabType = {
     prefab: Node|Prefab;
@@ -9,8 +10,10 @@ type PrefabType = {
 
 export class ConversionSystem implements IConversionSystem {
     private _map: Map<string, PrefabType>;
-    constructor() {
+    private _world: IWorld;
+    constructor(world: IWorld) {
         this._map = new Map();
+        this._world = world;
     }
 
     public add(prefab: Node|Prefab): {to: (parent: Node) => void} {
@@ -31,7 +34,7 @@ export class ConversionSystem implements IConversionSystem {
             const item = this._map.get(key);
             //在当前世界创建一个初级实体
             //再创建一个包含prefab和parent的数据组件，把这个组件加入到该实体上
-            const entity = World.instance.entityManager.createEntity(key) as IPrimaryEntity;
+            const entity = this._world.entityManager.createEntity(key) as IPrimaryEntity;
             entity.template = Object.create(null);
             entity.template.prefab = item.prefab;
             entity.template.parent = item.parent;
@@ -42,13 +45,23 @@ export class ConversionSystem implements IConversionSystem {
         }
     }
 
+    /**
+     * 根据初级实体生成可用的实体
+     * @param entity 
+     * @returns 
+     */
     public getEntity(entity: IPrimaryEntity) {
         const name = entity.template.prefab.name;
-        const newEntity = World.instance.entityManager.createEntity(name) as IEntity;
-        const newNode = instantiate(entity.template.prefab);
-        js.mixin(newEntity, newNode);
-        entity.template.parent.addChild(newEntity);
-        return newEntity;
+        const newEntity = this._world.entityManager.createEntity(name) as IEntity;
+        const newNode = instantiate(entity.template.prefab) as Node;
+        newNode.active = true;
+        entity.template.parent.addChild(newNode);
+        Object.defineProperty(newEntity, "node", {
+            value: newNode,
+            writable: true,
+            configurable: true
+        });
+        return newEntity as IEntity;
     }
 
     private to(name: string, parent: Node) {

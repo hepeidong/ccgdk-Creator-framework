@@ -16,7 +16,7 @@ export class Assert {
         return this._ins;
      }
 
-    public handle(exceptionType: string, condition: any, message?: string) {
+    public static handle(exceptionType: string, condition: any, message?: string) {
         try {
             const exception = this.getException(exceptionType, condition, message);
             return exception.handle();
@@ -26,7 +26,7 @@ export class Assert {
         }
     }
 
-    private getException(exceptionType: string, condition: any, message?: string) {
+    private static getException(exceptionType: string, condition: any, message?: string) {
         const exceptionRef = js.getClassByName(exceptionType) as Constructor;
         const exception = new exceptionRef(message, condition);
         return exception as Exception;
@@ -58,6 +58,7 @@ export namespace Assert {
         RedDotAlreadyExistsException = "RedDotAlreadyExistsException",
         AudioSourceIDException = "AudioSourceIDException",
         ArrayIndexException = "ArrayIndexException",
-        ConfigDataException = "ConfigDataException"
+        ConfigDataException = "ConfigDataException",
+        CircularQueueException = "CircularQueueException"
     }
 }

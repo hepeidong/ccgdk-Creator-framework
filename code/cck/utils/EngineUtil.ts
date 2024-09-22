@@ -1,20 +1,13 @@
 import { SAFE_CALLBACK } from "../Define";
-import { director, EventTouch, Node, Rect, screen, Size, size, tween, UIOpacity, UITransform, v3, Vec2, Vec3, view } from "cc";
+import { director, Node, screen, Size, size, tween, UIOpacity, UITransform, v3, Vec2, Vec3, view } from "cc";
 import { Debug } from "../Debugger";
-import { DateUtil } from "./DateUtil";
 import { MathUtil } from "./MathUtil";
 import { AdapterManager } from "../app/adapter_manager/AdapterManager";
 
+const vec3Temp_1 = new Vec3();
+const vec3Temp_2 = new Vec3();
 
 export  class EngineUtil {
-
-    public static delClicked(target: Node, caller: any, handler: Function): void {
-        target.off(Node.EventType.TOUCH_START, function() {}, this);
-        target.off(Node.EventType.TOUCH_END, function(e: EventTouch) {
-            if (DateUtil.inCD(1000)) return;
-            SAFE_CALLBACK(handler.bind(caller), e);
-        }, this);
-    }
 
     /**
      * 在编辑器内锁定隐藏节点
@@ -28,22 +21,22 @@ export  class EngineUtil {
     }
 
     /**
-     * 某一个节点其坐标点是否在另一节点矩形内
-     * @param target 目标节点
-     * @param currNode 当前节点
+     * 在2D图形下，节点 node1 其坐标点是否在另一节点 node2 矩形内
+     * @param node1 
+     * @param node2 
      */
-    public static inersectJudge(target: Node, currNode: Node, targetRect?: Rect): boolean {
-        const ui = target.getComponent(UITransform);
-        let x1 = - ui.width * ui.anchorX - (targetRect ? targetRect.x : 0);
-        let x2 = ui.width * ui.anchorX + (targetRect ? targetRect.x : 0);
-        let y1 = -ui.height * ui.anchorY - (targetRect ? targetRect.y : 0);
-        let y2 = ui.height * ui.anchorY + (targetRect ? targetRect.y : 0);
-
-        let pos = this.convertPosition(currNode, target);
-        if (pos.x >= x1 && pos.x <= x2 && pos.y >= y1 && pos.y <= y2) {
-            return true;
-        }
-        return false;
+    public static inersectJudge(node1: Node, node2: Node): boolean {
+        const ui = node2.getComponent(UITransform);
+        let pos = this.convertPosition(node1, node2.parent);
+        //计算node2的矩形区域
+        let x1 = ui.width * ui.anchorX - node2.position.x;
+        let y1 = ui.height * (1 - ui.anchorY) + node2.position.y;
+        vec3Temp_1.set(x1, y1); //矩形的左上角
+        let x2 = ui.width * (1 - ui.anchorX) + node2.position.x;
+        let y2 = ui.height * ui.anchorY - node2.position.y;
+        vec3Temp_2.set(x2, y2); //矩形的右下角
+        //判断node1坐标点是否在矩形区域内
+        return MathUtil.Vector2D.inRectangle(pos, vec3Temp_1, vec3Temp_2);
     }
 
     /**
@@ -103,7 +96,7 @@ export  class EngineUtil {
      * @param wxPosition 微信坐标位置
      */
     public static wechatSpaceToCCSpace(wxPosition: Vec2): Vec2 {
-        const { width, height } = view.getFrameSize();
+        const { width, height } = screen.windowSize;
         let scale: number = AdapterManager.instance.rate;
         let x: number = (wxPosition.x - width / 2) / scale;
         let y: number = (height / 2 + wxPosition.y) / scale;
@@ -126,23 +119,15 @@ export  class EngineUtil {
 
 
     /**
-     * 将子节点从当前父节点, 移动到另一个父节点上, 这是一个具有移动速度的移动过程
+     * 将子节点从当前父节点移动到另一个父节点上, 这是一个具有移动速度的移动过程
      * @param child 需要移动的子节点
      * @param toParent 移动到的目标父节点
-     * @param speed 移动速度, 即每秒移动多少的点, 例如500, 即每秒移动500个点
+     * @param speed 移动速度, 即每秒移动多少个点, 例如500, 即每秒移动500个点
      * @param position 移动到目标父节点下的坐标位置, 默认为(0, 0)位置
      * @param start 开始回调
      * @param complate 结束回调
      */
-    public static moveEffect(
-        child: Node, 
-        toParent: Node, 
-        speed: number, 
-        position: Vec3 = v3(0, 0, 0), 
-        start?: (child: Node) => void, 
-        complate?: (child: Node) => void
-        ) 
-    {
+    public static moveEffect(child: Node, toParent: Node, speed: number, position: Vec3 = v3(0, 0, 0), start?: (child: Node) => void, complate?: (child: Node) => void) {
         const ui = child.getComponent(UITransform);
         ui.setAnchorPoint(0.5, 0.5);
         let startX = child.position.x;
@@ -152,7 +137,7 @@ export  class EngineUtil {
         child.parent = toParent;
         child.position.set(pos.x, pos.y);
         //通过距离和速度计算时间
-        let distance: number = MathUtil.distance(v3(pos.x, pos.y), v3(0, 0));
+        let distance: number = MathUtil.Vector2D.distance(v3(pos.x, pos.y), v3(0, 0));
         let time: number = distance / speed; 
         SAFE_CALLBACK(start, child);
         tween<Node>(child).to(time, {position: position}).call(() => {

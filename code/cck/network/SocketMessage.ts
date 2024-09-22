@@ -4,7 +4,7 @@ import { utils } from "../utils";
 import { CCSocket } from "./Socket";
 import { SAFE_CALLBACK_CALLER } from "../Define";
 import { IHandler, ISocketData, ISocketListener, ISocketMessage } from "../lib.cck";
-import { EventSystem } from "../event/EventSystem";
+import { EventSystem } from "../event";
 
 export class CCSocketMessage<T, PT = any> extends Proxy<T> implements ISocketMessage {
     private _socket: CCSocket;

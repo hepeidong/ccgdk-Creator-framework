@@ -1,21 +1,21 @@
 import { Button, Component, EventHandler, Node, Slider } from "cc";
-import { IListener, INotify, IObserverSystem } from "../lib.cck";
+import { IListener, INotify, IEventBus } from "../lib.cck";
 import { Debug } from "../Debugger";
 import { CCObserver } from "./CCObserver";
 import { EventListeners, CCHandler } from "./EventListeners";
-import { ObserverSystem } from "./ObserverSystem";
+import { EventBus } from "./EventBus";
 import { CCSignal } from "./Signal";
 
 
 export class EventSystem {
 
-    private static _observerSys: IObserverSystem = null;
+    private static _eventBus: IEventBus = null;
     /**观察者事件系统 */
-    public static get obs() {
-        if (!this._observerSys) {
-            this._observerSys = new ObserverSystem();
+    public static get eventBus() {
+        if (!this._eventBus) {
+            this._eventBus = new EventBus();
         }
-        return this._observerSys;
+        return this._eventBus;
     }
 
     private static _listener: EventListeners = null;
@@ -106,7 +106,7 @@ export class EventSystem {
 export namespace EventSystem {
     export class Handler extends CCHandler {}
     export class Signal<T extends IListener, E> extends CCSignal<T, E> {}
-    export abstract class Observer<T> extends CCObserver<T> {
+    export abstract class GameObserver<T> extends CCObserver<T> {
         abstract update(notify: INotify<T>): void;
     }
 }

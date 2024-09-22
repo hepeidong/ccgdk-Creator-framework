@@ -199,7 +199,7 @@ export  class BitmapLabel extends Component {
 
     private fontW: number = 0;      //位图字体纹理宽度
     private fontH: number = 0;   //位图字体纹理高度
-    private _texture: __private._cocos_core_assets_texture_base__TextureBase;
+    private _texture: __private._cocos_asset_assets_texture_base__TextureBase;
     private _labelNode: Node;
     private _charSplit: string = '';
     private _cnCharSplit: string = '';

@@ -1,5 +1,7 @@
-import { Node, ResolutionPolicy, screen, size, Size, UITransform, view } from "cc";
+import { Node, ResolutionPolicy, screen, size, Size, UITransform, Vec3, view } from "cc";
 import { Debug } from "../../Debugger";
+
+const _vec3Temp = new Vec3();
 
 /**
  * name: 多分辨率适配
@@ -96,20 +98,23 @@ export class AdapterManager {
     }
     /**适配节点的X轴缩放系数 */
     public adapterScaleX(target: Node) {
-        target.scale.set(this.getScaleX(target), target.scale.y, target.scale.z);
+        _vec3Temp.set(this.getScaleX(target), target.scale.y, target.scale.z);
+        target.scale = _vec3Temp;
     }
     /**适配节点的Y轴缩放系数 */
     public adapterScaleY(target: Node) {
-        target.scale.set(target.scale.x, this.getScaleY(target),target.scale.z);
+        _vec3Temp.set(target.scale.x, this.getScaleY(target),target.scale.z);
+        target.scale = _vec3Temp;
     }
     /**适配节点的缩放系数 */
     public adapterScale(target: Node) {
         const scale = this.getScale(target);
-        target.scale.set(scale, scale, target.scale.z);
+        _vec3Temp.set(scale, scale, target.scale.z);
+        target.scale = _vec3Temp;
     }
     /**适配后的屏幕大小 */
     public getScreenSize(): Size {
-        Debug.log('After the Adapter of screen size:', this._screenSize);
+        // Debug.log('After the Adapter of screen size:', this._screenSize);
         return this._screenSize;
     }
     /**返回适配后的节点大小 */

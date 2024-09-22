@@ -11,9 +11,10 @@ import { Assert } from "../exceptions/Assert";
 import { js, Node } from "cc";
 import { app } from "../app";
 import { Type } from "./UIEnum";
-import { EventSystem } from "../event/EventSystem";
-import { SceneEvent } from "../app/AppEnum";
+import { EventSystem } from "../event";
+import { GameWorldEvent, SceneEvent } from "../app/AppEnum";
 import { getPriority } from "../util";
+import { Layers } from "cc";
 
 
 
@@ -25,10 +26,12 @@ import { getPriority } from "../util";
  * description: 对控制器进行管理。
  */
 export class WindowManager {
+    private _uiLayer: Layers.Enum;
     private _touchEffect: TouchEffect;
     private _windowLayer: WindowLayer;
     private _managers: LayerManager[];
     constructor() {
+        this._uiLayer = Layers.Enum.UI_2D;
         this._touchEffect = new TouchEffect();
         this._windowLayer = new WindowLayer();
         this._managers = [];
@@ -37,7 +40,7 @@ export class WindowManager {
         this._managers[Type.DIALOG] = new DialoglManager(true, this._windowLayer);
         this._managers[Type.ACTIVITY] = new ActivityManager(true, this._windowLayer);
         this._managers[Type.TOAST] = new ToastManager(false, this._windowLayer);
-        this._managers[Type.TOP] = new TopManager(false, this._windowLayer);
+        this._managers[Type.TOP] = new TopManager(true, this._windowLayer);
 
         this._touchEffect.initEffectAsset(app.game.sceneManager.getTouchEffectTemp());
         EventSystem.event.on(SceneEvent.CLICK_MASK, this, this.onClickMask);
@@ -56,7 +59,7 @@ export class WindowManager {
     }
     //场景销毁时的回调
     private onDestroyScene() {
-        this.clear();
+        this.clearAll(true);
     }
 
     //新的场景运行
@@ -69,7 +72,7 @@ export class WindowManager {
      * @param canvas 
      */
     private initWindowLayer(canvas: Node, hasTouchEffect: boolean) {
-        this._windowLayer.init(canvas);
+        this._windowLayer.init(canvas, this._uiLayer);
         if (hasTouchEffect) {
             this._touchEffect.init();
         }
@@ -110,7 +113,7 @@ export class WindowManager {
         }
         else {
             const classRef = js.getClassByName(accessId) as Constructor;
-            if (Assert.instance.handle(Assert.Type.GetWindowFormClassException, classRef, accessId)) {
+            if (Assert.handle(Assert.Type.GetWindowFormClassException, classRef, accessId)) {
                 view = new classRef(accessId) as IWindowBase;
                 view.iniViewType();
                 //最后初始化视图的一些设置，必须要等待视图类型确定后才能进行这部分初始化
@@ -128,6 +131,14 @@ export class WindowManager {
             }
             manager.addView(view, ...args);
         }
+    }
+
+    /**
+     * 设置UI所在的Layer层，如果不设置，则默认为UI_2D
+     * @param layer 
+     */
+    public setUILayer(layer: Layers.Enum) {
+        this._uiLayer = layer;
     }
 
     /**
@@ -260,9 +271,13 @@ export class WindowManager {
      * 关闭所有类型的已经打开来的UI窗口
      */
     public clear() {
+        this.clearAll(false);
+    }
+
+    private clearAll(switchingScene: boolean) {
         for (const manager of this._managers) {
             if (manager.getCount() > 0) {
-                manager.clear();
+                manager.clear(switchingScene);
             }
         }
     }
@@ -289,3 +304,5 @@ export class WindowManager {
         return this.get(accessId) as T;
     }
 }
+
+EventSystem.event.once(GameWorldEvent.INIT_GAME, null, () => WindowManager.instance);

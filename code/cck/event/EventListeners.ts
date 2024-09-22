@@ -46,10 +46,15 @@ export class CCHandler implements IHandler {
     public apply(data: any): any {
         if (this._method == null || typeof this._method !== 'function') return null;
         let result: any;
-        if (!data) result = this._method.apply(this._caller, this._args);
-        else if (!this._args && !utils.isArray(data)) result = this._method.call(this._caller, data);
-        else if (!this._args && data) result = this._method.apply(this._caller, data);
-        else result = this._method.apply(this._caller, this._args.concat(data));
+        if (utils.isNull(data) || utils.isUndefined(data)) {
+            result = this._method.apply(this._caller, this._args);
+        }
+        else if (utils.isArray(this._args)) {
+            result = this._method.apply(this._caller, this._args.concat(data));
+        }
+        else if (utils.isNull(this._args) || utils.isUndefined(this._args)) {
+            result = this._method.apply(this._caller, data);
+        }
         return result;
     }
 

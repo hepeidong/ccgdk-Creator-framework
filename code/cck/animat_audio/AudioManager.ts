@@ -5,6 +5,7 @@ import { cck_audio_play_callback_type, cck_audio_saudio_resolved_type, cck_audio
 import { AudioClip, resources } from "cc";
 import { AudioEngine } from "./AudioEngine";
 import { Res } from "../res/Res";
+import { tools } from "../tools";
 
 
 /**
@@ -275,7 +276,7 @@ export class Audio {
 
     private async awaitLoad(url: string) {
         const loader = await this.createLoader().catch(err => {
-            Assert.instance.handle(Assert.Type.LoadAssetBundleException, err, this._bundle);
+            Assert.handle(Assert.Type.LoadAssetBundleException, err, this._bundle);
         });
         if (loader ) {
             return new Promise<AudioClip>((resolve, reject) => {
@@ -396,14 +397,13 @@ export class Audio {
         }
     }
 
-    private _timeoutId: number;
     private playInterval() {
         let key: string = this._audioList[this._audioIndex];
         let audioPro: cck_audio_type = Audio._audioPool.get(key);
-        this._timeoutId = setTimeout(() => {
+
+        tools.Timer.setInterval(() => {
             this.playAudioInOrder(Audio._audioPool.get(this._audioList[this._audioIndex]).callbacks);
-            clearTimeout(this._timeoutId);
-        }, audioPro.audio.delay * 1000);
+        }, audioPro.audio.delay);
     }
 
     private bgmProps(props: IAudioBGM): cck_audio_type {

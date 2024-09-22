@@ -1,17 +1,17 @@
-import { Debug } from "../Debugger";
+import { Assert } from "../exceptions/Assert";
 
 /**循环队列 */
 export class CCCircularQueue<T>  {
     private _front: number;
     private _rear: number;
-    private _max_length: number;
+    private _maxLength: number;
     /** 自动扩容（auto dilatation）*/
-    private _auto_dilt: boolean;
-    constructor(capacity: number = 50, autoDilataion: boolean = false) {
+    private _auto: boolean;
+    constructor(capacity: number = 64, autoDilataion: boolean = true) {
         this._front = 0;
         this._rear = 0;
-        this._max_length = capacity;
-        this._auto_dilt = autoDilataion;
+        this._maxLength = capacity;
+        this._auto = autoDilataion;
     }
 
     public get length(): number {
@@ -21,21 +21,22 @@ export class CCCircularQueue<T>  {
     /**
      * 队列的容量
      * @param capacity 容量
-     * @param autoDilt 是否自动扩容
+     * @param auto 是否自动扩容
      * @constructor
      */
-    public  reserve(capacity: number, autoDilt: boolean = false): void {
-        this._max_length = capacity;
-        this._auto_dilt = autoDilt;
+    public  reserve(capacity: number, auto: boolean = true): void {
+        this._maxLength = capacity;
+        this._auto = auto;
     }
 
+    [n: number]: T;
     public [Symbol.iterator](): { next: Function } {
         let index: number = 0;
         let that = this;
         return {
             next: function () {
                 if (index < that.length) {
-                    let value: T = that[index].value;
+                    let value: T = that[index];
                     index++;
                     return { value: value, done: false };
                 }
@@ -53,19 +54,20 @@ export class CCCircularQueue<T>  {
      * @constructor
      */
     public push(e: T): boolean {
-        Debug.assert(this.isFull(), 'error:CircularQueue is pull!');
         if (!this.isFull()) {
             this[this._rear] = e;
-            this._rear = (this._rear + 1)%this._max_length;
+            this._rear = (this._rear + 1)%this._maxLength;
             return true;
         }
-        else if (this._auto_dilt) {
-            this._max_length = this._max_length*2
+        else if (this._auto) {
+            this._maxLength = this._maxLength + 50;
             this[this._rear] = e;
-            this._rear = (this._rear + 1)%this._max_length;
+            this._rear = (this._rear + 1)%this._maxLength;
             return true;
         }
-        return false;
+        else {
+            return Assert.handle(Assert.Type.CircularQueueException, false, "CircularQueue is pull!");
+        }
     }
 
     /**
@@ -74,17 +76,21 @@ export class CCCircularQueue<T>  {
      * @constructor
      */
     public pop(): T {
-        Debug.assert(this.isEmpty(), 'error:CircularQueue is emty!');
-        if (!this.isEmpty()) {
+        if (Assert.handle(Assert.Type.CircularQueueException, !this.isEmpty(), "CircularQueue is emty!")) {
             let e: T = this[this._front];
             delete this[this._front];
-            this._front = (this._front + 1)%this._max_length;
+            this._front = (this._front + 1)%this._maxLength;
             return e;
         }
         return null;
     }
 
-    public erase(index: number): boolean {
+    /**
+     * 移除指定索引的元素
+     * @param index 
+     * @returns 
+     */
+    public removeAt(index: number): boolean {
         let temp: T = this.back(index);
         if (temp) {
             for (let i: number = index; i + 1 < this.length; ++i) {
@@ -97,6 +103,11 @@ export class CCCircularQueue<T>  {
         return false;
     }
 
+    /**
+     * 移除指定元素
+     * @param e 
+     * @returns 
+     */
     public remove(e: T): boolean {
         let flag: boolean = false;
         for (let i: number = 0; i < this.length; ++i) {
@@ -124,6 +135,16 @@ export class CCCircularQueue<T>  {
         return this[index];
     }
 
+    /**
+     * 遍历队列
+     * @param callback 
+     */
+    public forEach(callback: (value: T, index: number, queue: this) => void) {
+        for (let i: number = 0; i < this.length; ++i) {
+            callback(this[i], i, this);
+        }
+    }
+
     public isEmpty(): boolean {
         if (this._front == this._rear) {
             return true;
@@ -132,7 +153,7 @@ export class CCCircularQueue<T>  {
     }
 
     public isFull(): boolean {
-        if ((this._rear + 1)%this._max_length == this._front) {
+        if ((this._rear + 1)%this._maxLength == this._front) {
             return true;
         }
         return false;

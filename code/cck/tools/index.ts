@@ -3,6 +3,14 @@ import { CCASCOORD, CCAStar } from "./CCAStart";
 import { CCCircularQueue } from "./CCCircularQueue";
 import { CCObjectPool } from "./CCObjectPool";
 import { CCPriorityQueue } from "./CCPriorityQueue";
+import { CCStopwatch } from "./CCStopwatch";
+import { CCDirection } from "./CCDirection";
+import { Timer } from "./Timer";
+export * from "./CCDirection";
+
+export class tools {
+    static Timer = Timer;
+}
 
 /**
  * 包含了常用的工具类的命名空间，区别于Utils，这个工具类命名空间包含的是一系列工具类，
@@ -11,9 +19,11 @@ import { CCPriorityQueue } from "./CCPriorityQueue";
  */
 export namespace tools {
     export class ALGraph extends CCALGraph {}
-    export class CircularQueue<T> extends CCCircularQueue<T> {}
+    export class Queue<T> extends CCCircularQueue<T> {}
     export class ObjectPool<T> extends CCObjectPool<T> {}
     export class PriorityQueue<T> extends CCPriorityQueue<T> {}
     export class ASCOORD extends CCASCOORD {}
     export class AStar extends CCAStar {}
+    export class Stopwatch extends CCStopwatch {}
+    export class Direction extends CCDirection {}
 }

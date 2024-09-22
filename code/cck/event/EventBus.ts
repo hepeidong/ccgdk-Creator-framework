@@ -1,5 +1,5 @@
 import { js } from "cc";
-import { Constructor, IGameObserver, IGameSubject, IObserverSystem } from "../lib.cck";
+import { Constructor, IGameObserver, IGameSubject, IEventBus } from "../lib.cck";
 import { Debug } from "../Debugger";
 import { Assert } from "../exceptions/Assert";
 import { GameSubject } from "./GameSubject";
@@ -7,7 +7,7 @@ import { GameSubject } from "./GameSubject";
 /**
  * 游戏事件系统, 采用观察者模式设计
  */
-export class ObserverSystem implements IObserverSystem {
+export class EventBus implements IEventBus {
     private _subjectMap: Map<string, IGameSubject<any>>;
     constructor() {
         this._subjectMap = new Map();
@@ -23,7 +23,7 @@ export class ObserverSystem implements IObserverSystem {
 
     private createObserver(observerName: string) {
         const classRef = js.getClassByName(observerName) as Constructor;
-        if (Assert.instance.handle(Assert.Type.GetObserverClassException, classRef, observerName)) {
+        if (Assert.handle(Assert.Type.GetObserverClassException, classRef, observerName)) {
             const observer = new classRef(observerName) as IGameObserver<any>;
             observer.onCreate();
             return observer;

@@ -1,7 +1,7 @@
 import { createSprite, createText, restoreParent } from "../guide_utils";
 import { GuideNormalEvent } from "../GuideEnum";
 import { utils } from "../../utils";
-import { EventSystem } from "../../event/EventSystem";
+import { EventSystem } from "../../event";
 import { GuideTarget } from "./GuideTarget";
 import { Animation, Button, Component, Label, Node, Tween, tween, UITransform, v3, Vec3, _decorator } from "cc";
 import { IGuideConfig } from "../../lib.cck";
@@ -156,7 +156,7 @@ export  class GuideFinger extends Component {
         }
         this.playAnimat(false);
         //计算手指和引导目标两点距离
-        let dis: number = utils.MathUtil.distance(this.finger.position, v3(posisions[0].x, posisions[0].y));
+        let dis: number = utils.MathUtil.Vector2D.distance(this.finger.position, v3(posisions[0].x, posisions[0].y));
         //计算移动时间
         let t: number = dis / GuideManager.instance.fingerSpeed;
         let tweenAction: Tween<Node> = tween(this.finger).to(t, {position: v3(posisions[0].x, posisions[0].y)});

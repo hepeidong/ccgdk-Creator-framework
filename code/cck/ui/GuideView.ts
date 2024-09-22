@@ -34,7 +34,7 @@ export class GuideView extends WindowBase<GuideHelper> implements IGuideView {
             }
         }
         //缺少GuideHelper组件
-        Assert.instance.handle(Assert.Type.GetComponentException, null, "GuideHelper");
+        Assert.handle(Assert.Type.GetComponentException, null, "GuideHelper");
     }
 
     protected _openView() {

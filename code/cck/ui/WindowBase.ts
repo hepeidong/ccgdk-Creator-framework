@@ -1,14 +1,13 @@
 import { AdapterWidget } from "../app/adapter_manager/component/AdapterWidget";
 import { Debug } from "../Debugger";
 import { SAFE_CALLBACK } from "../Define";
-import { cck_win_model, IRegister, IWindowBase } from "../lib.cck";
+import { cck_win_model, IAssetRegister, IRegister, IWindowBase } from "../lib.cck";
 import { Mediator } from "../puremvc";
 import { Register } from "../Register/Register";
 import { AssetFactory } from "../res/AssetFactory";
 import { utils } from "../utils";
-import { WindowManager } from "./WindowManager";
 import { Assert } from "../exceptions/Assert";
-import { Asset, BlockInputEvents, Component, instantiate, isValid, js, Node, Prefab, Sprite, Tween } from "cc";
+import { Asset, Component, instantiate, isValid, js, Node, Prefab, Sprite, Tween } from "cc";
 import { app } from "../app";
 import { Type } from "./UIEnum";
 
@@ -20,7 +19,6 @@ import { Type } from "./UIEnum";
  * description: 窗体基类主要完成窗体里公共的底层功能，例如加载，显示，销毁，释放资源 
  */
 export class WindowBase<T extends Component> extends Mediator implements IWindowBase {
-    private _assetPath: string;            //预制体资源路径
     private _loading: boolean;             //正在加载视图
     private _isOpen: boolean;              //是否加载完直接打开视图
     private _opened: boolean;              //UI视图已经打开了
@@ -49,9 +47,10 @@ export class WindowBase<T extends Component> extends Mediator implements IWindow
         this._canClose    = false;
         this._autoRelease = true;
         this._register    = new Register();
-        this._gameAsset = AssetFactory.create(this["_bundleName"]);//_bundleName资源包名
+        this._gameAsset   = AssetFactory.create(this["_bundleName"]);//_bundleName资源包名
     }
 
+    private get assetPath(): string { return this["_assetPath"]; }//预制体资源路径
     //UI视图名
     public get name(): string { return this.mediatorName; }
     public get view(): T { return this.viewComponent; }
@@ -115,14 +114,15 @@ export class WindowBase<T extends Component> extends Mediator implements IWindow
     /**
      * 关闭UI,关闭窗口
      * @param isDestroy 是否强制销毁UI,默认为false,如果强制销毁UI,将不会根据UI类型,选择隐藏方式,直接销毁UI节点,并释放资源
+     * @param switchingScene 是否正在切换场景中
      */
-     public close(isDestroy: boolean = false) {
+     public close(isDestroy: boolean = false, switchingScene: boolean = false) {
         Debug.log(this.toString(), '关闭视图');
         this._isDestroy = isDestroy;
         this._opened = false;
         this._args = undefined;
         if (this._node) {
-            this._closeView();
+            this._closeView(switchingScene);
         }
     }
 
@@ -161,15 +161,15 @@ export class WindowBase<T extends Component> extends Mediator implements IWindow
      public iniViewType(): void {
         this._viewType = this.onCreate(this._register);
         const message = "缺少UI界面的类型，请重写onCreate函数，设置UI界面类型。";
-        if (Assert.instance.handle(Assert.Type.InitViewTypeException, this._viewType, message)) {
+        if (Assert.handle(Assert.Type.InitViewTypeException, this._viewType, message)) {
             this._winModel = Type[this._viewType] as cck_win_model;
         }
     }
 
     /**具体窗体实现退出的方式，隐藏或者销毁, ui系统调用此函数进行销毁窗体，不能自己手动在外部调用，否则会引发未知错误 */
     protected removeView(): void {
+        Tween.stopAllByTarget(this.node);
         this.node.removeFromParent();
-        WindowManager.instance.shiftMask();
         if (!this._isDestroy) {
             if (this.autoRelease) {
                 this.destroy();
@@ -216,14 +216,9 @@ export class WindowBase<T extends Component> extends Mediator implements IWindow
         this._onComplete = onComplete;
         isWait && this.showWait();
 
-        if (!this._gameAsset.loadedView) {
-            this._gameAsset.setViewUrl(this._assetPath);
-            this._gameAsset.setAssetUrls(this.listAssetUrls());
-            this._gameAsset.loadView(this.loadProgress.bind(this)).then(this.loadViewComplete.bind(this));
-        }
-        else {
-            this.alreadyLoaded();
-        }
+        this._gameAsset.setViewUrl(this.assetPath);
+        this.listAssetUrls(this._gameAsset.assetRegister);
+        this._gameAsset.loadView(this.loadProgress.bind(this)).then(this.loadViewComplete.bind(this));
     }
 
     /**打开视图 */
@@ -231,21 +226,12 @@ export class WindowBase<T extends Component> extends Mediator implements IWindow
         if (this._opened) {
             return;
         }
-        if (!this._gameAsset.loadedView) {
+        if (!this._gameAsset.isComplete()) {
             this._args = args;
             this.loadView(true);
         }
-        else if (this._gameAsset.isComplete()) {
+        else {
             this.openView(...args);
-        }
-    }
-
-    private addBlockInputEvents() {
-        if (this._viewType !== Type.TOP) {
-            let bIE: BlockInputEvents = this.node.getComponent(BlockInputEvents);
-            if (!bIE) {
-                this.node.addComponent(BlockInputEvents);
-            }
         }
     }
 
@@ -257,13 +243,11 @@ export class WindowBase<T extends Component> extends Mediator implements IWindow
     private destroy(): void {
         Debug.log(this.toString(), '销毁视图');
         if (isValid(this.node, true)) {
-            Tween.stopAllByTarget(this.node);
-            this.node.removeFromParent();
             this.node.destroy();
-            this.reset();
-            this.removeCommand();
-            this.onDestroy();
         }
+        this.reset();
+        this.removeCommand();
+        this.onDestroy();
     }
 
     /**打开窗口 */
@@ -284,7 +268,7 @@ export class WindowBase<T extends Component> extends Mediator implements IWindow
         const commands = this._register.getCommands();
         for (const command of commands) {
             const commandRef = js.getClassByName(command) as typeof app.Command|typeof app.CommandGroup;
-            if (Assert.instance.handle(Assert.Type.GetCommandClassException, commandRef, command)) {
+            if (Assert.handle(Assert.Type.GetCommandClassException, commandRef, command)) {
                 commandRef.addRef();
                 if (!app.game.hasCommand(command)) {
                     app.game.registerCommand(command, commandRef);
@@ -297,7 +281,7 @@ export class WindowBase<T extends Component> extends Mediator implements IWindow
         const commands = this._register.getCommands();
         for (const command of commands) {
             const commandRef = js.getClassByName(command) as typeof app.Command|typeof app.CommandGroup;
-            if (Assert.instance.handle(Assert.Type.GetCommandClassException, commandRef, command)) {
+            if (Assert.handle(Assert.Type.GetCommandClassException, commandRef, command)) {
                 commandRef.delRef();
                 if (commandRef.getRef() === 0) {
                     app.game.removeCommand(command);
@@ -315,6 +299,7 @@ export class WindowBase<T extends Component> extends Mediator implements IWindow
      *      register.reg("testNotification", (body: any, type: string) => {
      *          console.log("消息通知传过来的数据", body);
      *      }, this);
+     *      register.addCommand("你的命令");
      *      return ui.Type.ROOT;
      * }
      */
@@ -323,7 +308,14 @@ export class WindowBase<T extends Component> extends Mediator implements IWindow
      * 视图加载完调用，只有加载后会调用，如果界面后续没有被销毁，再次打开时，不会再调用此函数，反之则会调用
      */
     onLoad(): void { }
-    /**视图显示后调用，每次打开界面显示后都会调用 */
+    /**
+     * 视图显示后调用，每次打开界面显示后都会调用
+     * @example
+     *  //可以指定传入的参数和参数类型
+     *  onStart(data: any) {
+     *      Debug.log("打开页面时传入的数据", data);
+     *  }
+     */
     onStart(...args: any[]): void { }
     /**视图关闭后调用，界面关闭后调用，此函数无论在界面关闭时是否被销毁，都会被调用，而且调用时机是后于onDestroy调用 */
     onClose(): void { }
@@ -331,17 +323,15 @@ export class WindowBase<T extends Component> extends Mediator implements IWindow
     onDestroy(): void { }
 
     /**
-     * 列出资源的url，把需要引用到的资源的url放到这里返回，则会自动加载这些资源
-     * @returns 返回列出的需要加载的资源
+     * 列出资源的url，把需要引用到的资源的url注册增加到assetRegister，则会自动加载这些资源
      * @example
-     *  lisAssetUrls() {
-     *      return [
-     *          '/目录名/holleworld.png',
-     *          '/目录名/game.atlas'
-     *      ];
+     *  lisAssetUrls(assetRegister: IAssetRegister) {
+     *      assetRegister.addFilePath('/目录名/holleworld.png');
+     *      assetRegister.addFilePath('/目录名/game.atlas');
+     *      assetRegister.addDirPath('/资源目录');
      *  }
      */
-    listAssetUrls(): string[] { return []; }
+    listAssetUrls(assetRegister: IAssetRegister): void { }
 
     /***********************************************/
     
@@ -354,7 +344,7 @@ export class WindowBase<T extends Component> extends Mediator implements IWindow
     /**具体ui窗体子类不要重写此函数 */
     protected _openView() {}
     /**具体ui窗体子类不要重写此函数 */
-    protected _closeView() {}
+    protected _closeView(switchingScene: boolean) {}
 
     /**
      * 此方法会适配页面的根节点大小, 如果页面根节点增加了AdapterWidget适配组件, 会打断适配过程
@@ -369,7 +359,6 @@ export class WindowBase<T extends Component> extends Mediator implements IWindow
      /**视图和资源已经加载完成 */
     private loadViewComplete(asset: Prefab) {
         this._node = instantiate(asset);
-        this.addBlockInputEvents();
         this._node.active = false;
         this.initPageSize();
         this._loadView();

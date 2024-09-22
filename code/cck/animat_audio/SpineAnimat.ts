@@ -6,25 +6,21 @@ import { cck_animat_resolved_type, cck_animat_spineAnimat_type, ISpineAnimat } f
 import { tools } from "../tools";
 
 
-export  class SpineAnimat extends AnimatBase {
+export  class SpineAnimat extends AnimatBase<cck_animat_spineAnimat_type> {
     private _skeleton: sp.Skeleton;
-    /**动画队列 */
-    private _animatList: tools.CircularQueue<cck_animat_spineAnimat_type>;
-    private timeoutId: number = 0;
     private static isStop: boolean = false;
     constructor(target: Node, bundle: string) {
         super(() => {
             if (SpineAnimat.isStop && this._animatList) {
-                for (let i: number = 0; i < this._animatList.length; ++i) {
-                    this._animatList[i].props.played = true;
-                }
+                this._animatList.forEach(animat => {
+                    animat.props.played = true;
+                });
                 this.stop();
             }
             SpineAnimat.isStop = false;
         });
 
         this._animatLoad = new SpineLoad(bundle);
-        this._animatList = new tools.CircularQueue();
         this._target = target;
         this._skeleton = this._target.getComponent(sp.Skeleton);
         if (!this._skeleton) {
@@ -40,13 +36,24 @@ export  class SpineAnimat extends AnimatBase {
         this.isStop = true;
     }
 
+    public pause(): SpineAnimat {
+        this._skeleton.paused = true;
+        return this;
+    }
+
+    public resume(): SpineAnimat {
+        this._skeleton.paused = false;
+        return this;
+    }
+
     public getSkeleton(): sp.Skeleton {
         return this._skeleton;
     }
 
     public addCallback(callback: cck_animat_resolved_type) {
         let len: number = this._animatList.length;
-        this._animatList[len - 1].callbacks.push(callback);
+        const animat = this._animatList.back(len - 1);
+        animat.callbacks.push(callback);
     }
 
     public setSkeletonData(data: sp.SkeletonData) {
@@ -82,7 +89,8 @@ export  class SpineAnimat extends AnimatBase {
         try {
             if (this._status === 'pending') {
                 this._status = 'resolved';
-                let props: ISpineAnimat = this._animatList[this.index].props;
+                const animat = this._animatList.back(this.index);
+                let props: ISpineAnimat = animat.props;
                 if (!props.played) {
                     if (this.index === 0) {
                         this.playInterval();
@@ -117,45 +125,63 @@ export  class SpineAnimat extends AnimatBase {
     }
 
     private playInterval() {
-        this.timeoutId = setTimeout(() => {
-            clearTimeout(this.timeoutId);
-            let props: ISpineAnimat = this._animatList[this.index].props;
+        const animat = this._animatList.back(this.index);
+        const delay = animat.props.delay;
+        tools.Timer.setInterval(() => {
+            const cuurAnimat = this._animatList.back(this.index);
+            let props: ISpineAnimat = cuurAnimat.props;
             props.repeatCount--;
             this._skeleton.setAnimation(props.trackIndex, props.name, props.loop);
-        }, this._animatList[this.index].props.delay * 1000);
+        }, delay);
+    }
+
+    private registerEventStart() {
+        this._skeleton.setStartListener((evt: any) => {
+            if (this._animatList.length > 0) {
+                const animat = this._animatList.back(this.index);
+                let callbacks: cck_animat_resolved_type[] = animat.callbacks;
+                for (let e of callbacks) {
+                    if (e.type === 'play') {
+                        SAFE_CALLBACK(e.call, evt);
+                    }
+                }
+            }
+        });
+    }
+
+    private registerEventComplete() {
+        this._skeleton.setCompleteListener((evt: any) => {
+            if (this._animatList.length > 0) {
+                const animat = this._animatList.back(this.index);
+                for (let e of animat.callbacks) {
+                    if (e.type === 'stop') {
+                        SAFE_CALLBACK(e.call, evt);
+                    }
+                }
+                const props = animat.props;
+                //迭代播放动画若干次
+                if (!props.loop) {
+                    if (props.repeatCount > 0) {
+                        props.repeatCount--;
+                        this._skeleton.setAnimation(props.trackIndex, props.name, false);
+                    }
+                    else {
+                        this._status = 'pending';
+                        this.index++;
+                        if (this.index < this._animatList.length) {
+                            SAFE_CALLBACK(this._nextCallback);
+                        }
+                        else {
+                            this.reset();
+                        }
+                    }
+                }
+            }
+        });
     }
 
     private registerEvent(): void {
-        this._skeleton.setStartListener((evt: any) => {
-            let callbacks: cck_animat_resolved_type[] = this._animatList[this.index].callbacks;
-            for (let e of callbacks) {
-                if (e.type === 'play') {
-                    SAFE_CALLBACK(e.call, evt);
-                }
-            }
-        });
-
-        this._skeleton.setCompleteListener((evt: any) => {
-            let animat: cck_animat_spineAnimat_type = this._animatList[this.index];
-            for (let e of animat.callbacks) {
-                if (e.type === 'stop') {
-                    SAFE_CALLBACK(e.call, evt);
-                }
-            }
-
-            let props: ISpineAnimat = animat.props;
-            //迭代播放动画若干次
-            if (props.repeatCount > 0 && !props.loop) {
-                props.repeatCount--;
-                this._skeleton.setAnimation(props.trackIndex, props.name, false);
-            }
-            else {
-                this.index++;
-                if (this.index < this._animatList.length) {
-                    this._status = 'pending';
-                    SAFE_CALLBACK(this._nextCallback);
-                }
-            }
-        });
+        this.registerEventStart();
+        this.registerEventComplete();
     }
 }

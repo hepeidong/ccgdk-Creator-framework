@@ -28,3 +28,7 @@ export enum SceneEvent {
     RUN_SCENE = "RUN_SCENE",
     DESTROY_SCENE = "DESTROY_SCENE"
 }
+
+export enum GameWorldEvent {
+    INIT_GAME = "INIT_GAME"
+}

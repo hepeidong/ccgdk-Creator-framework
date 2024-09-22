@@ -7,7 +7,7 @@ import { Debug } from "../../Debugger";
 import { AdapterWidget } from "../../app/adapter_manager/component/AdapterWidget";
 import { BlockInputEvents, Component, Node, Sprite, _decorator } from "cc";
 import { EDITOR } from "cc/env";
-import { EventSystem } from "../../event/EventSystem";
+import { EventSystem } from "../../event";
 import { ui } from "../../ui";
 import { GuideManager } from "../GuideManager";
 

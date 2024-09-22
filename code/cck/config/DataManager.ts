@@ -36,12 +36,12 @@ export class DataManager {
             const nameOrUrl = arguments[1];
             const onComplete = arguments[2];
             Res.createLoader(nameOrUrl).then(loader => {
-                loader.load(path, JsonAsset, (err, asset: JsonAsset) => {
+                loader.loadDir(path, JsonAsset, (err, assets: JsonAsset[]) => {
                     if (err) {
                         Debug.error("配置表加载失败", err);
                         return;
                     }
-                    let jsonData = asset.json;
+                    let jsonData = assets[0].json;
                     this.initFileData(jsonData);
                     SAFE_CALLBACK(onComplete);
                 });
@@ -52,12 +52,12 @@ export class DataManager {
         else {
             const path = arguments[0];
             const onComplete = arguments[1];
-            Res.loader.load(path, JsonAsset, (err, asset: JsonAsset) => {
+            Res.loader.loadDir(path, JsonAsset, (err, assets: JsonAsset[]) => {
                 if (err) {
                     Debug.error('配置表加载失败', err);
                     return;
                 }
-                let jsonData = asset.json;
+                let jsonData = assets[0].json;
                 this.initFileData(jsonData);
                 SAFE_CALLBACK(onComplete);
             });
@@ -81,7 +81,7 @@ export class DataManager {
 
     private parserJSONData(data: any, filename: string) {
         const flag = data !== null && (Array.isArray(data) || typeof data === "object");
-        if (Assert.instance.handle(Assert.Type.ConfigDataException, flag)) {
+        if (Assert.handle(Assert.Type.ConfigDataException, flag)) {
             const fileContainer = new FileContainer(data);
             this.readAsObject(filename, fileContainer);
         }

@@ -58,8 +58,8 @@ export class CCAStar {
         this._surround = [];
         this._map = [];
         this._gAdd = [];
-        this._openList = new CCCircularQueue(50, true);
-        this._closeList = new CCCircularQueue(100, true);
+        this._openList = new CCCircularQueue(50);
+        this._closeList = new CCCircularQueue(100);
 
         this._surround[0] = new CCASCOORD( 0,-1);
         this._surround[1] = new CCASCOORD( 0, 1);
@@ -89,7 +89,7 @@ export class CCAStar {
      */
     public static create(row: number, col: number, gridSize: number, width: number, height: number) {
         let aStar: CCAStar = new CCAStar();
-        if (Assert.instance.handle(Assert.Type.CreateObjectException, aStar, "A星寻路AStar")) {
+        if (Assert.handle(Assert.Type.CreateObjectException, aStar, "A星寻路AStar")) {
             aStar.setMapSize(row, col);
             aStar.setGridSize(gridSize);
             aStar.setMapWidth(width);
@@ -297,7 +297,7 @@ export class CCAStar {
                 }
                 ++i;
             }
-            this._openList.erase(flagIndex);
+            this._openList.removeAt(flagIndex);
         }
         return sd;
     }

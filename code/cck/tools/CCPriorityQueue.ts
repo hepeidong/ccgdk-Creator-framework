@@ -27,6 +27,7 @@ export class CCPriorityQueue<T> {
         this._compareFn = compareFn;
     }
 
+    [n: number]: HeapNode<T>;
     public get Front(): T { return this[0].value; }
 
     public [Symbol.iterator](): { next: Function } {
@@ -52,7 +53,7 @@ export class CCPriorityQueue<T> {
      */
     public push(e: T) {
         let node: HeapNode<T> = new HeapNode(e);
-        if (Assert.instance.handle(Assert.Type.CreateObjectException, node, "堆结点HeapNode")) {
+        if (Assert.handle(Assert.Type.CreateObjectException, node, "堆结点HeapNode")) {
             this[this.length++] = node;
             this.buildMaxHeap();
         }
@@ -75,16 +76,34 @@ export class CCPriorityQueue<T> {
      */
     public pop(): T {
         this.searchHeap(0);
-        let node: HeapNode<T> = this[--this.length];
+        const node: HeapNode<T> = this[--this.length];
         delete this[this.length];
         return node ? node.value : null;
     }
 
+    public forEach(callback: (value: T, index: number, queue: this) => void) {
+        for (let i = 0; i < this.length; ++i) {
+            const node: HeapNode<T> = this[i];
+            callback(node.value, i, this);
+        }
+    }
+
+    public back(index: number) {
+        if (index < 0 || index >= this.length) {
+            return undefined;
+        }
+        const node = this[index];
+        if (node) {
+            return node.value;
+        }
+        return undefined;
+    }
+
     public delete(index: number): T {
         if (index < 0 || index >= this.length) {
-            return null;
+            return undefined;
         }
-        let ele: T = this[index];
+        let ele: T = this[index].value;
         if (index === this.length - 1) {
             delete this[this.length--];
             return ele;
@@ -94,6 +113,17 @@ export class CCPriorityQueue<T> {
         }
         delete this[--this.length];
         return ele;
+    }
+
+    public remove(e: T) {
+        for (let i = 0; i < this.length; ++i) {
+            const node: HeapNode<T> = this[i];
+            if (node.value === e) {
+                this.delete(i);
+                return true;
+            }
+        }
+        return false;
     }
 
     public clear(): void {

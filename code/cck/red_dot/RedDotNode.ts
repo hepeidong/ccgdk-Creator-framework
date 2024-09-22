@@ -1,5 +1,5 @@
 import { Node } from "cc";
-import { EventSystem } from "../event/EventSystem";
+import { EventSystem } from "../event";
 import { IRedDotChange, RedDotChange } from "../lib.cck";
 
 interface IRedDot {

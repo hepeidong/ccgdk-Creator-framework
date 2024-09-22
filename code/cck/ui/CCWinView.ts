@@ -2,35 +2,41 @@ import { SAFE_CALLBACK, SAFE_CALLBACK_CALLER } from "../Define";
 import { IWinView } from "../lib.cck";
 import { CCBaseView } from "../app/CCBaseView";
 import { Animation, AnimationClip, Button, Node, Tween, tween, v3, _decorator } from "cc";
-import { EventSystem } from "../event/EventSystem";
+import { EventSystem } from "../event";
 import { animat } from "../animat_audio";
 
-const _vec3Temp_1 = v3(1.3, 1.3);
-const _vec3Temp_2 = v3(1, 1);
-const _vec3Temp_3 = v3(0, 0);
+const _vec3Temp_1 = v3(1.3, 1.3, 1);
+const _vec3Temp_2 = v3(1, 1, 1);
+const _vec3Temp_3 = v3(0, 0, 1);
 
 const {ccclass, property} = _decorator;
 
-@ccclass("CCWinView")
-export class CCWinView extends CCBaseView implements IWinView {
-
+@ccclass("WinViewProperty")
+class WinViewProperty {
     @property({
         type: AnimationClip,
         displayName: "窗口弹出动画"
     })
-    private popupClip: AnimationClip = null;
+    popupClip: AnimationClip = null;
 
     @property({
         type: AnimationClip,
         displayName: "窗口关闭动画"
     })
-    private closeClip: AnimationClip = null;
+    closeClip: AnimationClip = null;
 
     @property({
         type: Node,
         displayName: "返回按钮"
     })
-    private backBtn: Node = null;
+    backBtn: Node = null;
+}
+
+@ccclass("CCWinView")
+export class CCWinView extends CCBaseView implements IWinView {
+
+    @property(WinViewProperty)
+    private winViewProperty: WinViewProperty = new WinViewProperty();
 
 
     onLoad() {
@@ -38,8 +44,8 @@ export class CCWinView extends CCBaseView implements IWinView {
         if (!animat) {
             animat = this.node.addComponent(Animation);
         }
-        this.popupClip && animat.addClip(this.popupClip);
-        this.closeClip && animat.addClip(this.closeClip);
+        this.winViewProperty.popupClip && animat.addClip(this.winViewProperty.popupClip);
+        this.winViewProperty.closeClip && animat.addClip(this.winViewProperty.closeClip);
     }
 
     private _popupAction: Tween<Node>;
@@ -54,8 +60,8 @@ export class CCWinView extends CCBaseView implements IWinView {
     }
 
     public popup(): void {
-        if (this.popupClip) {
-            this.playAnimat(this.popupClip.name, this._startFn, this._startCaller);
+        if (this.winViewProperty.popupClip) {
+            this.playAnimat(this.winViewProperty.popupClip.name, this._startFn, this._startCaller);
         }
         else if (this._popupAction) {
             this.node.scale.set(0, 0);
@@ -67,8 +73,8 @@ export class CCWinView extends CCBaseView implements IWinView {
     }
 
     public close(): void {
-        if (this.closeClip) {
-            this.playAnimat(this.closeClip.name, this._completeFn, this._completeCaller);
+        if (this.winViewProperty.closeClip) {
+            this.playAnimat(this.winViewProperty.closeClip.name, this._completeFn, this._completeCaller);
         }
         else if (this._closeAction) {
             this._closeAction.start();
@@ -108,15 +114,15 @@ export class CCWinView extends CCBaseView implements IWinView {
     }
 
     public setBackBtnListener(listener: Function) {
-        if (this.backBtn) {
-            if (this.backBtn.getComponent(Button)) {
-                EventSystem.click(this.backBtn, this, () => {
+        if (this.winViewProperty.backBtn) {
+            if (this.winViewProperty.backBtn.getComponent(Button)) {
+                EventSystem.click(this.winViewProperty.backBtn, this, () => {
                     SAFE_CALLBACK(listener);
                 })
             }
             else {
-                this.backBtn.on(Node.EventType.TOUCH_START, () => {}, this);
-                this.backBtn.on(Node.EventType.TOUCH_END, () => {
+                this.winViewProperty.backBtn.on(Node.EventType.TOUCH_START, () => {}, this);
+                this.winViewProperty.backBtn.on(Node.EventType.TOUCH_END, () => {
                     SAFE_CALLBACK(listener);
                 }, this);
             }

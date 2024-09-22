@@ -34,13 +34,11 @@ function makeLoadRemoteArgs() {
  * 
  */
 export class Res {
-    private static _loadAssetInfo: cck_initial_asset_info[];
     private static _loader: Loader = null;
     private static _loaderPool: Map<string, Loader> = new Map();
     private static _remoteAssetPool: AutoReleasePool;
 
-    constructor(assets: cck_initial_asset_info[]) {
-        Res._loadAssetInfo = assets;
+    constructor() {
         PoolManager.purgePoolManager("remote asset");
         Res._remoteAssetPool = PoolManager.instance.getCurrentPool();
     }
@@ -141,32 +139,6 @@ export class Res {
     }
 
     /**
-     * 加载最初始的资源，一般是游戏首页加载的资源，首页加载的资源必须是resources资源包的资源，
-     * 在工程的资源管理结构中，resources资源包应该用于存放各个模块都能使用到的公用资源
-     * @param onProgress 
-     * @param onComplete 
-     */
-     public static loadInitialAsset(onProgress: (finish: number, total: number) => void, onComplete: (error: Error) => void) {
-        const promiseArr: Promise<void>[] = [];
-        const total = this._loadAssetInfo.length;
-        let finish = 0;
-        for (const info of this._loadAssetInfo) {
-            const p = this.loadAssetSync(info.path, info.type).then(() => {
-                finish++;
-                SAFE_CALLBACK(onProgress, finish, total);
-            }).catch((err) => {
-                SAFE_CALLBACK(onComplete, err);
-            });
-            promiseArr.push(p);
-        }
-        Promise.call(promiseArr).then(() => {
-            SAFE_CALLBACK(onComplete);
-        }).cache((err: Error) => {
-            SAFE_CALLBACK(onComplete, err);
-        });
-    }
-
-    /**
      * 使用 url 加载远程资源，例如音频，图片，文本等等。可以调用 clearRemoteAssets 接口释放远程加载的资源。
      * 如果要加载远程的图片资源，请使用 setRemoteSpriteFrame 接口，此接口会自动释放资源，不用再手动调用 clearRemoteAssets 接口释放。
      * @param url 资源的url
@@ -191,15 +163,7 @@ export class Res {
         }
     }
 
-    /**清理初始加载的资源，即首页资源，会把引用计数减少1，让引擎进行释放检查 */
-    public static clearInitialingAssets() {
-        for (const info of this._loadAssetInfo) {
-            const asset = this.loader.get(info.path, info.type);
-            this.loader.delete(asset);
-        }
-    }
-
-    /**清理所有加载的远程的资源，会把引用计数减少1 */
+    /**清理所有通过loadRemote接口加载的远程的资源，会把引用计数减少1 */
     public static clearRemoteAssets() {
         this._remoteAssetPool.clear();
     }
@@ -209,17 +173,5 @@ export class Res {
             this._remoteAssetPool.add(asset);
         }
         onComplete?.(err, asset);
-    }
-
-    private static loadAssetSync(path: string, type: cck_loader_AssetType) {
-        return new Promise<Asset>((resolve, reject) => {
-            this.loader.load(path, type, (err, asset) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve(asset);
-            });
-        });
     }
 }

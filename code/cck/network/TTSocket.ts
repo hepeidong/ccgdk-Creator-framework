@@ -95,7 +95,7 @@ export class TTSocket extends GameSocket {
                 Debug.error('Socket连接失败:', res.errMsg);
             }
         });
-        if (Assert.instance.handle(Assert.Type.CreateObjectException, this._socket, "字节小游戏socket")) {
+        if (Assert.handle(Assert.Type.CreateObjectException, this._socket, "字节小游戏socket")) {
             SAFE_CALLBACK(this._callback);
             Debug.info(this.toString(), '发起连接');
         }

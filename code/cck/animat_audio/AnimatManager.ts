@@ -2,7 +2,8 @@ import { FrameAnimat } from "./FrameAnimat";
 import { SpineAnimat } from "./SpineAnimat";
 import { DragonBonesAnimat } from "./DragonBonesAnimat";
 import { Animation, dragonBones, Node, sp } from "cc";
-import { IDragonBonesAnimat, IFrameAnimat, ISpineAnimat } from "../lib.cck";
+import { AnimatPlayStatus, IDragonBonesAnimat, IFrameAnimat, ISpineAnimat } from "../lib.cck";
+import { SAFE_CALLBACK } from "../Define";
 
 
 enum AnimatType {
@@ -14,6 +15,8 @@ enum AnimatType {
     DRAGON_BONES
 }
 
+
+
 /**
  * author: 何沛东
  * date: 2020/10/20
@@ -21,7 +24,7 @@ enum AnimatType {
  */
 export class Animat {
     private _target: Node;
-    private _status: string = 'pending';
+    private _status: AnimatPlayStatus = "pending";
     private _bundle: string;
     private _err: Error;
     private _animatIndex: number = 0;
@@ -29,6 +32,7 @@ export class Animat {
     private _frameAnimat: FrameAnimat;
     private _spineAnimat: SpineAnimat;
     private _dbAnimat: DragonBonesAnimat;
+    private _rejected: Function;
 
     constructor(bundle: string) {
         this._bundle = bundle;
@@ -46,13 +50,15 @@ export class Animat {
 
     public target(node: Node) {
         if (!node) {
-            this._status = 'rejected';
+            this._status = "rejected";
             let res = typeof node;
             this._err = new Error('目标节点this._target为' + res+'!');
+            this.callRejected();
         }
         else if ((node instanceof Node) === false) {
-            this._status = 'rejected';
+            this._status = "rejected";
             this._err = new Error('目标节点this._target的类型不符!');
+            this.callRejected();
         }
         this._target = node;
         return this;
@@ -76,106 +82,130 @@ export class Animat {
     /**开始播放动画 */
     public play(): Animat {
         try {
-            if (this._status === 'pending') {
+            if (this._status === "pending") {
                 if (this._animators[this._animatIndex] === AnimatType.ANIMATION) {
-                    this._status = 'resolved';
+                    this._status = "resolved";
                     this._frameAnimat.play()
                     .onNext(this.nextAnimat.bind(this))
                     .catch((e) => {
-                        this._status = 'rejected';
+                        this._status = "rejected";
                         this._err = e;
+                        this.callRejected();
                     });
                 }
                 else if (this._animators[this._animatIndex] === AnimatType.SPINE) {
-                    this._status = 'resolved';
+                    this._status = "resolved";
                     this._spineAnimat.play()
                     .onNext(this.nextAnimat.bind(this))
                     .catch((e) => {
-                        this._status = 'rejected';
+                        this._status = "rejected";
                         this._err = e;
+                        this.callRejected();
                     });
                 }
                 else if (this._animators[this._animatIndex] === AnimatType.DRAGON_BONES) {
-                    this._status = 'resolved';
+                    this._status = "resolved";
                     this._dbAnimat.play()
                     .onNext(this.nextAnimat.bind(this))
                     .catch((e) => {
-                        this._status = 'rejected';
+                        this._status = "rejected";
                         this._err = e;
+                        this.callRejected();
                     });
                 }
             }
-
         } catch (error) {
-            this._status = 'rejected';
+            this._status = "rejected";
             this._err = error;
+            this.callRejected();
         }
         return this;
     }
     /**停止动画 */
     public stop(): Animat {
         try {
-            if (this._status === 'pending') {
-                if (this._animators[this._animatIndex] === AnimatType.ANIMATION) {
+            const type = this._animators[this._animatIndex];
+            if (this._status === "pending") {
+                if (type === AnimatType.ANIMATION) {
                     this._frameAnimat.stop().catch((e) => {
-                        this._status = 'rejected';
+                        this._status = "rejected";
                         this._err = e;
+                        this.callRejected();
                     });
                 }
-                else if (this._animators[this._animatIndex] === AnimatType.SPINE) {
+                else if (type === AnimatType.SPINE) {
                     this._spineAnimat.stop().catch((e) => {
-                        this._status = 'rejected';
+                        this._status = "rejected";
                         this._err = e;
+                        this.callRejected();
                     });
                 }
-                else if (this._animators[this._animatIndex] === AnimatType.DRAGON_BONES) {
+                else if (type === AnimatType.DRAGON_BONES) {
                     this._dbAnimat.stop().catch((e) => {
-                        this._status = 'rejected';
+                        this._status = "rejected";
                         this._err = e;
+                        this.callRejected();
                     });
                 }
             }
         } catch (error) {
-            this._status = 'rejected';
+            this._status = "rejected";
             this._err = error;
+            this.callRejected();
         }
         return this;
     }
     /**暂停动画 */
     public pause(): Animat {
         try {
-            if (this._status === 'pending') {
-                if (this._animators[this._animatIndex] === AnimatType.ANIMATION) {
+            const type = this._animators[this._animatIndex];
+            if (this._status === "pending") {
+                if (type === AnimatType.ANIMATION) {
                     this._frameAnimat.pause().catch((e) => {
-                        this._status = 'rejected';
+                        this._status = "rejected";
                         this._err = e;
+                        this.callRejected();
                     });
                 }
-                //spine动画暂时没有暂停
-                // else if (this._animators[this._animatIndex] === AnimatType.SPINE) {
-                    
-                // }
+                else if (type === AnimatType.SPINE) {
+                    this._spineAnimat.pause().catch((e) => {
+                        this._status = "rejected";
+                        this._err = e;
+                        this.callRejected();
+                    });
+                }
             } 
         } catch (error) {
-            this._status = 'rejected';
+            this._status = "rejected";
             this._err = error;
+            this.callRejected();
         }
         return this;
     }
     /**恢复动画 */
     public resume(): Animat {
         try {
-            if (this._status === 'pending') {
-                if (this._animators[this._animatIndex] === AnimatType.ANIMATION) {
+            const type = this._animators[this._animatIndex];
+            if (this._status === "pending") {
+                if (type === AnimatType.ANIMATION) {
                     this._frameAnimat.resume().catch((e) => {
-                        this._status = 'rejected';
+                        this._status = "rejected";
                         this._err = e;
+                        this.callRejected();
+                    });
+                }
+                else if (type === AnimatType.SPINE) {
+                    this._spineAnimat.resume().catch((e) => {
+                        this._status = "rejected";
+                        this._err = e;
+                        this.callRejected();
                     });
                 }
             }
         } catch (error) {
-            this._status = 'rejected';
+            this._status = "rejected";
             this._err = error;
+            this.callRejected();
         }
         return this;
     }
@@ -187,11 +217,11 @@ export class Animat {
      */
     public defaultClip(delay?: number, startTime?: number): Animat {
         try {
-            if (this._status === 'pending') {
-                ///////////////////////////////////////////
+            if (this._status === "pending") {
                 this._animators.push(AnimatType.ANIMATION);
                 if (!this._frameAnimat) {
                     this._frameAnimat = new FrameAnimat(this._target, this._bundle);
+                    this._frameAnimat.setPlayEnd(this.reset.bind(this));
                 }
                 //默认动画的名称不需要指定，直接获取默认动画的动画名称
                 let props: IFrameAnimat = {
@@ -202,9 +232,14 @@ export class Animat {
                 }
                 this._frameAnimat.addAnimatProps(props);
             }
+            else if (this._status === "resolved") {
+                this._frameAnimat.reset();
+                this.defaultClip(delay, startTime);
+            }
         } catch (error) {
-            this._status = 'rejected';
+            this._status = "rejected";
             this._err = error;
+            this.callRejected();
         }
         return this;
     }
@@ -215,21 +250,27 @@ export class Animat {
      */
     public clip(props: IFrameAnimat): Animat {
         try {
-            if (this._status === 'pending') {
-                ///////////////////////////////////////////
+            if (this._status === "pending") {
                 this._animators.push(AnimatType.ANIMATION);
                 if (!this._frameAnimat) {
                     this._frameAnimat = new FrameAnimat(this._target, this._bundle);
+                    this._frameAnimat.setPlayEnd(this.reset.bind(this));
                 }
                 this._frameAnimat.animationLoaded(props).catch((e) => {
-                    this._status = e;
-                    this._err = new Error('clip动画加载错误！');
+                    this._status = e.rejected;
+                    this._err = new Error('clip动画加载错误！' + (e.err ? "\n" + e.err : ""));
+                    this.callRejected();
                 });
                 this._frameAnimat.addAnimatProps(props);
             }
+            else if (this._status === "resolved") {
+                this._frameAnimat.reset();
+                this.clip(props);
+            }
         } catch (error) {
-            this._status = 'rejected';
+            this._status = "rejected";
             this._err = error;
+            this.callRejected();
         }
         return this;
     }
@@ -240,21 +281,27 @@ export class Animat {
      */
     public spine(props: ISpineAnimat): Animat {
         try {
-            if (this._status === 'pending') {
-                ///////////////////////////////////
+            if (this._status === "pending") {
                 this._animators.push(AnimatType.SPINE);
                 if (!this._spineAnimat) {
                     this._spineAnimat = new SpineAnimat(this._target, this._bundle);
+                    this._spineAnimat.setPlayEnd(this.reset.bind(this));
                 }
                 this._spineAnimat.skeletonLoaded(props).catch((e) => {
-                    this._status = e;
-                    this._err = new Error('spine骨骼动画加载错误！');
+                    this._status = e.rejected;
+                    this._err = new Error('spine骨骼动画加载错误！' + (e.err ? "\n" + e.err : ""));
+                    this.callRejected();
                 });
                 this._spineAnimat.addAnimatProps(props);
             }
+            else if (this._status === "resolved") {
+                this._spineAnimat.reset();
+                this.spine(props);
+            }
         } catch (error) {
-            this._status = 'rejected';
+            this._status = "rejected";
             this._err = error;
+            this.callRejected();
         }
         return this;
     }
@@ -265,20 +312,27 @@ export class Animat {
      */
     public db(props: IDragonBonesAnimat): Animat {
         try {
-            if (this._status === 'pending') {
+            if (this._status === "pending") {
                 this._animators.push(AnimatType.DRAGON_BONES);
                 if (!this._dbAnimat) {
                     this._dbAnimat = new DragonBonesAnimat(this._target, this._bundle);
+                    this._dbAnimat.setPlayEnd(this.reset.bind(this));
                 }
                 this._dbAnimat.dBLoaded(props).catch((e) => {
-                    this._status = e;
-                    this._err = new Error('dragonBones骨骼动画加载错误！');
+                    this._status = e.rejected;
+                    this._err = new Error('dragonBones骨骼动画加载错误！' + (e.err ? "\n" + e.err : ""));
+                    this.callRejected();
                 });
                 this._dbAnimat.addAnimatProps(props);
             }
+            else if (this._status === "resolved") {
+                this._dbAnimat.reset();
+                this.db(props);
+            }
         } catch (error) {
-            this._status = 'rejected';
+            this._status = "rejected";
             this._err = error;
+            this.callRejected();
         }
         return this;
     }
@@ -292,15 +346,18 @@ export class Animat {
         try {
             if (!this._dbAnimat) {
                 this._dbAnimat = new DragonBonesAnimat(this._target, this._bundle);
+                this._dbAnimat.setPlayEnd(this.reset.bind(this));
             }
             
             this._dbAnimat.dBSkinLoaded(props, isClear).catch((e) => {
-                this._status = e;
-                this._err = new Error('dragonBones骨骼动画皮肤加载错误！');
+                this._status = e.rejected;
+                this._err = new Error('dragonBones骨骼动画皮肤加载错误！' + (e.err ? "\n" + e.err : ""));
+                this.callRejected();
             });
         } catch (error) {
-            this._status = 'rejected';
+            this._status = "rejected";
             this._err = error;
+            this.callRejected();
         }
         return this;
     }
@@ -310,7 +367,7 @@ export class Animat {
      * @param resolved 
      */
     public onPlay(resolved: (value: any) => void): Animat {
-        this.addCallback(resolved, 'play');
+        this.addCallback(resolved, "play");
         return this;
     }
 
@@ -319,7 +376,7 @@ export class Animat {
      * @param resolved 
      */
     public onStop(resolved: (value: any) => void): Animat {
-        this.addCallback(resolved, 'stop');
+        this.addCallback(resolved, "stop");
         return this;
     }
 
@@ -328,36 +385,53 @@ export class Animat {
      * @param resolved 
      */
     public onComplate(resolved: (value: any) => void): Animat {
-        this.addCallback(resolved, 'complate');
+        this.addCallback(resolved, "complate");
         return this;
     }
 
     /**捕获播放异常的方法，会给回调返回错误信息 */
     public catch(rejected: (e: Error) => void): void {
-        if (this._status === 'rejected') {
-            rejected(this._err);
+        // if (this._status === "rejected") {
+        //     rejected(this._err);
+        // }
+        this._rejected = rejected;
+    }
+
+    private callRejected() {
+        if (this._status === "rejected") {
+            SAFE_CALLBACK(this._rejected, this._err);
         }
     }
 
     private nextAnimat() {
         this._animatIndex++;
-        if (this._animators[this._animatIndex] === AnimatType.ANIMATION) {
-            this._frameAnimat.play();
+        if (this._animatIndex < this._animators.length) {
+            if (this._animators[this._animatIndex] === AnimatType.ANIMATION) {
+                this._frameAnimat.play();
+            }
+            else if (this._animators[this._animatIndex] === AnimatType.SPINE) {
+                this._spineAnimat.play();
+            }
+            else if (this._animators[this._animatIndex] === AnimatType.DRAGON_BONES) {
+                this._dbAnimat.play();
+            }
         }
-        else if (this._animators[this._animatIndex] === AnimatType.SPINE) {
-            this._spineAnimat.play();
-        }
-        else if (this._animators[this._animatIndex] === AnimatType.DRAGON_BONES) {
-            this._dbAnimat.play();
-        }
+        // else {
+        //     this._status = "pending";
+        // }
+    }
+
+    private reset() {
+        this._status = "pending";
     }
 
     private addCallback(resolved: (value: any) => void, type: string) {
-        if (this._status === 'pending') {
+        if (this._status === "pending") {
             let len: number = this._animators.length;
             if (len === 0) {
-                this._status = 'rejected';
+                this._status = "rejected";
                 this._err = new Error('必须先指定播放的哪个动画！');
+                this.callRejected();
                 return this;
             }
             if (this._animators[len - 1] === AnimatType.ANIMATION) {

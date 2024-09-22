@@ -1,19 +1,19 @@
-import { IBaseEntity, ISystem } from "../lib.cck";
-import { ConversionSystem } from "./ConversionSystem";
+import { IJobHandler, ISystem } from "../lib.cck";
 
-type JobMethod<T> = (entity: T, conversionSystem: ConversionSystem) => void;
-
-export class JobHandler<T extends IBaseEntity> {
-    private _method: JobMethod<T>;
-    private constructor(method: JobMethod<T>) {
+export class JobHandler<Method> implements IJobHandler<Method> {
+    protected _method: Method;
+    protected _thisArg: ISystem;
+    constructor(method: Method) {
         this._method = method;
     }
 
-    public static create(method: JobMethod<IBaseEntity>) {
-        return new JobHandler(method);
+    public scheduler(thisArg: ISystem) {
+        this._thisArg = thisArg;
     }
 
-    public apply(thisArg: ISystem) {
-        return this._method.apply(thisArg);
+    public setMethod(method: Method) {
+        this._method = method;
     }
+
+    public apply(...args: any[]) {}
 }

@@ -7,19 +7,21 @@ import { Debug } from "../Debugger";
 import { Assert } from "../exceptions/Assert";
 import { Constructor, ICCSocketManager, ISocket, ISocketChange, ISocketData, ISocketMessage, ISocketNetworkDelay, ISocketNotConnected, ISocketProtocol, SocketChange, SocketNetworkDelay, SocketNotConnected } from "../lib.cck";
 import { js } from "cc";
-import { EventSystem } from "../event/EventSystem";
+import { EventSystem } from "../event";
+import { tools } from "../tools";
+
+
+
 
 class TimerTask  {
     private _interval: number;
-    private _timeoutId: number;
     private _timeoutCount: number;
-    private _hasTimer: boolean;
     private _callback: (timeoutCount: number) => void;
+    private _timerId: string;
     constructor() {
         this._interval     = 0;
-        this._timeoutId    = 0;
         this._timeoutCount = 0;
-        this._hasTimer     = false;
+        this._timerId      = "";
     }
 
     /**
@@ -27,7 +29,7 @@ class TimerTask  {
      * @param interval 
      */
     setTimeInterval(interval: number): void {
-        this._interval = interval * utils.DateUtil.MILLISECOND;
+        this._interval = interval;
     }
     /**
      * 注册超时定时器
@@ -39,17 +41,16 @@ class TimerTask  {
     }
     /**开启一个新的超时定时器 */
     setTimerTask(): void {
-        if (this._hasTimer) {
-            this.moveTimerTask();
+        if (this._timerId) {
+            tools.Timer.clearTimeout(this._timerId);
         }
-        this._timeoutId = setTimeout(this._callback, this._interval, ++this._timeoutCount);
-        this._hasTimer = true;
+        this._timerId = tools.Timer.setTimeout(() => {
+            this._callback(++this._timeoutCount);
+        }, this._interval);
     }
     /**移除旧的超时定时器 */
     moveTimerTask(): void {
-        this._timeoutCount = 0;
-        this._hasTimer = false;
-        clearTimeout(this._timeoutId);
+        tools.Timer.clearTimeout(this._timerId);
     }
 }
 
@@ -141,7 +142,7 @@ export class CCSocket implements ICCSocketManager {
     public get onNotConnected(): ISocketNotConnected<SocketNotConnected, CCSocket> { return this._onNotConnected; }
     public get onNetworkDelay(): ISocketNetworkDelay<SocketNetworkDelay, CCSocket> { return this._onNetworkDelay; }
     public get readyState(): number {
-        Assert.instance.handle(Assert.Type.CreateObjectException, this._socket, "游戏Socket对象");
+        Assert.handle(Assert.Type.CreateObjectException, this._socket, "游戏Socket对象");
         return this._socket.readyState;
     }
 
@@ -161,7 +162,7 @@ export class CCSocket implements ICCSocketManager {
      * @param binaryType 传输的数据类型
      */
     public link(url: string, binaryType: BinaryType) {
-        if (Assert.instance.handle(Assert.Type.CreateObjectException, this._socket, "游戏Socket对象")) {
+        if (Assert.handle(Assert.Type.CreateObjectException, this._socket, "游戏Socket对象")) {
             this._url = url;
             this._socket.link(url, this.registerEvent.bind(this));
             Debug.info('socket url:', url);
@@ -372,7 +373,7 @@ export class CCSocket implements ICCSocketManager {
         }
 
         const msgRef = js.getClassByName(proxyName) as Constructor;
-        if (Assert.instance.handle(Assert.Type.GetSocketMessageClassException, msgRef, proxyName)) {
+        if (Assert.handle(Assert.Type.GetSocketMessageClassException, msgRef, proxyName)) {
             const msg = new msgRef(proxyName);
             this._msgMap[proxyName] = msg;
             return msg as ISocketMessage;

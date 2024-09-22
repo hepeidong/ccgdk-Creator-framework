@@ -31,7 +31,7 @@ export class WXSocket extends GameSocket {
                 'content-type': 'application/json'
             }
         });
-        if (Assert.instance.handle(Assert.Type.CreateObjectException, this._socket, "微信小游戏socket")) {
+        if (Assert.handle(Assert.Type.CreateObjectException, this._socket, "微信小游戏socket")) {
             SAFE_CALLBACK(callback);
             Debug.info(this.toString(), '发起连接');
         }

@@ -1,5 +1,5 @@
 import { Component, Enum, EventTouch, instantiate, Node, Prefab, tween, UITransform, v3, Vec2, _decorator } from "cc";
-import { EventSystem } from "../event/EventSystem";
+import { EventSystem } from "../event";
 import { utils } from "../utils";
 
 enum PageEvent {
@@ -118,7 +118,7 @@ export  class PageTurn extends Component {
 
     private onTouchMove(event: EventTouch) {   
         let loca: Vec2 = event.getLocation();
-        this._moveDistance = utils.MathUtil.distance(v3(this._startTouchPos.x, this._startTouchPos.y), v3(loca.x, loca.y));
+        this._moveDistance = utils.MathUtil.Vector2D.distance(v3(this._startTouchPos.x, this._startTouchPos.y), v3(loca.x, loca.y));
         if (this.pageType === PageType.HORIZONTAL) {
             
         }

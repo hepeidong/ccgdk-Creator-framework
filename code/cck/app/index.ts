@@ -5,7 +5,7 @@ import { MacroCommand } from "../puremvc";
 import { SimpleCommand } from "../puremvc";
 import { CCDocument } from "./CCDocument";
 import { Assert } from "../exceptions/Assert";
-import { Constructor, IBaseView } from "../lib.cck";
+import { Constructor, IBaseView, IEventBody } from "../lib.cck";
 import { js } from "cc";
 import { Platform, SceneType } from "./AppEnum";
 import { CCBaseView } from "./CCBaseView";
@@ -29,12 +29,26 @@ export class app {
             return this.game.retrieveProxy(proxyName) as T;
         }
         const documentRef = js.getClassByName(proxyName) as Constructor;
-        if (Assert.instance.handle(Assert.Type.GetModelClassException, documentRef, proxyName)) {
+        if (Assert.handle(Assert.Type.GetModelClassException, documentRef, proxyName)) {
             const proxy = new documentRef(proxyName) as T;
             proxy.onCreate();
             this.game.registerProxy(proxy);
             return proxy;
         }
+    }
+
+    /**
+     * 移除模型，当某一个功能的模型不再需要使用时，可能需要将其移除，因为不移除，
+     * 下次再运行该功能时，该功能的模型会保留上一次运行的结果，如果需要确保该模型数据是初始状态的，就需要在适当的时候移除该模型。
+     * @param proxyName 
+     * @returns 
+     */
+    public static removeModel(proxyName: string) {
+        if (this.game.hasProxy(proxyName)) {
+            this.game.removeProxy(proxyName);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -70,10 +84,10 @@ export class app {
     }
 
     /**
-     * 创建新的存档记录
+     * 创建新的存档记录，没有存档数据时，必须要先创建一个存档
      * @param archiveInfo 该存档的说明信息，例如存档名，日期之类的，用于显示的一些信息标识
      */
-    public static createArchive(archiveInfo: object) {
+    public static createArchive<T extends object>(archiveInfo: T) {
         return DataSave.instance.createArchive(archiveInfo);
     }
 
@@ -113,7 +127,9 @@ export class app {
 }
 
 export namespace app {
-    export class BaseView extends CCBaseView {}
+    export class BaseView extends CCBaseView {
+        protected onEvent(body: IEventBody) {}
+    }
     export class GameWorld extends CCGameWorld {}
     export class Scene<T extends IBaseView = any> extends SceneBase<T> {}
     export class Command extends SimpleCommand {

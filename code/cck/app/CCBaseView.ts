@@ -1,4 +1,4 @@
-import { Component, EventMouse, EventTouch, Node, _decorator } from "cc";
+import { Component, EventMouse, EventTouch, Node, _decorator, Input } from "cc";
 import { IBaseView, IEventBody } from "../lib.cck";
 import { CCGameWorld } from "./CCGameWorld";
 
@@ -13,19 +13,19 @@ export class CCBaseView extends Component implements IBaseView {
     }
 
     protected regTouch(node: Node, target?: any, useCapture?: boolean) {
-        node.on(Node.EventType.TOUCH_START, this.onTouchEvent, target, useCapture);
-        node.on(Node.EventType.TOUCH_MOVE, this.onTouchEvent, target, useCapture);
-        node.on(Node.EventType.TOUCH_END, this.onTouchEvent, target, useCapture);
-        node.on(Node.EventType.TOUCH_CANCEL, this.onTouchEvent, target, useCapture);
+        node.on(Input.EventType.TOUCH_START, this.onTouchEvent, target, useCapture);
+        node.on(Input.EventType.TOUCH_MOVE, this.onTouchEvent, target, useCapture);
+        node.on(Input.EventType.TOUCH_END, this.onTouchEvent, target, useCapture);
+        node.on(Input.EventType.TOUCH_CANCEL, this.onTouchEvent, target, useCapture);
     }
 
     protected regMouse(node: Node, target?: any, useCapture?: boolean) {
-        node.on(Node.EventType.MOUSE_DOWN, this.onMouseEvent, target, useCapture);
+        node.on(Input.EventType.MOUSE_DOWN, this.onMouseEvent, target, useCapture);
         node.on(Node.EventType.MOUSE_ENTER, this.onMouseEvent, target, useCapture);
         node.on(Node.EventType.MOUSE_LEAVE, this.onMouseEvent, target, useCapture);
-        node.on(Node.EventType.MOUSE_MOVE, this.onMouseEvent, target, useCapture);
-        node.on(Node.EventType.MOUSE_UP, this.onMouseEvent, target, useCapture);
-        node.on(Node.EventType.MOUSE_WHEEL, this.onMouseEvent, target, useCapture);
+        node.on(Input.EventType.MOUSE_MOVE, this.onMouseEvent, target, useCapture);
+        node.on(Input.EventType.MOUSE_UP, this.onMouseEvent, target, useCapture);
+        node.on(Input.EventType.MOUSE_WHEEL, this.onMouseEvent, target, useCapture);
     }
 
     protected onEvent(body: IEventBody) {}

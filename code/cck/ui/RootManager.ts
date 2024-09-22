@@ -31,11 +31,12 @@ export  class RootManager extends LayerManager {
 
     delView(): boolean {
         const list: IWindowBase[] = this._list;
-        if (list.length > 1){
+        if (list.length > 0){
             this._argsList.pop();
             const view = list.pop();
             view.close();
-            this.addView(list.pop(), ...this._argsList.pop());
+            // this.addView(list.pop(), ...this._argsList.pop());
+            return true;
         }
         return false;
     }
@@ -50,7 +51,10 @@ export  class RootManager extends LayerManager {
      */
      private addToRootWindow(view: IWindowBase): void {
         if (this._windowLayer.addRootWindow(view)) {
-            this.rootViewPush(view);
+            // this.rootViewPush(view);
+            const list: IWindowBase[] = this._list;
+            this.delView();
+            list.push(view);
         }
     }
 

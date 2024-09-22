@@ -3,27 +3,23 @@ import { ClipLoad } from "../res/LoadAnimation";
 import { AnimatBase } from "./AnimatBase";
 import { Animation, AnimationClip, AnimationState, Node } from "cc";
 import { cck_animat_frameAnimat_type, cck_animat_resolved_type, IFrameAnimat } from "../lib.cck";
-import { tools } from "../tools";
 import { utils } from "../utils";
 
-export  class FrameAnimat extends AnimatBase {
+export  class FrameAnimat extends AnimatBase<cck_animat_frameAnimat_type> {
     private _animator: Animation;
-    /**动画队列 */
-    private _animatList: tools.CircularQueue<cck_animat_frameAnimat_type>;
     private static isStop: boolean = false;
     constructor(target: Node, bundle: string) {
         super(() => {
             if (FrameAnimat.isStop && this._animatList) {
-                for (let i: number = 0; i < this._animatList.length; ++i) {
-                    this._animatList[i].props.played = true;
-                }
+                this._animatList.forEach(animat => {
+                    animat.props.played = true;
+                });
                 this.stop();
             }
             FrameAnimat.isStop = false;
         });
 
         this._animatLoad = new ClipLoad(bundle)
-        this._animatList = new tools.CircularQueue();
         this._target = target;
         this._animator = this._target.getComponent(Animation);
         if (!this._animator) {
@@ -42,7 +38,8 @@ export  class FrameAnimat extends AnimatBase {
 
     public addCallback(callback: cck_animat_resolved_type): void {
         let len: number = this._animatList.length;
-        this._animatList[len - 1].callbacks.push(callback);
+        const animat = this._animatList.back(len - 1);
+        animat.callbacks.push(callback);
     }
 
     public addAnimatProps(props: IFrameAnimat): void {
@@ -81,7 +78,8 @@ export  class FrameAnimat extends AnimatBase {
         try {
             if (this._status === 'pending') {
                 this._status = 'resolved';
-                let props: IFrameAnimat = this._animatList[this.index].props;
+                const animat = this._animatList.back(this.index);
+                let props: IFrameAnimat = animat.props;
                 //没有播放完成
                 if (!props.played) {
                     let state: AnimationState = this._animator.getState(props.name);
@@ -139,31 +137,44 @@ export  class FrameAnimat extends AnimatBase {
         this._animator.addClip(clip);
     }
 
-    private registerEvent(): void {
-        // this._animator.off('play');
-        // this._animator.off('stop');
+    private registerEventPlay() {
         this._animator.once(Animation.EventType.PLAY, (evt) => {
-            if (this.index >= this._animatList.length) return;
-            let callbacks: cck_animat_resolved_type[] = this._animatList[this.index].callbacks;
-            for (let e of callbacks) {
-                if (e.type === "play") {
-                    SAFE_CALLBACK(e.call, evt);
+            if (this._animatList.length > 0) {
+                const animat = this._animatList.back(this.index);
+                let callbacks: cck_animat_resolved_type[] = animat.callbacks;
+                for (let e of callbacks) {
+                    if (e.type === "play") {
+                        SAFE_CALLBACK(e.call, evt);
+                    }
                 }
             }
         }, this);
+    }
+
+    private registerEventStop() {
         this._animator.once(Animation.EventType.STOP, (evt) => {
-            if (this.index >= this._animatList.length) return;
-            let callbacks: cck_animat_resolved_type[] = this._animatList[this.index].callbacks;
-            for (let e of callbacks) {
-                if (e.type === "stop") {
-                    SAFE_CALLBACK(e.call, evt);
+            if (this._animatList.length > 0) {
+                const animat = this._animatList.back(this.index);
+                let callbacks: cck_animat_resolved_type[] = animat.callbacks;
+                for (let e of callbacks) {
+                    if (e.type === "stop") {
+                        SAFE_CALLBACK(e.call, evt);
+                    }
+                }
+                this._status = "pending";
+                this.index++;
+                if (this.index < this._animatList.length) {
+                    SAFE_CALLBACK(this._nextCallback);
+                }
+                else {
+                    this.reset();
                 }
             }
-            this.index++;
-            if (this.index < this._animatList.length) {
-                this._status = "pending";
-                SAFE_CALLBACK(this._nextCallback);
-            }
         }, this);
+    }
+
+    private registerEvent(): void {
+        this.registerEventPlay();
+        this.registerEventStop();
     }
 }

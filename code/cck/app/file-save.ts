@@ -3,7 +3,7 @@ import { Debug } from "../Debugger";
 import { STARTUP } from "../Define";
 import { Assert } from "../exceptions/Assert";
 import { IDocument } from "../lib.cck";
-import { utils, UUID } from "../utils";
+import { UUID } from "../utils";
 import { CCGameWorld } from "./CCGameWorld";
 
 type Archive = {archive: string, uuid: string}
@@ -17,10 +17,18 @@ class FileIO {
     public static read(path: string) {
         try {
             if (sys.isNative) {
-                return native.fileUtils.getStringFromFile(this.pathJoin(path));
+                const data = native.fileUtils.getStringFromFile(this.pathJoin(path));
+                if (typeof data === "string") {
+                    return data;
+                }
+                return "";
             }
             else {
-                return sys.localStorage.getItem(path);
+                const data = sys.localStorage.getItem(path);
+                if (typeof data === "string") {
+                    return data;
+                }
+                return "";
             }
         } catch (error) {
             Debug.error("无法读取存档数据:", error);
@@ -79,8 +87,11 @@ class DataTable {
 
     private init(uuid: string) {
         const data = FileIO.read(uuid);
-        if (data.length > 0) {
-            this._fileTable = JSON.parse(data);
+        if (data) {
+            if (data.length > 0) {
+                this._fileTable = JSON.parse(data);
+            }
+            else this._fileTable = {};
         }
         else this._fileTable = {};
     }
@@ -204,7 +215,7 @@ export class DataSave {
      */
     public openArchive(index: number) {
         const flag = index < this._archives.length;
-        if (Assert.instance.handle(Assert.Type.ArrayIndexException, flag, "_archives")) {
+        if (Assert.handle(Assert.Type.ArrayIndexException, flag, "_archives")) {
             this._uuid = this._archives[index].uuid;
             this._dataTable = new DataTable(this._uuid);
         }
@@ -264,7 +275,7 @@ export class DataSave {
      */
     public swapArchive(index1: number, index2: number) {
         const flag = index1 < this._archives.length && index2 < this._archives.length;
-        if (Assert.instance.handle(Assert.Type.ArrayIndexException, flag, "_archives")) {
+        if (Assert.handle(Assert.Type.ArrayIndexException, flag, "_archives")) {
             this._archives[index2] = this._archives.splice(index1, 1, this._archives[index2])[0];
         }
     }
@@ -275,7 +286,7 @@ export class DataSave {
      */
     public archiveIndexDown(index: number) {
         const flag = index < this._archives.length - 1;
-        if (Assert.instance.handle(Assert.Type.ArrayIndexException, flag, "_archives")) {
+        if (Assert.handle(Assert.Type.ArrayIndexException, flag, "_archives")) {
             this.swapArchive(index, index + 1);
         }
     }
@@ -287,7 +298,7 @@ export class DataSave {
      */
     public remove(index: number) {
         const flag = index < this._archives.length;
-        if (Assert.instance.handle(Assert.Type.ArrayIndexException, flag, "_archives")) {
+        if (Assert.handle(Assert.Type.ArrayIndexException, flag, "_archives")) {
             const archive = this._archives[index];
             if (archive.uuid === this._uuid) {
                 if (this._dataTable.remove()) {

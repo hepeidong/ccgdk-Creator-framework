@@ -28,7 +28,7 @@ export class AudioEngine {
 
     private hasAudio(audioID: number) {
         const flag = audioID in this._audioAll;
-        return Assert.instance.handle(Assert.Type.AudioSourceIDException, flag, audioID.toString())
+        return Assert.handle(Assert.Type.AudioSourceIDException, flag, audioID.toString())
     }
 
     public stopAll() {

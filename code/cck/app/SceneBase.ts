@@ -8,7 +8,7 @@ import { IBaseView, ILoader, IRegister, IScene, ISceneManager } from "../lib.cck
 import { director, ISchedulable, Node, resources, Scene, Scheduler } from "cc";
 import { Res } from "../res/Res";
 import { SceneEvent, SceneType } from "./AppEnum";
-import { EventSystem } from "../event/EventSystem";
+import { EventSystem } from "../event";
 import { CCBaseView } from "./CCBaseView";
 
 
@@ -57,7 +57,7 @@ export class SceneBase<T extends IBaseView> extends Mediator implements IScene, 
     public setSceneType() {
         this._type = this.onCreate(this._register);
         const message = `“${this._sceneName}” 场景缺少场景类型，请重写onCreate函数，设置场景类型。`;
-        Assert.instance.handle(Assert.Type.InitSceneTypeException, this._type, message);
+        Assert.handle(Assert.Type.InitSceneTypeException, this._type, message);
     }
 
     public loadScene(onComplete?: Function) {
@@ -82,10 +82,7 @@ export class SceneBase<T extends IBaseView> extends Mediator implements IScene, 
         }
     }
 
-    public destroy(wait: Node) {
-        if (wait) {
-            wait.removeFromParent();
-        }
+    public destroy() {
         EventSystem.event.emit(SceneEvent.DESTROY_SCENE);
         //取消定时器
         director.getScheduler().unscheduleUpdate(this);
@@ -95,7 +92,11 @@ export class SceneBase<T extends IBaseView> extends Mediator implements IScene, 
     public runScene(wait: Node, hasTouchEffect: boolean, ...args: any[]) {
         Debug.log(this.toString(), "运行场景");
         if (this._scene && this._fromAssetBundle) {
-            director.runScene(this._scene);
+            director.runScene(this._scene, null, (err) => {
+                if (err) {
+                    Debug.error("场景运行错误", err);
+                }
+            });
         }
         else {
             this._scene = director.getScene();
@@ -111,7 +112,7 @@ export class SceneBase<T extends IBaseView> extends Mediator implements IScene, 
     private load(loader: ILoader, onComplete: Function) {
         if (loader) {
             loader.loadScene(this.assetPath, (err, asset) => {
-                if (Assert.instance.handle(Assert.Type.LoadSceneException, err, this._sceneName)) {
+                if (Assert.handle(Assert.Type.LoadSceneException, err, this._sceneName)) {
                     this._fromAssetBundle = true;
                     this.initView(asset.scene);
                     this.onLoad();
@@ -128,7 +129,7 @@ export class SceneBase<T extends IBaseView> extends Mediator implements IScene, 
         }
     }
 
-    private initView(scene: Scene) {
+    public initView(scene: Scene) {
         this._scene = scene;
         this._canvas = this._scene.getChildByName("Canvas");
         const components = this.canvas.getComponents(CCBaseView);
@@ -166,17 +167,17 @@ export class SceneBase<T extends IBaseView> extends Mediator implements IScene, 
      */
     onCreate(register: IRegister): number { return SceneType.NONE; }
     /**
-     * 场景加载完调用，只有场景加载后会调用
-     * @param register 注册器，调用注册器的reg函数，注册消息通知
-     * @example
-     *  onLoad(register: IRegister) {
-     *      register.reg("testNotification", (body: any, type: string) => {
-     *          console.log("消息通知传过来的数据", body);
-     *      }, this);
-     * }
+     * 场景加载完调用，只有场景加载后会调用，该函数执行时场景并没有显示，只有onStart才会显示
      */
     onLoad(): void { }
-    /**场景加载成功转换后调用的方法, 可在此做一些资源加载 */
+    /**
+     * 场景加载成功转换后调用的方法, 可在此做一些资源加载 
+     * @example
+     *  //可以指定传入的参数和参数类型
+     *  onStart(data: any) {
+     *      Debug.log("打开场景时传入的数据", data);
+     *  }
+     */
     onStart(...args: any[]) {}
     /**新的场景启动前调用的方法，会在场景销毁后，以及一系列自动释放资源后调用，可在此做一些资源释放 */
     onEnd() {}

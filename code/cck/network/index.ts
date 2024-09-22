@@ -1,4 +1,4 @@
-import { IHttpManager, ISocketManager } from "../lib.cck";
+import { IHttpManager, IHttpResponse, ISocketManager } from "../lib.cck";
 import { CCHttp } from "./Http";
 import { CCHttpMessage } from "./HttpMessage";
 import { CCSocket } from "./Socket";
@@ -15,5 +15,5 @@ export namespace network {
         POST = 'POST'
     }
     export class SocketMessage<T> extends CCSocketMessage<T> {}
-    export class HttpMessage<T, PT = any> extends CCHttpMessage<T, PT> {}
+    export class HttpMessage<T extends IHttpResponse, PT = any> extends CCHttpMessage<T, PT> {}
 }

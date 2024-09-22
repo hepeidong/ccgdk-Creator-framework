@@ -1,6 +1,8 @@
 /**********************************************类型定义，方便兼容和扩展********************************************/
 
+import { Scene } from "cc";
 import { AnimationClip, Asset, AssetManager, AudioClip, Color, Component, dragonBones, EventMouse, EventTouch, Node, Prefab, SceneAsset, SpriteFrame, Vec2, Vec3 } from "cc";
+import { Platform } from "./app/AppEnum";
 
 export declare var global: any;
 
@@ -50,7 +52,7 @@ export interface IListener { (...args: any[]): any }
 /**信号接口类型 */
 export interface ISignal<T, E> {
     readonly active: boolean;
-    add(listener: T): void;
+    add(listener: T, priority?: number): void;
     dispatch(...args: any[]): void;
     remove(listener: T): void;
     clear(): void;
@@ -64,7 +66,7 @@ export interface IDataTable {
 
 export interface IGameWorld extends IFacade {
     /**当前游戏平台 */
-    readonly platform: number;
+    readonly platform: Platform;
     /**场景管理 */
     readonly sceneManager: ISceneManager;
     /**WinForm视图加载进度回调 */
@@ -75,7 +77,7 @@ export interface IGameWorld extends IFacade {
      * 设置游戏平台，具体的游戏平台可以通过App.Platform获取
      * @param platform 具体的平台
      */
-    setPlatform(platform: number): void;
+    setPlatform(platform: Platform): void;
     /**
      * 设置当前游戏的版本号
      * @param vs 具体的版本号
@@ -85,6 +87,19 @@ export interface IGameWorld extends IFacade {
     getVersions(): string;
     init(mask: Prefab, wait: Prefab, touchEffect: Prefab): void;
     canOpenWinForm(accessId: string): boolean;
+    /**
+     * 加载最初始的资源，一般是游戏首页加载的资源，首页加载的资源必须是resources资源包的资源，
+     * 在工程的资源管理结构中，resources资源包应该用于存放各个模块都能使用到的公用资源
+     * @param onProgress 
+     */
+    loadInitialAsset(onProgress: (progress: number) => void): Promise<void>;
+    /**
+     * 获取指定文件名的游戏初始资源
+     * @param filename 
+     * @param type 
+     * @returns 
+     */
+    getInitialAsset<T extends Asset>(filename: string, type: {new (): T}): T|null;
 }
 
 export interface IDocument extends IProxy {
@@ -96,10 +111,12 @@ export interface IScene extends IMediator {
     readonly type: number;
     readonly canvas: Node;
     readonly sceneName: string;
+    initView(scene: Scene): void;
     setSceneType(): void;
     runScene(wait: Node, hasTouchEffect: boolean, ...args: any[]): void;
-    destroy(wait: Node): void;
+    destroy(): void;
     onCreate(register: IRegister): number;
+    onLoad(): void;
     onStart(...args: any[]): void;
     onEnd(): void;
     loadScene(onProgress?: (completedCount: number, totalCount: number, item: any) => void): void;
@@ -110,9 +127,9 @@ export interface IScene extends IMediator {
 export interface ISceneManager {
     readonly canvas: Node;
     getTouchEffectTemp(): Prefab;
-    setTouchEffect(prefab: Prefab): void;
-    setMask(prefab: Prefab): void;
-    setViewWait(prefab: Prefab): void;
+    setTouchEffect(temp: Prefab): void;
+    setMask(temp: Prefab): void;
+    setViewWait(temp: Prefab): void;
     addViewMaskTo(parent: Node, page: IWindowBase, zIndex: number): void;
     delViewMask(): void;
     showWaitView(): void;
@@ -218,6 +235,8 @@ export interface IAudioBGM extends IAudio {
 /***************************************************************************************************/
 
 /**********************************************动画接口类型定义*******************************************/
+
+export type AnimatPlayStatus = "pending"|"resolved"|"rejected";
 
 /**动画属性类型 */
 export interface IAnimat {
@@ -361,8 +380,9 @@ export interface IRegister {
      * 注册消息通知监听，handler中的body数据体可以是任意数据类型，在定义回调函数时，可以把any改成任意类型
      * @param notificationName 消息通知名
      * @param handler 接收消息返回的回调函数
+     * @param target handler回调的执行者
      */
-    reg(notificationName: string, handler: (body: any, type: string) => void): void;
+    reg(notificationName: string, handler: (body: any, type: string) => void, target: any): void;
     /**
      * 增加需要你想要关注的command，以便让window窗口能够与command通信
      * @param command 想要关注的command
@@ -389,7 +409,7 @@ export interface IWindowBase extends IMediator {
     setAutoRelease(autoRelease: boolean): void;
     load(accessId: string, isOpen: boolean, onProgress: (progress: number) => void, onComplete: () => void): void
     open(onComplete: Function, ...args: any[]): void;
-    close(isDestroy?: boolean): void;
+    close(isDestroy?: boolean, switchingScene?: boolean): void;
 }
 
 export interface IEventBody {
@@ -409,7 +429,7 @@ export interface ILayerManager {
     getView(): IWindowBase;
     hasView(view: IWindowBase): boolean;
     removeView(view: IWindowBase): boolean;
-    clear(): void;
+    clear(switchingScene?: boolean): void;
     getCount(): number;
 }
 
@@ -663,6 +683,7 @@ export interface IComponent {}
 export interface IComponentMap { [n: number]: IComponent; }
 
 export interface IBaseEntity {
+    readonly destroying: boolean;
     readonly enabled: boolean;
     readonly ID: string;
     readonly name: string;
@@ -670,51 +691,100 @@ export interface IBaseEntity {
     readonly groupId: string;
     readonly onComponentAdded: IEntityChange<EntityChange, IEntityManager<IBaseEntity>>;
     readonly onComponentRemoved: IEntityChange<EntityChange, IEntityManager<IBaseEntity>>;
-    readonly onEntityReleased: IEntityReleased<EntityReleased, IEntityManager<IBaseEntity>>;
-    readonly onEntityDestroyed: IEntityReleased<EntityReleased, IEntityManager<IBaseEntity>>;
+    readonly onEntityDestroyed: IEntityChange<EntityChange, IEntityManager<IBaseEntity>>;
+    setDestroying(destroying: boolean): void;
     setEnabled(enabled: boolean): void;
     setID(id: string): void;
     setName(name: string): void;
     destroyEntity(): void;
     clear(): void;
     setGroupId(id: string): void;
-    addComponentData(componentId: number): void;
-    getComponentData(component: number): IComponent;
+    /**
+     * 增加组件数据
+     * @param componentId 
+     */
+    addComponent(componentId: number): void;
+    /**
+     * 获取组件数据
+     * @param componentId 
+     */
+    getComponent(componentId: number): IComponent;
     getComponentIndices(): number[];
-    removeComponentData(component: number): void;
-    removeAllComponentData(): void;
-    hasComponentData(index: number): boolean;
+    /**
+     * 移除组件数据，移除组件数据后，可能会立马从当前系统中移除，此时调用匹配器getEntityByIndex接口可能会无法获取到相应实体
+     * @param componentId 
+     */
+    removeComponent(componentId: number): void;
+    /**移除所有组件数据 */
+    removeAllComponent(): void;
+    /**是否存在指定组件数据 */
+    hasComponent(index: number): boolean;
     toString(): string;
 }
 
-export type IEntity = IBaseEntity & Node;
+export interface IEntity extends IBaseEntity {
+    setNode(node: Node): void;
+    node: Node;
+}
 
 export interface IPrimaryEntity extends IBaseEntity {
     template: {prefab: Node|Prefab;
         parent: Node;}
 }
- 
 
 export type cck_ecs_entity = Readonly<IBaseEntity>;
 
 export interface IMatcher<T extends IBaseEntity> {
+    readonly onMatcherChange: IMatcherChange<MatcherChange, IMatcher<T>>;
+    getEntities(): T[];
+    getEntityById(id: string): T;
+    hasEntity(): boolean;
+    matcherEnabled(): boolean;
+    /**
+     * 匹配拥有所有指定的组件数据的实体
+     * @param args 
+     */
+    withAll(...args: number[]): IMatcher<T>;
+    /**
+     * 匹配至少拥有任意一个指定的组件数据的实体
+     * @param args 
+     */
+    withAny(...args: number[]): IMatcher<T>;
+    /**
+     * 匹配没有指定组件数据的实体
+     * @param args 
+     */
+    withNone(...args: number[]): IMatcher<T>;
+    /**
+     * 遍历匹配后的实体
+     * @param callback 索引index并不严格对应当前匹配到的索引所在的实体组里的位置，实体所在位置会在运行时随着组件数据的增减而可能发生变化，所以仅仅用于表示当前帧遍历实体开始，例如 index == 0
+     * @returns 
+     */
+    forEach(callback: (entity: T, index: number) => void): IMatcher<T>;
+    end(callback: Function): void;
 }
 
 export interface IEntityManager<T extends IBaseEntity> {
     readonly onArchetypeChunkChange: IArchetypeChunkChange<ArchetypeChunkChange, IArchetypeChunk<T>>;
+    // readonly onArchetypeReleased: IGroupChange<GroupChange, IArchetypeChunk<T>>;
+    readonly onEntityAddComponent: IEntityChange<EntityChange, IEntityManager<IBaseEntity>>;
+    readonly onEntityReleased: IEntityChange<EntityChange, IEntityManager<IBaseEntity>>;
     createEntity(name: string): T;
-    destroyEntity(entity: T): void;
-    destroyEntityAll(): void;
     getEntities(): T[];
     getGroups(): IEntitiesGroup<T>;
+    forEach(callback: (entity: T) => void): void;
 }
 
 export interface ISystem<T extends IBaseEntity = any> {
-    readonly ID: string;
     readonly name: string;
+    readonly startRan: boolean;
+    readonly matcher: IMatcher<T>;
     enabled: boolean;
     setPool(pool: IEntityManager<T>): void;
-    setID(id: string): void;
+    setMatcher(matcher: IMatcher<T>): void;
+    setEndEntityCommandBufferSystem(endEntityCommandBufferSystem: IEndEntityCommandBufferSystem): void;
+    destroyEntity(entity: T): void;
+    destroyEntityAll(): void;
     /**基类方法，外部不可调用此方法，否则会引发不可预知错误 */
     create(): void;
     /**基类方法，外部不可调用此方法，否则会引发不可预知错误 */
@@ -726,9 +796,24 @@ export interface ISystem<T extends IBaseEntity = any> {
     toString(): string;
 }
 
-export interface ISystemGroup extends ISystem {}
+export interface JobInitMethod<T> extends IListener { (entity: T, conversionSystem: IConversionSystem): void; }
+export interface JobEntityMethod<T> extends IListener { (entity: T): void; }
+export interface IJobHandler<Method> {
+    scheduler(thisArg: ISystem): void;
+    setMethod(method: Method): void;
+    apply(...args: any[]): void;
+}
 
-export interface IEntities { [n: string]: IBaseEntity; }
+export interface IBeginEntityCommandBufferSystem {
+    scheduler<T extends IBaseEntity>(thisArg: ISystem, method: JobInitMethod<T>, componentType: number): void;
+}
+
+export interface IEndEntityCommandBufferSystem {
+    removeSame<T extends IBaseEntity>(entity: T): boolean;
+    scheduler<T extends IBaseEntity>(thisArg: ISystem, method: JobEntityMethod<T>, entity: T): void;
+}
+
+export interface ISystemGroup extends ISystem {}
 
 export interface IHandler {
     /**handler唯一的id */
@@ -751,10 +836,13 @@ export interface IHandlers { [n: number]: IHandler[]; }
 
 export interface IArchetypeChunk<T extends IBaseEntity> {
     readonly archetypes: IEntitiesGroup<T>;
-    createArchetype(manager: IEntityManager<T>, types: number[]): IEntityArchetype<T>;
+    readonly onArchetypeChunkChange: IArchetypeChunkChange<ArchetypeChunkChange, IArchetypeChunk<T>>;
+    // readonly onArchetypeReleased: IGroupChange<GroupChange, IArchetypeChunk<T>>;
+    createArchetype(types: number[]): IEntityArchetype<T>;
     getEntities(): T[];
-    handleEntity(entity: T, type: number): boolean;
-    updateEntity(entity: T, type: number): boolean;
+    getArchetypesById(id: string): Readonly<IEntityArchetype<T>>;
+    handleEntityComponentAdded(entity: T): boolean;
+    handleEntityComponentRemoved(entity: T): boolean;
 }
 
 export interface IEntityArchetype<T extends IBaseEntity> {
@@ -762,26 +850,30 @@ export interface IEntityArchetype<T extends IBaseEntity> {
     readonly typesCount: number;
     readonly version: string;
     readonly types: number[];
-    readonly onEntityAdded: IEntityChangeInGroup<EntityChangeInGroup, any>;
-    readonly onEntityRemoved: IEntityChangeInGroup<EntityChangeInGroup, any>;
     readonly onGroupReleased: IGroupChange<GroupChange, IEntityManager<T>>;
-    setEntityAddedSignal(signal: IEntityChangeInGroup<EntityChangeInGroup, any>): void;
-    setEntityRemoveSignal(signal: IEntityChangeInGroup<EntityChangeInGroup, any>): void;
-    setName(name: string): void;
+    addRef(ref: string): void;
+    delRef(ref: string): void;
+    equal(key: string): boolean;
     setGroupId(id: string): void;
     setComponentTypes(comments: number[]): void;
     getEntities(): T[];
     addEntityToChunk(member: T): Readonly<IEntityArchetype<T>>;
     removeEntityFromChunk(member: T): boolean;
-    handleEntity(entity: T, index: number): boolean;
-    updateEntity(entity: T, index: number): boolean;
     checkComponentType(entity: T): boolean;
     toString(): string;
 }
 
 export interface IConversionSystem {
     add(prefab: Node|Prefab): {to: (parent: Node) => void};
+    /**
+     * 获取初级实体
+     * @param prefab 
+     */
     getPrimaryEntity(prefab: Node|Prefab): IPrimaryEntity;
+    /**
+     * 根据初级实体生成可用的实体
+     * @param entity 
+     */
     getEntity(entity: IPrimaryEntity): IEntity;
 }
 
@@ -792,18 +884,8 @@ export interface IConvertToEntity {
 
 export interface IEntitiesGroup<T extends IBaseEntity> { [n: string]: Readonly<IEntityArchetype<T>>; }
 
-export interface EntityReleased extends IListener { (entity: IBaseEntity): void; }
-export interface IEntityReleased<T, E> extends ISignal<T, E> {
-    dispatch(entity: IBaseEntity): void;
-}
-
-export interface EntityChange extends IListener { (entity: IBaseEntity, componentIndex: number): void; }
+export interface EntityChange extends IListener { (entity: IBaseEntity): void; }
 export interface IEntityChange<T, E> extends ISignal<T, E> {
-    dispatch(entity: IBaseEntity, componentIndex: number): void;
-}
-
-export interface EntityChangeInGroup extends IListener { (entity: IBaseEntity): void; }
-export interface IEntityChangeInGroup<T, E> extends ISignal<T, E> {
     dispatch(entity: IBaseEntity): void;
 }
 
@@ -817,9 +899,16 @@ export interface IArchetypeChunkChange<T, E> extends ISignal<T, E> {
     dispatch(archetype: IEntityArchetype<IBaseEntity>): void;
 }
 
-export interface MatcherInit extends IListener { (entities: IBaseEntity[]): void;}
-export interface IMatcherInit<T, E> extends ISignal<T, E> {
-    dispatch(entities: IBaseEntity[]): void;
+export interface MatcherChange extends IListener { (): void;}
+export interface IMatcherChange<T, E> extends ISignal<T, E> {
+    dispatch(): void;
+}
+
+export interface IWorld {
+    id: string;
+    uuid: string;
+    entityManager: Readonly<IEntityManager<IBaseEntity>>;
+    systems: Readonly<ISystem<IBaseEntity>[]>;
 }
 
 /*********************************************************************************************/
@@ -832,13 +921,13 @@ export interface IHttpMessage extends IProxy {
     then(resolve: (data?: any) => void): IHttpMessage;
     catch(listeners: (err: IHttpError) => void): IHttpMessage;
 }
-export interface IHttpResponse<T = any> {
-    /**状态码，规定200为请求正常，其他均为请求失败 */
+export interface IHttpResponse/**<T = any>*/ {
+    /**状态码，规定0为请求正常，其他均为请求失败 */
     code: number;
     /**请求失败错误描述 */
     msg: string;
     /**数据 */
-    data: T;
+    // data: T;
 }
 /**HTTP请求发生网络错误类型 */
 export interface IHttpError {
@@ -1043,7 +1132,7 @@ export interface IGameObserver<T> {
     onCreate(): void;
     update(notify: INotify<T>): void;
 }
-export interface IObserverSystem {
+export interface IEventBus {
     /**
      * 给指定的主题订阅观察者
      * @param subjectName 主题名
@@ -1130,6 +1219,22 @@ export interface IEventListeners {
 
 /*************************************资源管理类型定义********************************/
 
+/**
+ * 对需要加载引用的资源进行注册
+ */
+export interface IAssetRegister {
+    reset(): void;
+    /**
+     * 增加资源文件路径
+     * @param path 
+     */
+    addFilePath(path: string): void;
+    /**
+     * 增加资源文件目录路径
+     * @param path 
+     */
+    addDirPath(path: string): void;
+}
 
 export interface ILoader {
     load<T extends Asset>(paths: string, type: cck_loader_AssetType<T>, onProgress: (finish: number, total: number, item: AssetManager.RequestItem) => void, onComplete: (error: Error, assets: T) => void): void;

@@ -5,6 +5,7 @@ import { WindowManager } from "./WindowManager";
 import { CCWinForm } from "./CCWinForm";
 import { IContainer, IUIControlConfig, IWindowBase, IWinView } from "../lib.cck";
 import { Type } from "./UIEnum";
+import { Layers } from "cc";
 
 
 export class ui {
@@ -17,6 +18,13 @@ export namespace ui {
     export class WinForm<T extends IWinView> extends CCWinForm<T> {}
 
 
+    /**
+     * 设置UI所在的Layer层，如果不设置，则默认为UI_2D
+     * @param layer 
+     */
+    export function setUILayer(layer: Layers.Enum) {
+        WindowManager.instance.setUILayer(layer);
+    }
 
     /**
      * 根据窗口类型，把该类型的窗口全部隐藏

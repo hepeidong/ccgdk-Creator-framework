@@ -1,19 +1,21 @@
-import { System } from "./System";
+import { CCSystem } from "./System";
 import { SystemUpdateSequenceSettingException } from "./exceptions/SystemUpdateSequenceSettingException";
 import { asUpdateAfter, asUpdateBefore, asUpdateInGroup, removeElement } from "./ecs-utils";
 import { IBaseEntity, ISystem, ISystemGroup } from "../lib.cck";
+import { Debug } from "../Debugger";
+import { EndEntityCommandBufferSystem } from "./EndEntityCommandBufferSystem";
 
-export class SystemGroup extends System<IBaseEntity> implements ISystemGroup {
+export class CCSystemGroup extends CCSystem<IBaseEntity> implements ISystemGroup {
     private _subSystems: ISystem<IBaseEntity>[];
     constructor() {
-        super();
+        super("SystemGroup");
         this._subSystems = [];
     }
 
     public get subSystems() {
         const total:ISystem<IBaseEntity>[] = [];
         for (const system of this._subSystems) {
-            if (system instanceof SystemGroup) {
+            if (system instanceof CCSystemGroup) {
                 total.concat(system.subSystems);
             }
             else {
@@ -33,7 +35,7 @@ export class SystemGroup extends System<IBaseEntity> implements ISystemGroup {
             }
         }
         else {
-            throw console.error("给'enabled'赋值的类型必须是boolean");
+            throw Debug.error("给'enabled'赋值的类型必须是boolean");
         }
     }
 
@@ -42,27 +44,27 @@ export class SystemGroup extends System<IBaseEntity> implements ISystemGroup {
     public destroySystem() {
         if (typeof arguments[0] === 'string') {
             const arg = arguments[0];
-            return this.removeSubSystem((sys) => {
+            return this.removeSubSys((sys) => {
                 return sys.name === arg;
             });
         }
         else {
             const arg = arguments[0];
-            return this.removeSubSystem((sys) => {
+            return this.removeSubSys((sys) => {
                 return sys instanceof arg;
             });
         }
     }
 
-    private removeSubSystem(juage: (sys: ISystem<IBaseEntity>) => boolean) {
+    private removeSubSys(juage: (sys: ISystem<IBaseEntity>) => boolean) {
         for (let i: number = 0, len = this._subSystems.length; i < len; ++i) {
             if (juage(this._subSystems[i])) {
                 this._subSystems.splice(i, 1);
                 return true;
             }
             else {
-                if (this._subSystems[i] instanceof SystemGroup) {
-                    if ((this._subSystems[i] as SystemGroup).destroySystem(arguments[0])) {
+                if (this._subSystems[i] instanceof CCSystemGroup) {
+                    if ((this._subSystems[i] as CCSystemGroup).destroySystem(arguments[0])) {
                         return true;
                     }
                 }
@@ -71,31 +73,38 @@ export class SystemGroup extends System<IBaseEntity> implements ISystemGroup {
         return false;
     }
 
-    public start() {
-        this.onStart();
+    protected onCreate(): void {
+        for (const system of this._subSystems) {
+            system.create();
+        }
+    }
+
+    protected onStart(): void {
         for (const system of this._subSystems) {
             system.start();
         }
     }
 
-    public update(dt: number) {
-        this.onUpdate(dt);
+    protected onUpdate(dt: number): void {
         for (const system of this._subSystems) {
             system.update(dt);
         }
     }
 
     public addSystemToUpdateList(system: ISystem<IBaseEntity>) {
+        if (!(system instanceof EndEntityCommandBufferSystem)) {
+            system.setEndEntityCommandBufferSystem(this._endEntityCommandBufferSystem);
+        }
         this._subSystems.push(system);
     }
 
     public addSubSystemToGroup(subSys: ISystem<IBaseEntity>) {
         for (const sys of this._subSystems) {
             if (sys instanceof asUpdateInGroup(subSys)) {
-                (sys as SystemGroup).addSystemToUpdateList(subSys);
+                (sys as CCSystemGroup).addSystemToUpdateList(subSys);
                 return true;
             }
-            else if ((sys as SystemGroup).addSubSystemToGroup(subSys)) {
+            else if ((sys as CCSystemGroup).addSubSystemToGroup(subSys)) {
                 return true;
             }
         }
@@ -123,19 +132,19 @@ export class SystemGroup extends System<IBaseEntity> implements ISystemGroup {
 
     /**
      * 回溯排序各系统的更新顺序 ，注意只排序设置了updateBefore和updateAfter特性的系统，
-     * 其余各系统的更新位置将是不确定的
+     * 其余各系统的更新顺序将是不确定的
      * */
     private backtrackingSort(array: any[]) {
         for (let i: number = 0, len = this._subSystems.length; i < len; ++i) {
-            const system = this._subSystems[i];
+            let system = this._subSystems[i];
             if (asUpdateBefore(system) && !asUpdateAfter(system)) {
-                const tempIndex: number = this.traversalType(array, asUpdateBefore(system));
+                let tempIndex: number = this.traversalType(array, asUpdateBefore(system));
                 if (tempIndex < array.length && tempIndex > -1) {
                     this.inserts(array, tempIndex, system);
                     //当前位置元素已经整理完，要及时把当前位置元素从数组中去除，
                     //为了执行效率，直接把最末尾的元素替换当前位置元素，改变数组
                     //长度和i的大小
-                    const result = removeElement(this._subSystems, i, len);
+                    let result = removeElement(this._subSystems, i, len);
                     i = result.i;
                     len = result.len;
                 }
@@ -144,7 +153,7 @@ export class SystemGroup extends System<IBaseEntity> implements ISystemGroup {
                 }
             }
             else if (!asUpdateBefore(system) && asUpdateAfter(system)) {
-                const tempIndex: number = this.traversalType(array, asUpdateAfter(system));
+                let tempIndex: number = this.traversalType(array, asUpdateAfter(system));
                 if (tempIndex < array.length && tempIndex > -1) {
                     if (tempIndex === array.length - 1) {
                         array[tempIndex + 1] = system;
@@ -152,7 +161,7 @@ export class SystemGroup extends System<IBaseEntity> implements ISystemGroup {
                     else {
                         this.inserts(array, tempIndex + 1, system);
                     }
-                    const result = removeElement(this._subSystems, i, len);
+                    let result = removeElement(this._subSystems, i, len);
                     i = result.i;
                     len = result.len;
                 }

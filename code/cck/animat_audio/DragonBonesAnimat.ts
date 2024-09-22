@@ -5,32 +5,31 @@ import { SAFE_CALLBACK } from "../Define";
 import { DBLoad } from "../res/LoadAnimation";
 import { utils } from "../utils";
 import { AnimatBase } from "./AnimatBase";
+import { tools } from "../tools";
 
-export  class DragonBonesAnimat extends AnimatBase {
+export  class DragonBonesAnimat extends AnimatBase<cck_animat_dragonBonesAnimat_type> {
     private _selfDB: dragonBones.ArmatureDisplay;
-    private _animatList: cck_animat_dragonBonesAnimat_type[];
-    private _timeoutID: number = 0;
 
     private static isStop: boolean = false;
     constructor(target: Node, bundle: string) {
         super(() => {
             if (DragonBonesAnimat.isStop && this._animatList) {
-                for (let i: number = 0; i < this._animatList.length; ++i) {
-                    this._animatList[i].props.played = true;
-                }
+                this._animatList.forEach(animat => {
+                    animat.props.played = true;
+                });
                 this.stop();
             }
             DragonBonesAnimat.isStop = false;
         });
 
         this._animatLoad = new DBLoad(bundle);
-        this._animatList = [];
         this._target = target;
         this._selfDB = this._target.getComponent(dragonBones.ArmatureDisplay);
         if (!this._selfDB) {
             this._status = 'rejected';
             this._err = new Error('该结点没有 ArmatureDisplay 组件！');
         }
+        this._selfDB.playAnimation
     }
 
     public static stopAll(): void {
@@ -43,7 +42,8 @@ export  class DragonBonesAnimat extends AnimatBase {
 
     public addCallback(callback: cck_animat_resolved_type): void {
         let len: number = this._animatList.length;
-        this._animatList[len - 1].callbacks.push(callback);
+        const animat = this._animatList.back(len - 1);
+        animat.callbacks.push(callback);
     }
 
     public addAnimatProps(props: IDragonBonesAnimat): void {
@@ -94,7 +94,8 @@ export  class DragonBonesAnimat extends AnimatBase {
     public play(): DragonBonesAnimat {
         try {
             if (this._status === 'pending') {
-                let props: IDragonBonesAnimat = this._animatList[this.index].props;
+                const animat = this._animatList.back(this.index);
+                let props: IDragonBonesAnimat = animat.props;
                 if (!props.played) {
                     this.playInterval();
                 }
@@ -146,12 +147,13 @@ export  class DragonBonesAnimat extends AnimatBase {
 
     private playInterval() {
         this.registerEvent();
-        let props: IDragonBonesAnimat = this._animatList[this.index].props;
-        if (props.delay > 0) {
-            this._timeoutID = setTimeout(() => {
-                clearTimeout(this._timeoutID);
+        const animat = this._animatList.back(this.index);
+        const props: IDragonBonesAnimat = animat.props;
+        const delay = props.delay
+        if (delay > 0) {
+            tools.Timer.setInterval(() => {
                 this._selfDB.playAnimation(props.name, props.repeatCount);
-            }, this._animatList[this.index].props.delay * 1000);
+            }, delay);
         }
         else {
             this._selfDB.playAnimation(props.name, props.repeatCount);
@@ -160,34 +162,43 @@ export  class DragonBonesAnimat extends AnimatBase {
 
     private registerEventStart() {
         this._selfDB.once(dragonBones.EventObject.START, (evt: any) => {
-            let animat: cck_animat_spineAnimat_type = this._animatList[this.index];
-            if (animat) {
-                let callbacks: cck_animat_resolved_type[] = animat.callbacks;
-                for (let e of callbacks) {
-                    if (e.type === 'play') {
-                        SAFE_CALLBACK(e.call, evt);
+            if (this._animatList.length > 0) {
+                const animat = this._animatList.back(this.index);
+                if (animat) {
+                    let callbacks: cck_animat_resolved_type[] = animat.callbacks;
+                    for (let e of callbacks) {
+                        if (e.type === 'play') {
+                            SAFE_CALLBACK(e.call, evt);
+                        }
                     }
                 }
             }
-            
         }, this);
     }
 
     private registerEventComplete() {
         this._selfDB.once(dragonBones.EventObject.COMPLETE, (evt: any) => {
-            let animat: cck_animat_spineAnimat_type = this._animatList[this.index];
-            if (animat) {
-                let callbacks: cck_animat_resolved_type[] = animat.callbacks;
-                for (let e of callbacks) {
-                    if (e.type === 'stop') {
-                        SAFE_CALLBACK(e.call, evt);
+            if (this._animatList.length > 0) {
+                const animat = this._animatList.back(this.index);
+                if (animat) {
+                    let callbacks: cck_animat_resolved_type[] = animat.callbacks;
+                    for (let e of callbacks) {
+                        if (e.type === 'stop') {
+                            SAFE_CALLBACK(e.call, evt);
+                        }
                     }
                 }
-            }
-            this.index++;
-            if (this.index < this._animatList.length) {
-                this._status = 'pending';
-                SAFE_CALLBACK(this._nextCallback);
+                const props = animat.props;
+                if (!props.loop) {
+                    this._status = 'pending';
+                    this.index++;
+                    if (this.index < this._animatList.length) {
+                        SAFE_CALLBACK(this._nextCallback);
+                    }
+                    else {
+                        this.reset();
+                    }
+                }
             }
         }, this);
 
@@ -195,16 +206,17 @@ export  class DragonBonesAnimat extends AnimatBase {
 
     private registerEventLoopComplete() {
         this._selfDB.once(dragonBones.EventObject.LOOP_COMPLETE, (evt: any) => {
-            let animat: cck_animat_spineAnimat_type = this._animatList[this.index];
-            if (animat) {
-                let callbacks: cck_animat_resolved_type[] = animat.callbacks;
-                for (let e of callbacks) {
-                    if (e.type === 'complate') {
-                        SAFE_CALLBACK(e.call, evt);
+            if (this._animatList.length > 0) {
+                const animat = this._animatList.back(this.index);
+                if (animat) {
+                    let callbacks: cck_animat_resolved_type[] = animat.callbacks;
+                    for (let e of callbacks) {
+                        if (e.type === 'complate') {
+                            SAFE_CALLBACK(e.call, evt);
+                        }
                     }
                 }
             }
-            
         }, this);
     }
 

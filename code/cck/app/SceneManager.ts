@@ -2,13 +2,16 @@ import { Button, instantiate, js, Node, Prefab } from "cc";
 import { Constructor, IScene, ISceneManager, IWindowBase } from "../lib.cck";
 import { Debug } from "../Debugger";
 import { Assert } from "../exceptions/Assert";
-import { EventSystem } from "../event/EventSystem";
+import { EventSystem } from "../event";
 import { SceneEvent, SceneType } from "./AppEnum";
 import { CCGameWorld } from "./CCGameWorld";
 import { setPriority } from "../util";
+import { director } from "cc";
 
 export class SceneManager implements ISceneManager {
     private _hasTouchEffect: boolean;
+    private _maskTemp: Node;
+    private _waitTemp: Node;
     private _mask: Node;     //UI界面的底部遮罩
     private _wait: Node;     //UI界面加载时的等待界面
     private _maskInPage: IWindowBase;   //底部遮罩所在的界面
@@ -31,23 +34,20 @@ export class SceneManager implements ISceneManager {
         }
     }
 
-    public setMask(prefab: Prefab) {
-        if (!this._mask && prefab) {
-            this._mask = instantiate(prefab);
-            if (!this._mask.getComponent(Button)) {
-                this._mask.addComponent(Button);
-            }
-            EventSystem.click(this._mask, this, this.closeView);
+    public setMask(temp: Prefab) {
+        if (temp instanceof Prefab) {
+            this._maskTemp = instantiate(temp);
         }
     }
 
     public addViewMaskTo(parent: Node, page: IWindowBase, zIndex: number) {
         this._maskInPage = page;
+        this.instantiateMask();
         if (this._mask) {
             this._mask.active = true;
             this._mask.removeFromParent();
-            setPriority(this._mask, zIndex);
             parent.addChild(this._mask);
+            setPriority(this._mask, zIndex);
         }
     }
 
@@ -58,22 +58,20 @@ export class SceneManager implements ISceneManager {
         }
     }
 
-    public setViewWait(prefab: Prefab) {
-        if (!this._wait && prefab) {
-            this._wait = instantiate(prefab);
-            setPriority(this._wait, 99999);
-            this._wait.active = false;
+    public setViewWait(temp: Prefab) {
+        if (temp instanceof Prefab) {
+            this._waitTemp = instantiate(temp);
         }
     }
 
     public showWaitView() {
+        this.instantiateWait();
         this._wait && (this._wait.active = true);
     }
 
     public hideWaitView() {
         this._wait && (this._wait.active = false);
     }
-
 
     /**
      * 设置将要显示的场景，会对即将要显示俄场景进行加载，以及释放当前场景及其可以释放的资源
@@ -90,7 +88,7 @@ export class SceneManager implements ISceneManager {
                  * 过渡类型场景一般用于切换场景时加载资源等等场合。
                 */
                 if (this._scene.type === SceneType.Normal) {
-                    this._scene.destroy(this._wait);
+                    this._scene.destroy();
                 }
                 if (CCGameWorld.getInstance().hasMediator(sceneName)) {
                     this._scene = CCGameWorld.getInstance().retrieveMediator(sceneName) as IScene;
@@ -107,6 +105,8 @@ export class SceneManager implements ISceneManager {
         //初始场景不需要加载, 游戏进入会直接显示
         else {
             this.createScene(sceneName);
+            this._scene.initView(director.getScene());
+            this._scene.onLoad();
             this.runScene(...args);
         }
     }
@@ -133,9 +133,50 @@ export class SceneManager implements ISceneManager {
         }
     }
 
+    private instantiateWait() {
+        let flag = false;
+        if (this._wait) {
+            if (!this._wait.isValid) {
+                flag = true;
+            }
+        }
+        else {
+            if (this._waitTemp) {
+                flag = true;
+            }
+        }
+        if (flag) {
+            this._wait = instantiate(this._waitTemp);
+            this.canvas.addChild(this._wait);
+            setPriority(this._wait, 99999);
+            this._wait.active = false;
+        }
+    }
+
+    private instantiateMask() {
+        let flag = false;
+        if (this._mask) {
+            if (!this._mask.isValid) {
+                flag = true;
+            }
+        }
+        else {
+            if (this._maskTemp) {
+                flag = true;
+            }
+        }
+        if (flag) {
+            this._mask = instantiate(this._maskTemp);
+            if (!this._mask.getComponent(Button)) {
+                this._mask.addComponent(Button);
+            }
+            EventSystem.click(this._mask, this, this.closeView);
+        }
+    }
+
     private createScene(sceneName: string) {
         const classRef = js.getClassByName(sceneName) as Constructor;
-        if (Assert.instance.handle(Assert.Type.GetSceneClassException, classRef, sceneName)) {
+        if (Assert.handle(Assert.Type.GetSceneClassException, classRef, sceneName)) {
             const scene = new classRef(sceneName, this) as IScene;
             scene.setSceneType();
             CCGameWorld.getInstance().registerMediator(scene);
@@ -153,6 +194,7 @@ export class SceneManager implements ISceneManager {
     private runScene(...args: any[]) {
         this._sceneStack.push(this._scene);
         //运行场景当前设置的场景，传入数据，会给运行起来的场景传递数据
+        this.instantiateWait(); //重新初始化等待页面，因为场景发生了切换，势必会造成某些节点被销毁
         this._scene.runScene(this._wait, this._hasTouchEffect, ...args);
     }
 

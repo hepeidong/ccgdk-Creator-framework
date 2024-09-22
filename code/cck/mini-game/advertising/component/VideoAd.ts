@@ -1,6 +1,6 @@
 import { Component, EventHandler, _decorator } from "cc";
 import { app } from "../../../app";
-import { EventSystem } from "../../../event/EventSystem";
+import { EventSystem } from "../../../event";
 import { utils } from "../../../utils";
 import { AdManager } from "../AdManager";
 

@@ -16,7 +16,7 @@ export class AnimatLoad {
         this.createLoader().then(loader => {
             loader.load(path, type, complete);
         }).catch(err => {
-            Assert.instance.handle(Assert.Type.LoadAssetBundleException, err, this._bundle);
+            Assert.handle(Assert.Type.LoadAssetBundleException, err, this._bundle);
         });
     }
 

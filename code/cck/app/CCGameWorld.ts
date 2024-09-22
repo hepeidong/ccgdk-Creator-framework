@@ -1,14 +1,17 @@
-import { EventSystem } from "../event/EventSystem";
+import { EventSystem } from "../event";
 import { Facade } from "../puremvc";
 import { SceneManager } from "./SceneManager";
 import { setParentType } from "../decorator/Decorator";
-import { cck_initial_asset_info, IGameWorld, ISceneManager, IViewComplete, IViewProgress, IWindowBase, ViewComplete, ViewProgress } from "../lib.cck";
-import { director, Game, game, ISchedulable, Node, Prefab, Scheduler } from "cc";
+import { IAssetRegister, IGameWorld, ISceneManager, IViewComplete, IViewProgress, ViewComplete, ViewProgress } from "../lib.cck";
+import { director, Game, game, ISchedulable, Prefab, Scheduler } from "cc";
 import { STARTUP } from "../Define";
 import { UUID } from "../utils";
 import { Res } from "../res/Res";
-import { Platform } from "./AppEnum";
+import { GameWorldEvent, Platform } from "./AppEnum";
 import { DataSave } from "./file-save";
+import { AssetRegister } from "../res/AssetRegister";
+import { Debug } from "../Debugger";
+import { Asset } from "cc";
 
 
 /**
@@ -27,7 +30,9 @@ export class CCGameWorld extends Facade implements IGameWorld, ISchedulable {
     private _startup: boolean;
     private _regUpdated: boolean;
     private _platform: number;
+    private _assets: Asset[];
     private _sceneManager: ISceneManager;
+    private _assetRegister: AssetRegister;
     private _onViewProgress: IViewProgress<ViewProgress, CCGameWorld>;
     private _onViewComplete: IViewComplete<ViewComplete, CCGameWorld>;
    
@@ -37,12 +42,14 @@ export class CCGameWorld extends Facade implements IGameWorld, ISchedulable {
         this._uuid = UUID.randomUUID();
         this._platform   = Platform.PREVIEW;
         this._versions   = '0.0.0';
-        this._startup = false;
+        this._startup    = false;
         this._regUpdated = false;
+        this._assets     = [];
         this._sceneManager    = new SceneManager();
+        this._assetRegister   = new AssetRegister();
         this._onViewProgress  = new EventSystem.Signal(this);
         this._onViewComplete  = new EventSystem.Signal(this);
-
+        
         game.on(Game.EVENT_HIDE, this.onBackground, this);
         game.on(Game.EVENT_SHOW, this.onForeground, this);
     }
@@ -64,20 +71,67 @@ export class CCGameWorld extends Facade implements IGameWorld, ISchedulable {
     public init(mask: Prefab, wait: Prefab, touchEffect: Prefab) {
         if (!this._startup) {
             this._startup = true;
-            new Res(this.listAsset());
+            new Res();
+            this._assetRegister.setLoader(Res.loader);
+            this.listAsset(this._assetRegister);
             DataSave.instance.init();
             this._sceneManager.setMask(mask);
             this._sceneManager.setViewWait(wait);
             this._sceneManager.setTouchEffect(touchEffect);
-             //设置初始场景
-             this._sceneManager.setScene(this.startScene);
-             this.startup();
+            EventSystem.event.emit(GameWorldEvent.INIT_GAME);
+            //设置初始场景
+            this._sceneManager.setScene(this.startScene);
+            this.startup();
         }
         this.regUpdate();
     }
 
+    /**
+     * 设置运行平台
+     * @param platform 
+     */
     public setPlatform(platform: number) {
         this._platform = platform;
+    }
+
+    /**
+     * 加载最初始的资源，一般是游戏首页加载的资源，首页加载的资源必须是resources资源包的资源，
+     * 在工程的资源管理结构中，resources资源包应该用于存放各个模块都能使用到的公用资源
+     * @param onProgress 
+     */
+    public loadInitialAsset(onProgress: (progress: number) => void) {
+        return new Promise<void>((resolve, rejects) => {
+            this._assetRegister.loadAssets(onProgress).then(assets => {
+                this._assets = assets;
+                resolve(null);
+            }).catch(e => {
+                rejects(e);
+            });
+        });
+    }
+
+    /**
+     * 获取指定文件名的游戏初始资源
+     * @param filename 
+     * @param type 
+     * @returns 
+     */
+    public getInitialAsset<T extends Asset>(filename: string, type: {new (): T}) {
+        for (const asset of this._assets) {
+            if (asset instanceof type) {
+                if (filename === asset.name) {
+                    return asset;
+                }
+            }
+        }
+        return null;
+    }
+
+     /**清理初始加载的资源，即首页资源，会把引用计数减少1，让引擎进行释放检查 */
+     public clearInitialingAssets() {
+        for (const asset of this._assets) {
+            Res.loader.delete(asset);
+        }
     }
 
     private regUpdate() {
@@ -97,12 +151,17 @@ export class CCGameWorld extends Facade implements IGameWorld, ISchedulable {
         return this._versions;
     }
 
-    /**列出游戏加载页面需要加载的资源 */
-    protected listAsset(): cck_initial_asset_info[] {
-        return [];
-    }
+    /**列出游戏加载页面需要加载的资源，加载的必须是resources资源包里的资源
+     * @example
+     *  listAsset(assetRegister: IAssetRegister) {
+     *      assetRegister.addFilePath('/目录名/holleworld.png');
+     *      assetRegister.addFilePath('/目录名/game.atlas');
+     *      assetRegister.addDirPath('/资源目录');
+     *  }
+     */
+    protected listAsset(assetRegister: IAssetRegister) {}
 
-    /**游戏启动完成 */
+    /**游戏启动完成，在首场景加载显示后调用 */
     protected startup(): void{}
     /**
      * 游戏进入后台 

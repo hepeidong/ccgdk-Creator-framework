@@ -75,12 +75,19 @@ export abstract class LayerManager implements ILayerManager {
         return false;
     }
 
-    public clear(): void {
+    public clear(switchingScene: boolean = false): void {
+        // this._map.forEach((view) => {
+        //     if (!(view instanceof tools.ObjectPool)) {
+        //         if (view.winModel !== "TOAST") {
+        //             view.close(this.canRelease, switchingScene);
+        //         }
+        //     }
+        // });
         for (let i: number = 0; i < this._list.length; ++i) {
-            (this._list[i] as IWindowBase).close(this.canRelease);
+            this._list[i].close(this.canRelease, switchingScene);
         }
         this._list = null;
-        this._list = [];
+        this._list = []; 
     }
 
     public getCount(): number { return this._list.length; }

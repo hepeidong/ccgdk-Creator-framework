@@ -53,7 +53,7 @@ export  class ToastManager extends LayerManager {
             pool.put(view);
         }
         else {
-            Assert.instance.handle(Assert.Type.ToastManagerException, null, view.accessId);
+            Assert.handle(Assert.Type.ToastManagerException, null, view.accessId);
         }
     }
 

@@ -1,4 +1,4 @@
-import { EventSystem } from "../event/EventSystem";
+import { EventSystem } from "../event";
 import { IRegister } from "../lib.cck";
 
 export class Register implements IRegister {
@@ -15,10 +15,10 @@ export class Register implements IRegister {
     public getCommands() { return this._commands; }
     public getNotificationNames() { return this._notificationNames; }
 
-    public reg(notificationName: string, handler: (body: any, type: string) => void) {
+    public reg(notificationName: string, handler: (body: any, type: string) => void, target: any) {
         if (!this._regHandlers.has(notificationName)) {
             this._notificationNames.push(notificationName);
-            this._regHandlers.set(notificationName, EventSystem.Handler.create(this, handler));
+            this._regHandlers.set(notificationName, EventSystem.Handler.create(target, handler));
         }
     }
 

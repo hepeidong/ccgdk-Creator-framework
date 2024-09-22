@@ -1,102 +1,185 @@
-import { IBaseEntity, IEntityArchetype, IEntityManager, IMatcher } from "../lib.cck";
-import { removeElement } from "./ecs-utils";
-import { MatchingMethodHasBeenSelectedException } from "./exceptions/MatchingMethodHasBeenSelectedException";
-import { World } from "./World";
+import { Debug } from "../Debugger";
+import { SAFE_CALLBACK } from "../Define";
+import { EventSystem } from "../event";
+import { IBaseEntity, IEntitiesGroup, IEntityArchetype, IEntityManager, IMatcher, IMatcherChange, ISystem, MatcherChange } from "../lib.cck";
+import { utils } from "../utils";
+import { ECS_DEBUG } from "./ECSDef";
 
 /**-1（不符合任何匹配类型），0（继续完成匹配），1（符合all匹配类型），2（符合any匹配类型），3（符合none匹配类型） */
 type MatcherType = -1|0|1|2|3;
 
+type  MatcherParam = {
+    matcherType: MatcherType;
+    componentTypes: number[];
+}|null;
+
 export class Matcher<T extends IBaseEntity> implements IMatcher<T> {
-    private _currType: MatcherType;
-    private _cacheEntities: T[];
+    private static _priority: number;
+    private _allMatch: boolean;
+    private _anyMatch: boolean;
+    private _noneMatch: boolean;
+    private _name: string;
+    private _matcherWay: MatcherParam[];
+    private _cacheArchetypes: IEntityArchetype<T>[];
     private _manager: IEntityManager<T>;
-    constructor(manager: IEntityManager<T>) {
-        this._currType = -1;
+    private _onMatcherChange: IMatcherChange<MatcherChange, Matcher<T>>;
+    private _endCallback: Function;
+    constructor(manager: IEntityManager<T>, system: ISystem) {
+        this._allMatch  = false;
+        this._anyMatch  = false;
+        this._noneMatch = false;
+        this._name = system.name;
         this._manager  = manager;
-        this._cacheEntities   = null;
+        this._matcherWay      = [];
+        this._cacheArchetypes = [];
+        this._onMatcherChange = new EventSystem.Signal(this);
         manager.onArchetypeChunkChange.add(this.onArchetypeChunkChange.bind(this));
     }
 
-    /**遍历所有实体 */
-    public static forEach<T extends IBaseEntity>(callback: (entity: T) => void) {
-        const entities = World.instance.entityManager.getEntities();
-        entities.forEach(callback);
+    public static initPriority() {
+        this._priority = 1;
+    }
+
+    public get onMatcherChange() { return this._onMatcherChange; }
+
+    public getEntities() {
+        return this._manager.getEntities();
+    }
+
+    public getEntityById(id: string) {
+        for (let i = 0; i < this._cacheArchetypes.length; ++i) {
+            const archetype = this._cacheArchetypes[i];
+            const entities = archetype.getEntities();
+            for (let j = 0; j < entities.length; ++j) {
+                const entity = entities[j];
+                if (entity.ID === id) {
+                    return entity;
+                }
+            }
+        }
+        return undefined;
+    }
+
+    public hasEntity() {
+        for (const archetype of this._cacheArchetypes) {
+            if (archetype.getEntities().length > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public matcherEnabled() {
+        if (this._matcherWay.length === 0) {
+            return true;
+        }
+        return this.hasEntity();
+    }
+
+    public withAll(...args: number[]) {
+        if (!this._allMatch) {
+            this._allMatch = true;
+            this.matcherEntity(args, 1, this.allCondition);
+        }
+        return this;
+    }
+
+    public withAny(...args: number[]) {
+        if (!this._anyMatch) {
+            this._anyMatch = true;
+            this.matcherEntity(args, 2, this.anyCondition);
+        }
+        return this;
+    }
+
+    public withNone(...args: number[]) {
+        if (!this._noneMatch) {
+            this._noneMatch = true;
+            this.matcherEntity(args, 3, this.noneCondition);
+        }
+        return this;
     }
 
     /**
-     *  必须包含指定的组件中所有的组件类型
-     * @param args 
+     * 遍历匹配后的实体
+     * @param callback 索引index并不严格对应当前匹配到的索引所在的实体组里的位置，仅仅用于表示当前帧遍历实体开始，例如 index == 0
      * @returns 
      */
-    public withAll(...args: number[]) {
-        if (this._currType > -1) {
-            throw new Error(new MatchingMethodHasBeenSelectedException('withAll').toString());
+    public forEach(callback: (entity: T, index: number) => void) {
+        if (this._cacheArchetypes.length > 0) {
+            let len = 0;
+            this._cacheArchetypes.forEach(archetype => {
+                const entities = archetype.getEntities();
+                entities.forEach((entity, index) => {
+                    SAFE_CALLBACK(callback, entity, index + len);
+                });
+                len += entities.length;
+            });
+            SAFE_CALLBACK(this._endCallback);
         }
-        if (!this._cacheEntities) {
-            this._currType = 0;
-            this.mergeEntity(args, (group, type, index) => {
-                if (group.types.indexOf(type) > -1) {
-                    if (args.length === index + 1) {
+        return this;
+    }
+
+    public end(callback: Function) {
+        if (this._cacheArchetypes.length > 0) {
+            this._endCallback = callback;
+        }
+    }
+
+    private matcherEntity(types: number[], matcherType: MatcherType, condition: (group: IEntityArchetype<T>, type: number, index?: number) => number) {
+        const flag = this._matcherWay.length === 0;
+        const matcherParam: MatcherParam = {matcherType, componentTypes: types};
+        this._matcherWay.push(matcherParam);
+        if (flag) {
+            const groups = this._manager.getGroups();
+            this.mergeEntity(types, groups, condition.bind(this));
+        }
+        else {
+            const archetypes = this._cacheArchetypes.slice(0);
+            this.mergeEntity(types, archetypes, condition.bind(this));
+        }
+        this.executeOnMatcherChange();
+    }
+
+    private allCondition(group: IEntityArchetype<T>, type: number, index: number): MatcherType {
+        if (group.types.indexOf(type) > -1) {
+            for (const e of this._matcherWay) {
+                if (e.matcherType === 1) {
+                    if (e.componentTypes.length === index + 1) {
                         return 1;
                     }
-                    return 0;
+                    else {
+                        break;
+                    }
                 }
-                return -1
-            });
+            }
+            return 0;
         }
-        return this;
+        return -1;
     }
 
-    /**
-     * 必须包含指定的组件中至少一个组件类型
-     * @param args 
-     * @returns 
-     */
-    public withAny(...args: number[]) {
-        if (this._currType > -1) {
-            throw new Error(new MatchingMethodHasBeenSelectedException('withAny').toString());
+    private anyCondition(group: IEntityArchetype<T>, type: number): MatcherType {
+        if (group.types.indexOf(type) > -1) {
+            return 2;
         }
-        if (!this._cacheEntities) {
-            this._currType = 1;
-            this.mergeEntity(args, (group, type) => {
-                if (group.types.indexOf(type) > -1) {
-                    return 2;
-                }
-                return 0;
-            });
-        }
-        return this;
+        return 0;
     }
 
-    /**
-     * 不能包含指定的组件中任意一个组件类型
-     * @param args 
-     * @returns 
-     */
-    public withNone(...args: number[]) {
-        if (this._currType > -1) {
-            throw new Error(new MatchingMethodHasBeenSelectedException('withNone').toString());
-        }
-        if (!this._cacheEntities) {
-            this._currType = 2;
-            this.mergeEntity(args, (group, type, index) => {
-                if (group.types.indexOf(type) === -1) {
-                    if (args.length === index + 1) {
+    private noneCondition(group: IEntityArchetype<T>, type: number, index: number): MatcherType {
+        if (group.types.indexOf(type) === -1) {
+            for (const e of this._matcherWay) {
+                if (e.matcherType === 3) {
+                    if (e.componentTypes.length === index + 1) {
                         return 3;
                     }
-                    return 0;
+                    else {
+                        break;
+                    }
                 }
-                return -1;
-            });
+            }
+            return 0;
         }
-        return this;
-    }
-
-    /**遍历匹配的实体 */
-    public forEach(callback: (entity: T) => void) {
-        if (this._cacheEntities) {
-            this._cacheEntities.forEach(callback);
-        }
+        return -1;
     }
 
     /**
@@ -104,9 +187,8 @@ export class Matcher<T extends IBaseEntity> implements IMatcher<T> {
      * @param types 组件类型组合
      * @param conditionfn 合并的条件判定回调，分为三种，all, any, none，返回值对应为-1（不符合任何匹配类型），0（符合all匹配类型），1（符合any匹配类型），2（符合none匹配类型）
      */
-    private mergeEntity(types: number[], conditionfn: (group: IEntityArchetype<T>, type: number, index?: number) => number) {
-        this._cacheEntities = [];
-        const groups = this._manager.getGroups();
+    private mergeEntity(types: number[], groups: IEntitiesGroup<T>|IEntityArchetype<T>[], conditionfn: (group: IEntityArchetype<T>, type: number, index?: number) => MatcherType) {
+        this._cacheArchetypes = [];
         for (const key in groups) {
             const group = groups[key];
             this.mergeEntityFromGroup(group, types, conditionfn);
@@ -119,47 +201,80 @@ export class Matcher<T extends IBaseEntity> implements IMatcher<T> {
      * @param types 
      * @param conditionfn 
      */
-    private mergeEntityFromGroup(group: IEntityArchetype<T>, types: number[], conditionfn: (group: IEntityArchetype<T>, type: number, index?: number) => number) {
-        let flag: number = -1;
+    private mergeEntityFromGroup(group: IEntityArchetype<T>, types: number[], conditionfn: (group: IEntityArchetype<T>, type: number, index?: number) => MatcherType) {
+        let flag: number = this.juageCondition(group, types, conditionfn);
+        if (flag > 0) {
+            group.addRef(this._name);
+            this.addArchetype(group);
+        }
+        else {
+            group.delRef(this._name);
+            group.onGroupReleased.remove(this.onArchetypeReleased.bind(this));
+        }
+    }
+
+    private juageCondition(group: IEntityArchetype<T>, types: number[], conditionfn: (group: IEntityArchetype<T>, type: number, index?: number) => MatcherType) {
+        let flag: MatcherType = -1;
         for (let i: number = 0, len = types.length; i < len; ++i) {
             flag = conditionfn(group, types[i], i);
             if (flag !== 0) {
                 break;
             }
         }
-        if (flag > 0) {
-            this._cacheEntities.concat(group.getEntities());
-            group.onEntityAdded.add(this.onEntityAdded.bind(this));
-            group.onEntityRemoved.add(this.onEntityRemove.bind(this));
-        }
+        return flag;
     }
 
-    private onEntityAdded(entity: T) {
-        const index: number = this.indexOf(entity);
-        if (index === -1) {
-            this._cacheEntities.push(entity);
-        }
-    }
-
-    private onEntityRemove(entity: T) {
-        const index: number = this.indexOf(entity);
-        if (index > -1) {
-            removeElement(this._cacheEntities, index);
-        }
+    private addArchetype(archetype: IEntityArchetype<T>) {
+        archetype.onGroupReleased.add(this.onArchetypeReleased.bind(this), Matcher._priority++);
+        this._cacheArchetypes.push(archetype);
     }
 
     private onArchetypeChunkChange(archetype: IEntityArchetype<T>) {
-
-    }
-
-    private indexOf(entity: T) {
-        let index: number = -1;
-        for (let i: number = 0, len = this._cacheEntities.length; i < len; i++) {
-            if (this._cacheEntities[i].ID === entity.ID) {
-                index = i;
-                return index;
+        let flag: MatcherType = -1;
+        for (const e of this._matcherWay) {
+            switch (e.matcherType) {
+                case 1:
+                    flag = this.juageCondition(archetype, e.componentTypes, this.allCondition.bind(this));
+                    break;
+            
+                case 2:
+                    flag = this.juageCondition(archetype, e.componentTypes, this.anyCondition.bind(this));
+                    break;
+    
+                case 3:
+                    flag = this.juageCondition(archetype, e.componentTypes, this.noneCondition.bind(this));
+                    break;
+    
+                default:
+                    break;
+            }
+            if (flag <= 0) {
+                break;
             }
         }
-        return index;
+        if (flag > 0) {
+            this.addArchetype(archetype);
+            this.executeOnMatcherChange();
+        }
+    }
+
+    private onArchetypeReleased(archetype: IEntityArchetype<T>) {
+        const index = this._cacheArchetypes.findIndex(item => item.version === archetype.version);
+        if (index > -1) {
+            ECS_DEBUG && Debug.log(archetype.toString(), "from", this.toString(), "移除组");
+            this._cacheArchetypes.splice(index, 1);
+            this.executeOnMatcherChange();
+        }
+    }
+
+    private executeOnMatcherChange() {
+        const onMatcherChange = this.onMatcherChange;
+        if (onMatcherChange.active) {
+            onMatcherChange.dispatch();
+        }
+    }
+
+    public toString() {
+        return utils.StringUtil.replace("[Matcher:{0}] ", this._name);
     }
 }

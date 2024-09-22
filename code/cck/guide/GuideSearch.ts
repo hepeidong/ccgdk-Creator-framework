@@ -4,7 +4,7 @@ import { GuideNormalEvent, Scope } from "./GuideEnum";
 import { WidgetID } from "./WidgetID";
 import { Node } from "cc";
 import { IContainer, IGuideConfig } from "../lib.cck";
-import { EventSystem } from "../event/EventSystem";
+import { EventSystem } from "../event";
 import { getPriority, setPriority } from "../util";
 
 type panel_t = {

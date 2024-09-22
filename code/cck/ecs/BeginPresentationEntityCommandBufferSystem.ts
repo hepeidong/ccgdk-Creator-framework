@@ -1,5 +1,9 @@
-import { EntityCommandBufferSystem } from "./EntityCommandBufferSystem";
+import { BeginEntityCommandBufferSystem } from "./BeginEntityCommandBufferSystem";
 
-export class BeginPresentationEntityCommandBufferSystem extends EntityCommandBufferSystem {
 
+export class BeginPresentationEntityCommandBufferSystem extends BeginEntityCommandBufferSystem {
+
+    protected onUpdate(dt: number): void {
+        this.applyJobHandler();
+    }
 }

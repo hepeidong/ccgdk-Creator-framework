@@ -36,7 +36,7 @@ export  class CCHttp implements IHttpManager {
             return app.game.retrieveProxy(proxyName) as T;
         }
         const classRef = js.getClassByName(proxyName) as Constructor;
-        if (Assert.instance.handle(Assert.Type.GetHttpMessageClassException, classRef, proxyName)) {
+        if (Assert.handle(Assert.Type.GetHttpMessageClassException, classRef, proxyName)) {
             const proxy = new classRef(proxyName) as T;
             app.game.registerProxy(proxy);
             return proxy;

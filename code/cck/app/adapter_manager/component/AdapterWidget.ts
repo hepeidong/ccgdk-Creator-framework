@@ -1,7 +1,9 @@
-import { Component, Enum, _decorator } from "cc";
+import { Component, Enum, Vec3, _decorator } from "cc";
 import { AdapterManager } from "../AdapterManager";
 
 const {ccclass, property, menu, disallowMultiple, executionOrder} = _decorator;
+
+const _vec3Temp = new Vec3();
 
 enum offsetType {
     NONE,
@@ -130,28 +132,36 @@ export  class AdapterWidget extends Component {
 
         if (this.adapterOffset === Offset.RIGHT) 
         {
-            this.node.position.set(this.node.position.x + offsetW, this.node.position.y, this.node.position.z);
+            _vec3Temp.set(this.node.position.x + offsetW, this.node.position.y, this.node.position.z);
+            this.node.position = _vec3Temp;
         }
         else if (this.adapterOffset === Offset.LEFT) {
-            this.node.position.set(this.node.position.x - offsetW, this.node.position.y, this.node.position.z);
+            _vec3Temp.set(this.node.position.x - offsetW, this.node.position.y, this.node.position.z);
+            this.node.position = _vec3Temp;
         }
         else if (this.adapterOffset === Offset.TOP) {
-            this.node.position.set(this.node.position.x, this.node.position.y + offsetH, this.node.position.z);
+            _vec3Temp.set(this.node.position.x, this.node.position.y + offsetH, this.node.position.z);
+            this.node.position = _vec3Temp;
         }
         else if (this.adapterOffset === Offset.DOWN) {
-            this.node.position.set(this.node.position.x, this.node.position.y - offsetH, this.node.position.z);
+            _vec3Temp.set(this.node.position.x, this.node.position.y - offsetH, this.node.position.z);
+            this.node.position = _vec3Temp;
         }
         else if (this.adapterOffset === Offset.UPPER_RIGHT) {
-            this.node.position.set(this.node.position.x + offsetW, this.node.position.y + offsetH, this.node.position.z);
+            _vec3Temp.set(this.node.position.x + offsetW, this.node.position.y + offsetH, this.node.position.z);
+            this.node.position = _vec3Temp;
         }
         else if (this.adapterOffset === Offset.UPPER_LEFT) {
-            this.node.position.set(this.node.position.x - offsetW, this.node.position.y + offsetH, this.node.position.z);
+            _vec3Temp.set(this.node.position.x - offsetW, this.node.position.y + offsetH, this.node.position.z);
+            this.node.position = _vec3Temp;
         }
         else if (this.adapterOffset === Offset.LOWER_RIGHT) {
-            this.node.position.set(this.node.position.x + offsetW, this.node.position.y - offsetH, this.node.position.z);
+            _vec3Temp.set(this.node.position.x + offsetW, this.node.position.y - offsetH, this.node.position.z);
+            this.node.position = _vec3Temp;
         }
         else if (this.adapterOffset === Offset.LOWER_LEFT) {
-            this.node.position.set(this.node.position.x - offsetW, this.node.position.y - offsetH, this.node.position.z);
+            _vec3Temp.set(this.node.position.x - offsetW, this.node.position.y - offsetH, this.node.position.z);
+            this.node.position = _vec3Temp;
         }
 
         if (this.zoom) {

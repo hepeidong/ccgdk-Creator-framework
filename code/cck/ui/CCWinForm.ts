@@ -29,8 +29,14 @@ export class CCWinForm<T extends IWinView> extends WindowBase<T> {
         this.view.popup();
     }
 
-    protected _closeView() {
-        this.view.close();
+    protected _closeView(switchingScene: boolean) {
+        if (switchingScene) {
+            this.removeView();
+            WindowManager.instance.exitView(this);
+        }
+        else {
+            this.view.close();
+        }
     }
 
     private initViewComponent() {
@@ -41,14 +47,10 @@ export class CCWinForm<T extends IWinView> extends WindowBase<T> {
                 return;
             }
         }
-        Assert.instance.handle(Assert.Type.GetComponentException, null, "WinView");
+        Assert.handle(Assert.Type.GetComponentException, null, "WinView");
     }
 
     private addListener(gameUI: IWinView) {
-        if (this.winModel === "DIALOG" || this.winModel === "ACTIVITY") {
-            gameUI.setPopupSpring();
-        }
-
         gameUI.setStartListener(() => {
             this.popupView();
             if (this.winModel === "TOAST") {
@@ -56,11 +58,15 @@ export class CCWinForm<T extends IWinView> extends WindowBase<T> {
             }
         }, this);
         gameUI.setCompleteListener(() => {
+            WindowManager.instance.shiftMask();
             this.removeView();
             WindowManager.instance.exitView(this);
         }, this);
         if (this.winModel !== "TOAST") {
             gameUI.setBackBtnListener(() => WindowManager.instance.delView(this.getViewType(), false));
+        }
+        if (this.winModel === "DIALOG" || this.winModel === "ACTIVITY") {
+            gameUI.setPopupSpring();
         }
     }
 }

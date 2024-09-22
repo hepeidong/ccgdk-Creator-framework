@@ -21,7 +21,7 @@ export class AutoRelease extends Component {
                     Debug.error('资源加载错误', err);
                     return;
                 }
-                if (Assert.instance.handle(Assert.Type.LoadRemoteTextureException, texture, url)) {
+                if (Assert.handle(Assert.Type.LoadRemoteTextureException, texture, url)) {
                     const spriteFrame = new SpriteFrame();
                     spriteFrame.texture = texture;
                     this.setSpriteFrame(spriteFrame, loader);

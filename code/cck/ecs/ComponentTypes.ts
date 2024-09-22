@@ -7,7 +7,7 @@ interface IComponentType extends IComponent {
 }
 
 /**存放组件对象 */
-class DataPool {
+export class DataPool {
     private static _ins: DataPool = null;
 
     private _pool: tools.ObjectPool<IComponentType>;
@@ -15,12 +15,21 @@ class DataPool {
         this._pool = new tools.ObjectPool();
     }
 
-    public static get instance(): DataPool { return this._ins = this._ins ? this._ins : new DataPool(); }
+    public static get instance(): DataPool { 
+        if (!this._ins) {
+            this._ins = new DataPool();
+        }
+        return this._ins; 
+    }
+
+    public static destroy() {
+        this._ins = null;
+    }
 
     public size() { return this._pool.size(); }
 
     public put(components: IComponentType[], type: number) {
-        for (let i: number, len = components.length; i < len; ++i) {
+        for (let i: number = 0, len = components.length; i < len; ++i) {
             if (components[i].componentId === type) {
                 this._pool.put(components[i]);
                 removeElement(components, i);
@@ -30,9 +39,25 @@ class DataPool {
         return false;
     }
 
+    public putAll(components: IComponentType[], types: number[]) {
+        for (let i: number = 0, len = components.length; i < len; ++i) {
+            this._pool.put(components[i]);
+            delete components[i];
+        }
+        for (let i: number = 0, len = types.length; i < len; ++i) {
+            delete types[i];
+        }
+        components.length = 0;
+        types.length = 0;
+    }
+
     public get() { 
         if (this._pool.size() > 0) {
-            return this._pool.get();
+            const type = this._pool.get();
+            for (const k in type) {
+                delete type[k];
+            }
+            return type;
         }
         else {
             /**
@@ -85,18 +110,11 @@ export class ComponentTypes {
     }
 
     public removeAllComponent() {
-        for (const type of this._types) {
-            this.removeComponent(type);
-        }
+        DataPool.instance.putAll(this._components, this._types);
     }
 
     public hasComponent(type: number) {
-        for (let i: number = 0, len = this._types.length; i < len; ++i) {
-            if (this._types[i] === type) {
-                return true;
-            }
-        }
-
-        return false;
+        const index = this._types.indexOf(type);
+        return index > -1;
     }
 }

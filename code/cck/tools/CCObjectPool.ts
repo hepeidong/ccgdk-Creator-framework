@@ -1,4 +1,4 @@
-import { EventSystem } from "../event/EventSystem";
+import { EventSystem } from "../event";
 
 export class CCObjectPool<T> {
     private _pool: T[];

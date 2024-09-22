@@ -31,4 +31,9 @@ export class UUID {
           hex[d2 & 0x3f | 0x80] + hex[d2 >> 8 & 0xff] + '-' + hex[d2 >> 16 & 0xff] + hex[d2 >> 24 & 0xff] +
           hex[d3 & 0xff] + hex[d3 >> 8 & 0xff] + hex[d3 >> 16 & 0xff] + hex[d3 >> 24 & 0xff]
     }
+
+    /**这是另一种获取UUID的方式 */
+    static randomUUID1() {
+      return crypto.randomUUID();
+    }
 }

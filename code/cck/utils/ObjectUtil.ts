@@ -18,6 +18,11 @@ export  class ObjectUtil {
         return false;
     }
 
+    /**
+     * 返回指定元素的键
+     * @param obj 
+     * @param compare 
+     */
     public static keyOf(obj: object, compare: (value: any) => boolean): string;
     public static keyOf(obj: object, value: any): string;
     public static keyOf() {
@@ -67,15 +72,28 @@ export  class ObjectUtil {
             return obj;
         }
 
-        let tempObj = Array.isArray(obj) ? [] : {};
+        let tempObj;
+        if (Array.isArray(obj)) {
+            tempObj = [];
+        }
+        else if (typeof obj === 'function') {
+            tempObj = function() {}
+        }
+        else {
+            tempObj = {};
+        }
         for (const k in obj) {
-            if (obj.hasOwnProperty(k)) {
+            if (Object.hasOwnProperty(k)) {
                 (tempObj as T)[k] = (typeof obj[k] === 'object' || typeof obj[k] === 'function') ? this.cloneObject(obj[k]) : obj[k];
             }
         }
         return tempObj as T;
     }
 
+    /**
+     * 打乱数组次序
+     * @param list 
+     */
     public static disruptOrder(list: any[]) {
         let len: number = list.length;
         let flag: boolean = false;
@@ -146,5 +164,57 @@ export  class ObjectUtil {
             delete list[i];
         }
         list.length = len;
+    }
+
+    /**
+     * 冒泡排序
+     * @param list 
+     * @param compare 
+     */
+    public static bubbleSort<T>(list: T[], compare: (a: T, b: T) => number) {
+        for (let i = 0; i < list .length; ++i) {
+            for (let j = i + 1; j < list.length; ++j) {
+                if (compare(list[i], list[j]) > 0) {
+                    let temp = list[i];
+                    list[i] = list[j];
+                    list[j] = temp;
+                }
+            }
+        }
+    }
+
+    /**
+     * 快速排序
+     * @param list 
+     * @param comapre 
+     */
+    public static quickSort<T>(list: T[], comapre: (a: T, b: T) => number) {
+        const left: number[] = [], right: number[] = [];
+        left.push(0);
+        right.push(list.length - 1);
+        for (let index = 0; index < left.length; ++index) {
+            const start = left[index];
+            const len = right[index];
+            if (start < len) {
+                let i = start;
+                let j = len;
+                const temp = list[i];
+                for (; j > i; --j) {
+                    if (comapre(temp, list[j]) > 0) {
+                        list[i] = list[j];
+                        //找到大于基准元素temp的值的元素的位置（即不符合比较条件的元素所在的位置）
+                        while(comapre(temp, list[i]) > 0 && i < j) {
+                            i++;
+                        }
+                        list[j] = list[i];
+                    }
+                }
+                list[i] = temp;
+                left.push(start);
+                right.push(i - 1);
+                left.push(i + 1);
+                right.push(len);
+            }
+        }
     }
 }

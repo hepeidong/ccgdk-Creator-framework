@@ -1,8 +1,9 @@
-import { EntityCommandBufferSystem } from "./EntityCommandBufferSystem";
+import { EndEntityCommandBufferSystem } from "./EndEntityCommandBufferSystem";
 
 
-export class EndSimulationEntityCommandBufferSystem extends EntityCommandBufferSystem {
-    constructor() {
-        super();
+export class EndSimulationEntityCommandBufferSystem extends EndEntityCommandBufferSystem {
+    
+    protected onUpdate(dt: number): void {
+        this.applyJobHandler();
     }
 }

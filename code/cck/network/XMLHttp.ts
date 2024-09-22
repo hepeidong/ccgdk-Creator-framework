@@ -24,7 +24,7 @@ export class XMLHttp {
     public static getInstance(): XMLHttp {
         if (!this._ins) {
             this._ins = new XMLHttp();
-            Assert.instance.handle(Assert.Type.CreateObjectException, this._ins, "XMLHttp");
+            Assert.handle(Assert.Type.CreateObjectException, this._ins, "XMLHttp");
         }
         return this._ins;
     }
