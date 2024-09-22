@@ -1,0 +1,62 @@
+
+fx_arise.png
+size: 512,512
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Halo_5
+  rotate: false
+  xy: 126, 256
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+Line_1
+  rotate: false
+  xy: 2, 305
+  size: 13, 204
+  orig: 32, 208
+  offset: 9, 0
+  index: -1
+Line_2
+  rotate: false
+  xy: 2, 114
+  size: 76, 189
+  orig: 78, 190
+  offset: 1, 1
+  index: -1
+Ring_23
+  rotate: false
+  xy: 126, 198
+  size: 56, 56
+  orig: 64, 64
+  offset: 4, 4
+  index: -1
+Ring_36
+  rotate: false
+  xy: 126, 144
+  size: 48, 52
+  orig: 64, 64
+  offset: 9, 7
+  index: -1
+Ring_55
+  rotate: false
+  xy: 2, 2
+  size: 128, 110
+  orig: 128, 128
+  offset: 0, 10
+  index: -1
+guang
+  rotate: false
+  xy: 80, 148
+  size: 44, 172
+  orig: 44, 178
+  offset: 0, 0
+  index: -1
+shijing1
+  rotate: true
+  xy: 17, 322
+  size: 187, 170
+  orig: 197, 178
+  offset: 2, 7
+  index: -1

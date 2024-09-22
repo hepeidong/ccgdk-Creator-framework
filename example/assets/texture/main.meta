@@ -1,0 +1,14 @@
+{
+  "ver": "1.1.0",
+  "importer": "directory",
+  "imported": true,
+  "uuid": "76f2c370-d9ab-4c87-b7df-b75697235a29",
+  "files": [],
+  "subMetas": {},
+  "userData": {
+    "compressionType": {},
+    "isRemoteBundle": {},
+    "priority": 20,
+    "bundleName": "gameMain"
+  }
+}

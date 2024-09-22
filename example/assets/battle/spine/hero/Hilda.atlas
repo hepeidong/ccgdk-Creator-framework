@@ -1,0 +1,139 @@
+
+Hilda.png
+size: 256,128
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+nks_02_1
+  rotate: true
+  xy: 107, 24
+  size: 5, 3
+  orig: 5, 3
+  offset: 0, 0
+  index: -1
+nks_02_10
+  rotate: false
+  xy: 113, 4
+  size: 52, 48
+  orig: 52, 48
+  offset: 0, 0
+  index: -1
+nks_02_11
+  rotate: false
+  xy: 166, 56
+  size: 56, 70
+  orig: 56, 70
+  offset: 0, 0
+  index: -1
+nks_02_12
+  rotate: true
+  xy: 107, 54
+  size: 72, 57
+  orig: 72, 57
+  offset: 0, 0
+  index: -1
+nks_02_13
+  rotate: true
+  xy: 29, 3
+  size: 16, 41
+  orig: 16, 41
+  offset: 0, 0
+  index: -1
+nks_02_14
+  rotate: true
+  xy: 72, 3
+  size: 16, 26
+  orig: 16, 26
+  offset: 0, 0
+  index: -1
+nks_02_15
+  rotate: false
+  xy: 188, 3
+  size: 22, 24
+  orig: 22, 24
+  offset: 0, 0
+  index: -1
+nks_02_16
+  rotate: false
+  xy: 167, 27
+  size: 13, 27
+  orig: 13, 27
+  offset: 0, 0
+  index: -1
+nks_02_17
+  rotate: false
+  xy: 182, 29
+  size: 13, 25
+  orig: 13, 25
+  offset: 0, 0
+  index: -1
+nks_02_18
+  rotate: true
+  xy: 2, 2
+  size: 17, 25
+  orig: 17, 25
+  offset: 0, 0
+  index: -1
+nks_02_19
+  rotate: true
+  xy: 2, 21
+  size: 105, 103
+  orig: 105, 103
+  offset: 0, 0
+  index: -1
+nks_02_2
+  rotate: true
+  xy: 209, 35
+  size: 19, 10
+  orig: 19, 10
+  offset: 0, 0
+  index: -1
+nks_02_3
+  rotate: true
+  xy: 107, 31
+  size: 7, 3
+  orig: 8, 3
+  offset: 1, 0
+  index: -1
+nks_02_4
+  rotate: true
+  xy: 197, 33
+  size: 21, 10
+  orig: 21, 10
+  offset: 0, 0
+  index: -1
+nks_02_5
+  rotate: true
+  xy: 107, 47
+  size: 5, 4
+  orig: 5, 4
+  offset: 0, 0
+  index: -1
+nks_02_6
+  rotate: true
+  xy: 107, 40
+  size: 5, 4
+  orig: 5, 4
+  offset: 0, 0
+  index: -1
+nks_02_7
+  rotate: false
+  xy: 212, 17
+  size: 10, 16
+  orig: 10, 16
+  offset: 0, 0
+  index: -1
+nks_02_8
+  rotate: false
+  xy: 100, 3
+  size: 11, 16
+  orig: 11, 16
+  offset: 0, 0
+  index: -1
+nks_02_9
+  rotate: false
+  xy: 167, 2
+  size: 19, 23
+  orig: 19, 23
+  offset: 0, 0
+  index: -1

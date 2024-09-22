@@ -1,0 +1,10 @@
+{
+	"ResourceEnum_1001_nameCn":"钻石",
+	"ResourceEnum_1001_desc":"商店货币",
+	"ResourceEnum_1002_nameCn":"金币",
+	"ResourceEnum_1002_desc":"基础货币",
+	"ResourceEnum_1003_nameCn":"体力",
+	"ResourceEnum_1003_desc":"关卡消耗",
+	"ResourceEnum_1004_nameCn":"玩家经验",
+	"ResourceEnum_1004_desc":"玩家升级经验"
+}

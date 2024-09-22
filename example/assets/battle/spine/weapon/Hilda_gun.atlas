@@ -1,0 +1,13 @@
+
+Hilda_gun.png
+size: 64,64
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+images/nks_shouqiang_00
+  rotate: false
+  xy: 2, 2
+  size: 46, 32
+  orig: 46, 32
+  offset: 0, 0
+  index: -1

@@ -1,0 +1,41 @@
+
+Stem_purple_Boss.png
+size: 256,512
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+images/shilaimu_zi_01
+  rotate: false
+  xy: 2, 2
+  size: 247, 263
+  orig: 247, 263
+  offset: 0, 0
+  index: -1
+images/shilaimu_zi_02
+  rotate: false
+  xy: 174, 267
+  size: 69, 58
+  orig: 69, 58
+  offset: 0, 0
+  index: -1
+images/shilaimu_zi_022
+  rotate: false
+  xy: 107, 272
+  size: 65, 53
+  orig: 65, 53
+  offset: 0, 0
+  index: -1
+images/shilaimu_zi_023
+  rotate: true
+  xy: 73, 309
+  size: 16, 32
+  orig: 16, 32
+  offset: 0, 0
+  index: -1
+images/shilaimu_zi_024
+  rotate: false
+  xy: 2, 314
+  size: 69, 11
+  orig: 69, 11
+  offset: 0, 0
+  index: -1

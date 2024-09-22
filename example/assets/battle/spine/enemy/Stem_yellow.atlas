@@ -1,0 +1,27 @@
+
+Stem_yellow.png
+size: 128,128
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+images/shilaimu_huang_01
+  rotate: false
+  xy: 2, 2
+  size: 93, 93
+  orig: 93, 93
+  offset: 0, 0
+  index: -1
+images/shilaimu_huang_02
+  rotate: true
+  xy: 2, 102
+  size: 18, 21
+  orig: 18, 21
+  offset: 0, 0
+  index: -1
+images/shilaimu_huang_03
+  rotate: false
+  xy: 25, 97
+  size: 27, 23
+  orig: 27, 23
+  offset: 0, 0
+  index: -1
