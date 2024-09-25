@@ -106,19 +106,64 @@ export  class StringUtil {
      * @param logTag 标签
      * @param type 日志类型
      */
-    public static logFormat(logTag: string = null, type: string): string {
+    public static logFormat(logTag: string, type: string): string {
         if (SHOW_DATE) {
             return `${logTag ? `[${logTag}]` : ''}${DateUtil.dateFormat('%s-%s-%s %s:%s:%s:%s')} ${type}`;
         }
         return `${logTag ? `[${logTag}]` : ''} ${type}`;
     }
 
-    public static replace(str: string, ...replaceValue: any[]): string {
+    /**
+     * 连续替大括号{}内的字符
+     * @param str 
+     * @param replaceValue 
+     * @returns 
+     * @example
+     * replaceBrace("{0}年级{1}班的王同学", "三", "5"); //返回的结果是"三年级5班的王同学"
+     * 
+     */
+    public static replaces(str: string, ...replaceValue: any[]): string {
         for (let i: number = 0; i < replaceValue.length; ++i) {
-            str = str.replace(`{${i}}`, replaceValue[i]);
-            // str = str.replace(new RegExp("\\{"+ i +"\\}","g"), replaceValue[i]);
+            str = str.replace(/\{[^\}]+\}/, replaceValue[i]);
         }
         return str;
+    }
+
+    /**
+     * 替换括号内的字符，会保留括号，默认替换{}内的字符
+     * 注：只能替换{}、[]、()这三种括号内的字符
+     * @param str 
+     * @param replaceValue 
+     * @param parentheses 需要替换的括号
+     * @param isKeep 是否保留括号，默认是不保留
+     * @returns 
+     * @example
+     * replace("这是一个{AA}", "BB", true, "{}"); //返回结果是"这是一个{BB}"
+     */
+    public static replace(str: string, replaceValue: string, isKeep: boolean = false, parentheses: string = "{}") {
+        let exp: any;
+        if (parentheses === "{}") {
+            exp = /\{[^\}]+\}/;
+            replaceValue = isKeep? `{${replaceValue}}` : replaceValue;
+        }
+        else if (parentheses === "[]") {
+            exp = /\[[^\)]*\]/g;
+            replaceValue = isKeep? `[${replaceValue}]` : replaceValue;
+        }
+        else if (parentheses === "()") {
+            exp = /\([^\)]*\)/g;
+            replaceValue = isKeep? `(${replaceValue})` : replaceValue;
+        }
+        return str.replace(exp, replaceValue);
+    }
+
+    /**
+     * 清除所有空格符号
+     * @param str 
+     * @returns 
+     */
+    public static clearAllSpace(str: string) {
+        return str.replace(/ /g, "");
     }
 
     /**
@@ -383,7 +428,7 @@ export  class StringUtil {
             let a: string = str.charAt(i);
             str_length++;
             //中文字符经编码后长度大于4
-            if (escape(a).length > 4) {
+            if (encodeURIComponent(a).length > 4) {
                 str_length++;
             }
             str_cut = str_cut.concat(a);
@@ -393,9 +438,7 @@ export  class StringUtil {
             }
         }
         //被截取的字符串str小于要截取的长度
-        if (str_length < len) {
-            return str;
-        }
+        return str;
     }
 
     /**
@@ -404,7 +447,7 @@ export  class StringUtil {
      */
     public static getLen(str: string): number {
         return this.getStringLen(str, (s: string) => {
-            if (escape(s).length > 4) {
+            if (encodeURIComponent(s).length > 4) {
                 return 2;
             }
             else return 1;
@@ -417,7 +460,7 @@ export  class StringUtil {
      */
     public static getLabelLen(str: string): number {
         return this.getStringLen(str, (s: string) => {
-            if (escape(s).length > 4) {
+            if (encodeURIComponent(s).length > 4) {
                 return 1;
             }
             else return 0.5;
@@ -445,14 +488,14 @@ export  class StringUtil {
         let value: string;
         let str = window.location.href; // 取得整个地址栏
         let num = str.indexOf('?');
-        str = str.substr(num + 1); // 取得所有参数   stringvar.substr(start [, length ]
+        str = str.substring(num + 1); // 取得所有参数
 
         const arr = str.split('&'); // 各个参数放到数组里
         for (let i = 0; i < arr.length; i++) {
             num = arr[i].indexOf('=');
             if (num > 0) {
                 name = arr[i].substring(0, num);
-                value = arr[i].substr(num + 1);
+                value = arr[i].substring(num + 1);
                 params[name] = value;
             }
         }
